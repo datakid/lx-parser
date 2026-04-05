@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<title>lx parser</title>
+<title>Protocol Analytics</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
@@ -26,21 +25,20 @@
     --palette-bg: rgba(255, 255, 255, 0.8);
     --badge-bg: #F4F6F8;
     --row-active: rgba(43, 106, 255, 0.08);
-}
-[data-theme="dark"] {
-    --bg: #090B11;
-    --surface: #131A2A;
-    --surface-hover: #1E293B;
-    --border: #1F2937;
+}[data-theme="dark"] {
+    --bg: #0B0A10; 
+    --surface: #14111A;
+    --surface-hover: #1F1A28;
+    --border: #2A2336;
     --text-primary: #F9FAFB;
-    --text-secondary: #9CA3AF;
+    --text-secondary: #A39BAF; 
     --accent-blue: #4C82FB;
     --accent-pink: #FB118E;
-    --danger-bg: #450A0A;
+    --danger-bg: #350A1A; 
     --shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
-    --palette-bg: rgba(19, 26, 42, 0.8);
-    --badge-bg: #0D111C;
-    --row-active: rgba(76, 130, 251, 0.15);
+    --palette-bg: rgba(20, 17, 26, 0.85);
+    --badge-bg: #1A1523;
+    --row-active: rgba(251, 17, 142, 0.12);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 body { background: var(--bg); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; transition: 0.2s; overflow-y: scroll; }
@@ -96,7 +94,6 @@ input:checked + .slider:before { transform: translateX(14px); }
 .slicer-btn { background: transparent; border: none; color: var(--text-secondary); padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; }
 .slicer-btn.active { background: var(--badge-bg); color: var(--text-primary); border: 1px solid var(--border); }
 
-/* Beautiful Pink Bento Layout */
 .bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; width: 100%; }
 .bento-card { background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--accent-pink); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow); transition: 0.3s; position: relative; overflow: hidden; }
 .bento-card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(251, 17, 142, 0.04) 0%, transparent 100%); opacity: 0; transition: 0.3s; pointer-events: none; }
@@ -113,16 +110,16 @@ input:checked + .slider:before { transform: translateX(14px); }
 .table-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
 .table-wrapper::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
-th { position: sticky; top: 0; background: var(--surface); color: var(--text-secondary); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; padding: 18px 20px; border-bottom: 1px solid var(--border); white-space: nowrap; z-index: 10; cursor: pointer; user-select: none; transition: 0.2s; box-shadow: 0 1px 0 var(--border); }
+th { position: sticky; top: 0; background: var(--surface); color: var(--text-secondary); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; padding: 16px 20px; border-bottom: 1px solid var(--border); white-space: nowrap; z-index: 10; cursor: pointer; user-select: none; transition: 0.2s; box-shadow: 0 1px 0 var(--border); text-align: left; vertical-align: middle; }
 th:hover { color: var(--text-primary); background: var(--surface-hover); }
-.sort-icon { display: inline-block; margin-left: 6px; font-size: 12px; opacity: 0.3; }
+.sort-icon { display: inline-block; margin-left: 6px; font-size: 12px; opacity: 0.3; vertical-align: middle; transform: translateY(-1px); }
 th.sort-active .sort-icon { opacity: 1; color: var(--accent-blue); }
-td { padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-primary); font-weight: 500; }
+td { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-primary); font-weight: 500; vertical-align: middle; text-align: left; }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--surface-hover); }
 tr.selected-row td { background: var(--row-active); }
 
-.arabic-text { font-family: system-ui, sans-serif; direction: rtl; text-align: right; display: block; font-weight: 600; font-size: 14px; }
+.arabic-text { font-family: system-ui, sans-serif; direction: rtl; display: inline-block; font-weight: 600; font-size: 14px; }
 .badge { padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; background: var(--badge-bg); border: 1px solid var(--border); display: inline-block; white-space: nowrap; }
 .badge.workforce { color: var(--accent-blue); background: rgba(43, 106, 255, 0.1); border-color: rgba(43, 106, 255, 0.2); }
 .badge.student { color: var(--accent-pink); background: rgba(251, 17, 142, 0.1); border-color: rgba(251, 17, 142, 0.2); }
@@ -150,7 +147,6 @@ input[type="file"] { display: none; }
 .action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 20px; }
 .action-group { display: flex; gap: 12px; }
 
-/* Mobile Responsiveness */
 @media (max-width: 850px) {
     nav { flex-direction: column; padding: 16px; gap: 16px; }
     .nav-links { overflow-x: auto; width: 100%; justify-content: flex-start; flex-wrap: nowrap; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
@@ -181,7 +177,7 @@ input[type="file"] { display: none; }
 <nav>
     <div class="logo">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-        Lx parser alpha
+        DASHBOARD
     </div>
     <div class="nav-links">
         <button class="nav-btn active" data-target="view-overview">Overview</button>
@@ -189,6 +185,7 @@ input[type="file"] { display: none; }
         <button class="nav-btn" data-target="view-drugs">Item Insights</button>
         <button class="nav-btn" data-target="view-pricing">Pricing Config</button>
         <button class="nav-btn" data-target="view-pharmacies">Region Map</button>
+        <button class="nav-btn" data-target="view-missing">Missing Pharms</button>
         <button class="nav-btn" data-target="view-anomalies">Anomalies</button>
     </div>
     <div class="controls">
@@ -342,6 +339,30 @@ input[type="file"] { display: none; }
         </div>
     </div>
 
+    <div id="view-missing" class="view">
+        <div class="card action-row" style="margin-bottom: 20px; padding: 12px 24px;">
+            <div style="font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                Missing Pharmacies
+            </div>
+            <div style="font-size:13px; color:var(--text-secondary);">Pharmacies recognized in the routing map but absent or reporting 0 records in current imported data.</div>
+        </div>
+        <div class="table-card">
+            <div class="table-wrapper">
+                <table data-view="view-missing">
+                    <thead>
+                        <tr>
+                            <th data-sort="k">Pharmacy <span class="sort-icon">↕</span></th>
+                            <th data-sort="reg">Expected Region <span class="sort-icon">↕</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb-missing"></tbody>
+                </table>
+            </div>
+            <div class="cap-notice" id="cap-missing"></div>
+        </div>
+    </div>
+
     <div id="view-anomalies" class="view">
         <div class="card action-row" style="margin-bottom: 20px; padding: 12px 24px;">
             <div style="font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px;">
@@ -396,10 +417,10 @@ let state = {
     pharmacies: JSON.parse(localStorage.getItem('uni_pharmacies') || JSON.stringify(DEFAULT_PHARMACIES))
 };
 
-let db = [], filteredDB = [], overviewData = [], breakdownData =[], priceData =[], pharmData = [], anomaliesData =[], activePharms = new Set();
+let db = [], filteredDB =[], overviewData = [], breakdownData =[], priceData =[], pharmData =[], missingData =[], anomaliesData =[], activePharms = new Set();
 let currentView = 'view-overview', currentSlicer = 'r';
-let sortRules = { 'view-overview':[{k:'tot', d:-1}], 'view-drugs': [{k:'tot', d:-1}], 'view-pricing': [{k:'stat', d:-1}], 'view-pharmacies':[{k:'stat', d:-1}], 'view-anomalies':[{k:'row', d:1}] };
-let renderLimits = { 'view-overview': 100, 'view-drugs': 100, 'view-pricing': 100, 'view-pharmacies': 100, 'view-anomalies': 100 };
+let sortRules = { 'view-overview':[{k:'tot', d:-1}], 'view-drugs':[{k:'tot', d:-1}], 'view-pricing':[{k:'stat', d:-1}], 'view-pharmacies':[{k:'stat', d:-1}], 'view-missing':[{k:'k', d:1}], 'view-anomalies':[{k:'row', d:1}] };
+let renderLimits = { 'view-overview': 100, 'view-drugs': 100, 'view-pricing': 100, 'view-pharmacies': 100, 'view-missing': 100, 'view-anomalies': 100 };
 
 let activeRowIndex = -1, searchTimeout;
 const fmtEGP = new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP' });
@@ -478,9 +499,9 @@ function isMatch(tokens, normStr, isExact) {
 }
 
 document.addEventListener('keydown', e => {
-    const isInput = document.activeElement.tagName === 'INPUT';
-    
-    // Global shortcut '/' to focus search
+    const activeTag = document.activeElement.tagName;
+    const isInput = activeTag === 'INPUT' || activeTag === 'SELECT';
+
     if (e.key === '/' && !isInput) {
         e.preventDefault();
         document.getElementById('omnibox').focus();
@@ -488,12 +509,48 @@ document.addEventListener('keydown', e => {
     }
 
     const tbody = document.querySelector(`#${currentView} tbody`);
-    if (!tbody || isInput) return;
-    const rows = tbody.querySelectorAll('tr');
-    if (e.key === 'ArrowDown') { e.preventDefault(); activeRowIndex = Math.min(activeRowIndex + 1, rows.length - 1); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); activeRowIndex = Math.max(activeRowIndex - 1, 0); }
-    else return;
-    rows.forEach((r, i) => { r.classList.toggle('selected-row', i === activeRowIndex); if (i === activeRowIndex) r.scrollIntoView({block: 'nearest'}); });
+    if (!tbody) return;
+    
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    if(!rows.length) return;
+
+    if (isInput && document.activeElement.classList.contains('editable')) {
+        const currentRow = document.activeElement.closest('tr');
+        if(!currentRow) return;
+        const currentIndex = rows.indexOf(currentRow);
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const nextRow = rows[Math.min(currentIndex + 1, rows.length - 1)];
+            const nextInput = nextRow.querySelector('.editable');
+            if(nextInput) nextInput.focus();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prevRow = rows[Math.max(currentIndex - 1, 0)];
+            const prevInput = prevRow.querySelector('.editable');
+            if(prevInput) prevInput.focus();
+        }
+        return; 
+    }
+
+    if (isInput) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeRowIndex = Math.min(activeRowIndex + 1, rows.length - 1);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeRowIndex = Math.max(activeRowIndex - 1, 0);
+    } else {
+        return;
+    }
+
+    rows.forEach((r, i) => {
+        r.classList.toggle('selected-row', i === activeRowIndex);
+        if (i === activeRowIndex) {
+            r.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    });
 });
 
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -697,11 +754,9 @@ document.getElementById('sel-reg').addEventListener('change', () => {
 });
 
 const omni = document.getElementById('omnibox');
-omni.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(syncFromOmnibox, 150); });
-['sel-cat', 'sel-end', 'toggle-exact'].forEach(id => document.getElementById(id).addEventListener('change', syncFromOmnibox));
+omni.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(syncFromOmnibox, 150); });['sel-cat', 'sel-end', 'toggle-exact'].forEach(id => document.getElementById(id).addEventListener('change', syncFromOmnibox));
 
 function syncFromOmnibox() {
-    // Reset limits on new filter
     Object.keys(renderLimits).forEach(k => renderLimits[k] = 100);
 
     let q = normAr(omni.value.trim());
@@ -719,7 +774,7 @@ function syncFromOmnibox() {
         return true;
     });
 
-    precalcOverview(); precalcBreakdown(); precalcPricing(tokens, isExact); precalcPharmacies(tokens, isExact);
+    precalcOverview(); precalcBreakdown(); precalcPricing(tokens, isExact); precalcPharmacies(tokens, isExact); precalcMissing(tokens, isExact);
     renderActiveView();
 }
 
@@ -771,6 +826,24 @@ function precalcPharmacies(tokens, isExact) {
     });
 }
 
+function precalcMissing(tokens, isExact) {
+    missingData =[];
+    const fR = document.getElementById('sel-reg').value;
+    Object.keys(state.pharmacies).forEach(k => {
+        if (activePharms.has(k)) return;
+        
+        let rawReg = state.pharmacies[k] || "Unmapped";
+        let reg = REGION_MAP[rawReg] || rawReg;
+        
+        if (fR && reg.toLowerCase() !== fR) return;
+        
+        const norm = normAr(`${k} ${reg}`);
+        if (!isMatch(tokens, norm, isExact)) return;
+        
+        missingData.push({ k, reg });
+    });
+}
+
 window.loadMore = () => {
     if(renderLimits[currentView]) {
         renderLimits[currentView] += 200;
@@ -796,6 +869,7 @@ function renderActiveView() {
     if (currentView === 'view-drugs') renderDrugs();
     if (currentView === 'view-pricing') renderPricing();
     if (currentView === 'view-pharmacies') renderPharmacies();
+    if (currentView === 'view-missing') renderMissing();
     if (currentView === 'view-anomalies') renderAnomalies();
 }
 
@@ -852,7 +926,23 @@ function renderDrugs() {
     updateCapNotice('drugs', finalData.length);
 }
 
-window.updatePrice = (k, v) => { state.prices[k] = parseFloat(v) || 0; localStorage.setItem('uni_prices', JSON.stringify(state.prices)); db.forEach(r => { if (`${r.i}|${r.u}` === k) { r.price = state.prices[k]; r.tot = r.q * r.price; } }); syncFromOmnibox(); };
+window.updatePrice = (k, v) => { 
+    state.prices[k] = parseFloat(v) || 0; 
+    localStorage.setItem('uni_prices', JSON.stringify(state.prices)); 
+    db.forEach(r => { if (`${r.i}|${r.u}` === k) { r.price = state.prices[k]; r.tot = r.q * r.price; } }); 
+    
+    let focusedId = null;
+    if(document.activeElement && document.activeElement.classList.contains('editable')) {
+        focusedId = document.activeElement.dataset.id;
+    }
+
+    syncFromOmnibox(); 
+
+    if(focusedId) {
+        const el = document.querySelector(`.editable[data-id="${focusedId}"]`);
+        if(el) el.focus();
+    }
+};
 
 function renderPricing() {
     const finalData = applySort(priceData, 'view-pricing');
@@ -860,14 +950,30 @@ function renderPricing() {
     let html = '', unpriced = 0;
     finalData.forEach((d, idx) => {
         if (d.stat === 0) unpriced++;
-        if (idx < limit) html += `<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td><input type="number" class="editable" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`;
+        if (idx < limit) html += `<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td><input type="number" class="editable" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`;
     });
     document.getElementById('tb-pricing').innerHTML = html;
     document.getElementById('kpi-unpriced').textContent = unpriced;
     updateCapNotice('pricing', finalData.length);
 }
 
-window.updateRegion = (p, v) => { state.pharmacies[p] = v.trim(); localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies)); db.forEach(r => { if (r.p === p) { let mapped = state.pharmacies[p] || "Unmapped"; r.region = REGION_MAP[mapped] || mapped; r.r_low = r.region.toLowerCase(); r._norm = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`); } }); syncFromOmnibox(); };
+window.updateRegion = (p, v) => { 
+    state.pharmacies[p] = v.trim(); 
+    localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies)); 
+    db.forEach(r => { if (r.p === p) { let mapped = state.pharmacies[p] || "Unmapped"; r.region = REGION_MAP[mapped] || mapped; r.r_low = r.region.toLowerCase(); r._norm = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`); } }); 
+    
+    let focusedId = null;
+    if(document.activeElement && document.activeElement.classList.contains('editable')) {
+        focusedId = document.activeElement.dataset.id;
+    }
+
+    syncFromOmnibox(); 
+
+    if(focusedId) {
+        const el = document.querySelector(`.editable[data-id="${focusedId}"]`);
+        if(el) el.focus();
+    }
+};
 
 function renderPharmacies() {
     const finalData = applySort(pharmData, 'view-pharmacies');
@@ -875,12 +981,27 @@ function renderPharmacies() {
     let html = '', unm = 0, inact = 0;
     finalData.forEach((d, idx) => {
         if(d.stat === 0) unm++; else if(d.stat === 2) inact++;
-        if (idx < limit) html += `<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`;
+        if (idx < limit) html += `<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`;
     });
     document.getElementById('tb-pharmacies').innerHTML = html;
     document.getElementById('kpi-unmapped').textContent = unm;
     document.getElementById('kpi-inactive').textContent = inact;
     updateCapNotice('pharmacies', finalData.length);
+}
+
+function renderMissing() {
+    const finalData = applySort(missingData, 'view-missing');
+    const limit = renderLimits['view-missing'];
+    let html = '';
+    for (let j = 0; j < Math.min(finalData.length, limit); j++) {
+        const d = finalData[j];
+        html += `<tr>
+            <td><span class="arabic-text">${escapeHTML(d.k)}</span></td>
+            <td><span class="arabic-text">${escapeHTML(d.reg)}</span></td>
+        </tr>`;
+    }
+    document.getElementById('tb-missing').innerHTML = html;
+    updateCapNotice('missing', finalData.length);
 }
 
 function renderAnomalies() {
@@ -920,6 +1041,9 @@ document.getElementById('btn-export').addEventListener('click', () => {
     else if (currentView === 'view-pharmacies') {
         data = applySort(pharmData, currentView).map(d => ({ Pharmacy: d.k, Region: d.reg, Status: d.stat === 0 ? 'Unmapped' : d.stat === 2 ? 'Inactive' : 'Active' }));
     }
+    else if (currentView === 'view-missing') {
+        data = applySort(missingData, currentView).map(d => ({ Pharmacy: d.k, 'Expected Region': d.reg }));
+    }
     else {
         data = applySort(anomaliesData, currentView).map(d => ({ Source: d.sheet, Row: d.row, Item: d.i, Pharmacy: d.p, 'Invalid Value': d.val, Action: d.act }));
     }
@@ -935,9 +1059,7 @@ document.getElementById('btn-template-prices').addEventListener('click', () => {
 document.getElementById('btn-template-regions').addEventListener('click', () => {
     const blob = new Blob(["\uFEFF" + Papa.unparse(pharmData.map(d => ({ 'Pharmacy': d.k, 'Region': d.reg })))], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Routing_Template.csv`; link.click();
-});
-
-['file-prices', 'file-regions'].forEach(id => {
+});['file-prices', 'file-regions'].forEach(id => {
     document.getElementById(id).addEventListener('change', e => {
         if (!e.target.files[0]) return;
         Papa.parse(e.target.files[0], {
