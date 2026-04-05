@@ -69,8 +69,10 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 kbd.shortcut { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-family: monospace; color: var(--text-secondary); margin-left: auto; display: inline-block; box-shadow: 0 2px 0 var(--border); }
 
 .dropdowns-row { display: flex; gap: 12px; padding: 0 24px 16px; align-items: center; flex-wrap: wrap; }
-.dropdown-group { display: flex; align-items: center; gap: 6px; background: var(--badge-bg); border: 1px solid var(--border); padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.dropdown-group { display: flex; align-items: center; gap: 6px; background: var(--badge-bg); border: 1px solid var(--border); padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; color: var(--text-secondary); transition: 0.2s; }
+.dropdown-group:hover { border-color: var(--text-secondary); background: var(--surface-hover); }
 .dropdown-group select { background: transparent; border: none; color: var(--text-primary); font-weight: 600; outline: none; cursor: pointer; appearance: none; padding-right: 18px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right center; background-size: 14px; }
+.dropdown-group select option { background: var(--surface); color: var(--text-primary); }
 .clear-btn { background: transparent; border: none; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 0 0 8px; border-left: 1px solid var(--border); transition: 0.2s; }
 .clear-btn:hover { color: var(--danger); transform: scale(1.1); }
 
