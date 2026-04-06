@@ -31,15 +31,15 @@
     --glass-border: rgba(255, 255, 255, 0.5);
 }
 [data-theme="dark"] {
-    --bg: #09080D; 
+    --bg: #09080D;
     --surface: #120F16;
     --surface-hover: #1A1622;
     --border: #241E30;
     --text-primary: #FFFFFF;
-    --text-secondary: #9CA3AF; 
+    --text-secondary: #9CA3AF;
     --accent-blue: #4C82FB;
     --accent-pink: #FB118E;
-    --danger-bg: #350A1A; 
+    --danger-bg: #350A1A;
     --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
     --shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
     --shadow-glow: 0 0 48px rgba(251, 17, 142, 0.15);
@@ -49,26 +49,26 @@
     --glass-border: rgba(255, 255, 255, 0.04);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-body { 
-    background: var(--bg); 
+body {
+    background: var(--bg);
     background-image: radial-gradient(circle at 50% 0%, var(--surface-hover) 0%, transparent 70vh);
-    color: var(--text-primary); 
-    min-height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    transition: background 0.3s ease, color 0.3s ease; 
-    overflow-y: scroll; 
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s ease, color 0.3s ease;
+    overflow-y: scroll;
 }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-nav { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 16px 24px; 
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
     margin: 20px auto;
     width: calc(100% - 40px);
     max-width: 1400px;
@@ -459,7 +459,7 @@ input[type="file"] { display: none; }
 const DEFAULT_PHARMACIES = {
     "ابو المطامير ق.ع": "الاولى", "ادكو ق.ع": "الاولى", "البيضا ق.ع": "الاولى", "النوبارية": "الاولى", "رشيد ق.ع": "الاولى", "سكر (كفر الدوار)": "الاولى", "كفر الدوار ق.ع": "الاولى",
     "ابو المطامير": "الاولى", "ادكو": "الاولى", "البيضا": "الاولى", "رشيد": "الاولى", "كفر الدوار": "الاولى",
-    "ابوحمص ق.ع": "الثانية", "الأورام": "الثانية", "الرحمانية ق.ع": "الثانية", "الشرطة": "الثانية", "المحمودية ق.ع": "الثانية", "حوش عيسى ق.ع": "الثانية", "دمنهور الشاملة 1": "الثانية", "دمنهور الشاملة 2": "الثانية", "دمنهور مسائي": "الثانية", "سكر (دمنهور)": "الثانية", 
+    "ابوحمص ق.ع": "الثانية", "الأورام": "الثانية", "الرحمانية ق.ع": "الثانية", "الشرطة": "الثانية", "المحمودية ق.ع": "الثانية", "حوش عيسى ق.ع": "الثانية", "دمنهور الشاملة 1": "الثانية", "دمنهور الشاملة 2": "الثانية", "دمنهور مسائي": "الثانية", "سكر (دمنهور)": "الثانية",
     "ابوحمص": "الثانية", "الاورام": "الثانية", "الرحمانية": "الثانية", "المحمودية": "الثانية", "حوش عيسى": "الثانية", "دمنهور": "الثانية",
     "الدلنجات ق.ع": "الثالثة", "ايتاي ق.ع": "الثالثة", "بدر ق.ع": "الثالثة", "سكر (ايتاي)": "الثالثة", "شبراخيت ق.ع": "الثالثة", "قليشان": "الثالثة", "كوم حمادة ق.ع": "الثالثة", "وادي النطرون": "الثالثة",
     "ايتاي": "الثالثة", "بدر": "الثالثة", "شبراخيت": "الثالثة", "كوم حمادة": "الثالثة", "الدلنجات": "الثالثة"
@@ -467,7 +467,7 @@ const DEFAULT_PHARMACIES = {
 
 const REGION_MAP = { "1": "الاولى", "2": "الثانية", "3": "الثالثة" };
 
-const SOURCES =[
+const SOURCES = [
     { url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQN8aXSpq9C0tCALXXoEbvJPaclARPbZYOK_HfsUvEt2LHfI3POMH-nCtrxlo88Ggv5suGlWyMQZ9F1/pub?output=csv", type: "Workforce" },
     { url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQN8aXSpq9C0tCALXXoEbvJPaclARPbZYOK_HfsUvEt2LHfI3POMH-nCtrxlo88Ggv5suGlWyMQZ9F1/pub?output=csv&gid=634020883", type: "Workforce" },
     { url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUGSMP51ErMxVdw6PZ6yH1l2zo1VwPyyOqOgl-VeBg_C2MulI7ZPwTGTmzjEI9HkGO6VYUinYSenXz/pub?output=csv", type: "Student" }
@@ -478,51 +478,67 @@ let state = {
     pharmacies: JSON.parse(localStorage.getItem('uni_pharmacies') || JSON.stringify(DEFAULT_PHARMACIES))
 };
 
-let db = [], filteredDB =[], overviewData = [], breakdownData =[], priceData =[], pharmData =[], missingData =[], anomaliesData =[], activePharms = new Set();
+let db = [], filteredDB = [], overviewData = [], breakdownData = [], priceData = [], pharmData = [], missingData = [], anomaliesData = [], activePharms = new Set();
 let currentView = 'view-overview', currentSlicer = 'r';
-let sortRules = { 'view-overview':[{k:'tot', d:-1}], 'view-drugs':[{k:'tot', d:-1}], 'view-pricing':[{k:'stat', d:-1}], 'view-pharmacies':[{k:'stat', d:-1}], 'view-missing':[{k:'k', d:1}], 'view-anomalies':[{k:'row', d:1}] };
-let renderLimits = { 'view-overview': 100, 'view-drugs': 100, 'view-pricing': 100, 'view-pharmacies': 100, 'view-missing': 100, 'view-anomalies': 100 };
+let sortRules = {
+    'view-overview':   [{ k: 'tot',  d: -1 }],
+    'view-drugs':      [{ k: 'tot',  d: -1 }],
+    'view-pricing':    [{ k: 'stat', d: -1 }],
+    'view-pharmacies': [{ k: 'stat', d: -1 }],
+    'view-missing':    [{ k: 'k',    d:  1 }],
+    'view-anomalies':  [{ k: 'row',  d:  1 }]
+};
+let renderLimits = {
+    'view-overview': 100, 'view-drugs': 100, 'view-pricing': 100,
+    'view-pharmacies': 100, 'view-missing': 100, 'view-anomalies': 100
+};
 
 let activeRowIndex = -1, searchTimeout;
 const fmtEGP = new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP' });
 const fmtNum = new Intl.NumberFormat('en-US');
-
-const escapeHTML = str => (str == null ? '' : String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])));
+const escapeHTML = str => str == null ? '' : String(str).replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t]));
 
 function initTheme() {
     const saved = localStorage.getItem('uni_theme') || 'dark';
     document.documentElement.setAttribute('data-theme', saved);
     document.getElementById('icon-moon').style.display = saved === 'light' ? 'block' : 'none';
-    document.getElementById('icon-sun').style.display = saved === 'dark' ? 'block' : 'none';
+    document.getElementById('icon-sun').style.display  = saved === 'dark'  ? 'block' : 'none';
 }
+
 document.getElementById('btn-theme').addEventListener('click', () => {
     localStorage.setItem('uni_theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     initTheme();
 });
 initTheme();
 
-const normAr = str => !str ? '' : str.toLowerCase().replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/[\u064B-\u065F]/g, '');
+const normAr = str => !str ? '' : str.toLowerCase()
+    .replace(/[أإآا]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/ؤ/g, 'و')
+    .replace(/ئ/g, 'ي')
+    .replace(/[\u064B-\u065F]/g, '');
 
 function subseqMatch(token, str) {
-    if(token.length > str.length) return false;
+    if (token.length > str.length) return false;
     let i = 0, j = 0;
-    while(i < token.length && j < str.length) {
-        if(token[i] === str[j]) i++;
+    while (i < token.length && j < str.length) {
+        if (token[i] === str[j]) i++;
         j++;
     }
     return i === token.length;
 }
 
 function lev(a, b) {
-    if(!a.length) return b.length;
-    if(!b.length) return a.length;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
     let r = new Uint8Array(b.length + 1);
-    for(let j = 0; j <= b.length; j++) r[j] = j;
-    for(let i = 1; i <= a.length; i++) {
+    for (let j = 0; j <= b.length; j++) r[j] = j;
+    for (let i = 1; i <= a.length; i++) {
         let prev = i;
-        for(let j = 1; j <= b.length; j++) {
-            let val = a[i-1] === b[j-1] ? r[j-1] : Math.min(r[j-1]+1, prev+1, r[j]+1);
-            r[j-1] = prev;
+        for (let j = 1; j <= b.length; j++) {
+            let val = a[i - 1] === b[j - 1] ? r[j - 1] : Math.min(r[j - 1] + 1, prev + 1, r[j] + 1);
+            r[j - 1] = prev;
             prev = val;
         }
         r[b.length] = prev;
@@ -531,24 +547,18 @@ function lev(a, b) {
 }
 
 function fuzzyMatch(token, str) {
-    if(str.includes(token)) return true;
-    if(token.length <= 2) return false;
-    const words = str.split(' ');
+    if (str.includes(token)) return true;
+    if (token.length <= 2) return false;
     const md = Math.max(1, Math.floor(token.length / 3));
-    for(let w of words) if(lev(token, w) <= md) return true;
-    return false;
+    return str.split(' ').some(w => lev(token, w) <= md);
 }
 
 function isMatch(tokens, normStr, isExact) {
-    if(!tokens.length) return true;
-    for(let t of tokens) {
-        if (isExact || /\d/.test(t)) {
-            if (!normStr.includes(t)) return false;
-        } else {
-            if (!subseqMatch(t, normStr) && !fuzzyMatch(t, normStr)) return false;
-        }
-    }
-    return true;
+    if (!tokens.length) return true;
+    return tokens.every(t => {
+        if (isExact || /\d/.test(t)) return normStr.includes(t);
+        return subseqMatch(t, normStr) || fuzzyMatch(t, normStr);
+    });
 }
 
 document.addEventListener('keydown', e => {
@@ -563,40 +573,28 @@ document.addEventListener('keydown', e => {
 
     const tbody = document.querySelector(`#${currentView} tbody`);
     if (!tbody) return;
-    
     const rows = Array.from(tbody.querySelectorAll('tr'));
-    if(!rows.length) return;
+    if (!rows.length) return;
 
     if (isInput && document.activeElement.classList.contains('editable')) {
         const currentRow = document.activeElement.closest('tr');
-        if(!currentRow) return;
+        if (!currentRow) return;
         const currentIndex = rows.indexOf(currentRow);
-        
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            const nextRow = rows[Math.min(currentIndex + 1, rows.length - 1)];
-            const nextInput = nextRow.querySelector('.editable');
-            if(nextInput) nextInput.focus();
+            rows[Math.min(currentIndex + 1, rows.length - 1)].querySelector('.editable')?.focus();
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            const prevRow = rows[Math.max(currentIndex - 1, 0)];
-            const prevInput = prevRow.querySelector('.editable');
-            if(prevInput) prevInput.focus();
+            rows[Math.max(currentIndex - 1, 0)].querySelector('.editable')?.focus();
         }
-        return; 
+        return;
     }
 
     if (isInput) return;
 
-    if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        activeRowIndex = Math.min(activeRowIndex + 1, rows.length - 1);
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        activeRowIndex = Math.max(activeRowIndex - 1, 0);
-    } else {
-        return;
-    }
+    if (e.key === 'ArrowDown') { e.preventDefault(); activeRowIndex = Math.min(activeRowIndex + 1, rows.length - 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); activeRowIndex = Math.max(activeRowIndex - 1, 0); }
+    else return;
 
     rows.forEach((r, i) => {
         r.classList.toggle('selected-row', i === activeRowIndex);
@@ -621,14 +619,15 @@ document.querySelectorAll('.slicer-btn').forEach(btn => {
         document.querySelectorAll('.slicer-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentSlicer = btn.dataset.slice;
-        precalcBreakdown(); renderBreakdown();
+        precalcBreakdown();
+        renderBreakdown();
     });
 });
 
 document.querySelectorAll('.clear-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.getElementById(btn.dataset.target).value = '';
-        if(btn.dataset.target === 'sel-reg') updatePharmacyDropdown();
+        if (btn.dataset.target === 'sel-reg') updatePharmacyDropdown();
         syncFromOmnibox();
     });
 });
@@ -636,21 +635,22 @@ document.querySelectorAll('.clear-btn').forEach(btn => {
 document.querySelectorAll('th').forEach(th => {
     th.addEventListener('click', e => {
         const key = th.dataset.sort;
-        if(!key) return;
+        if (!key) return;
         const viewId = th.closest('table').dataset.view;
-        if(!sortRules[viewId]) return;
+        if (!sortRules[viewId]) return;
         const viewRules = sortRules[viewId];
         const existing = viewRules.find(r => r.k === key);
+
         if (e.shiftKey && existing) existing.d *= -1;
-        else if (e.shiftKey) viewRules.push({k: key, d: 1});
-        else if (existing) viewRules.unshift({k: key, d: existing.d * -1});
-        else viewRules.unshift({k: key, d: 1});
+        else if (e.shiftKey) viewRules.push({ k: key, d: 1 });
+        else if (existing) viewRules.unshift({ k: key, d: existing.d * -1 });
+        else viewRules.unshift({ k: key, d: 1 });
+
         sortRules[viewId] = viewRules.slice(0, 3);
-        
         th.closest('tr').querySelectorAll('th').forEach(el => {
             el.classList.remove('sort-active');
             const icon = el.querySelector('.sort-icon');
-            if(icon) icon.textContent = '↕';
+            if (icon) icon.textContent = '↕';
         });
         th.classList.add('sort-active');
         th.querySelector('.sort-icon').textContent = sortRules[viewId][0].d === 1 ? '↑' : '↓';
@@ -659,13 +659,13 @@ document.querySelectorAll('th').forEach(th => {
 });
 
 function applySort(dataArray, viewId) {
-    if(!sortRules[viewId]) return dataArray;
+    if (!sortRules[viewId]) return dataArray;
     return [...dataArray].sort((a, b) => {
         for (let r of sortRules[viewId]) {
             let va = a[r.k], vb = b[r.k];
-            if(typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+            if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
             if (va < vb) return -1 * r.d;
-            if (va > vb) return 1 * r.d;
+            if (va > vb) return  1 * r.d;
         }
         return 0;
     });
@@ -684,57 +684,58 @@ async function boot() {
     const overlay = document.getElementById('sync-overlay');
     overlay.style.opacity = '1';
     try {
-        const fetches = SOURCES.map(s => fetch(s.url).then(r => {
-            if(!r.ok) throw new Error(`HTTP Error ${r.status} fetching ${s.type} sheet.`);
-            return r.text();
-        }).then(t => ({ text: t, type: s.type })));
-        
-        const results = await Promise.all(fetches);
-        let rawData =[];
-        anomaliesData =[];
-        
+        const results = await Promise.all(
+            SOURCES.map(s => fetch(s.url).then(r => {
+                if (!r.ok) throw new Error(`HTTP Error ${r.status} fetching ${s.type} sheet.`);
+                return r.text();
+            }).then(text => ({ text, type: s.type })))
+        );
+
+        let rawData = [];
+        anomaliesData = [];
+
         for (const res of results) {
             const parsed = Papa.parse(res.text, { skipEmptyLines: true }).data;
-            if(!parsed.length) throw new Error(`Sheet ${res.type} is completely empty.`);
-            
+            if (!parsed.length) throw new Error(`Sheet ${res.type} is completely empty.`);
+
             let headerIdx = -1;
-            for(let i=0; i<Math.min(parsed.length, 30); i++) {
-                if(parsed[i].includes('الصنف')) { headerIdx = i; break; }
+            for (let i = 0; i < Math.min(parsed.length, 30); i++) {
+                if (parsed[i].includes('الصنف')) { headerIdx = i; break; }
             }
-            if(headerIdx === -1) throw new Error(`Could not find "الصنف" header in first 30 rows of ${res.type} sheet.`);
-            
+            if (headerIdx === -1) throw new Error(`Could not find "الصنف" header in first 30 rows of ${res.type} sheet.`);
+
             const headers = parsed[headerIdx];
             const itemIdx = headers.indexOf('الصنف');
             const unitIdx = headers.indexOf('الوحدة');
-            
-            for(let i = headerIdx + 1; i < parsed.length; i++) {
+
+            for (let i = headerIdx + 1; i < parsed.length; i++) {
                 const row = parsed[i];
-                if(!row || !row.length) continue;
+                if (!row?.length) continue;
                 const iName = row[itemIdx]?.trim();
-                if(!iName) continue;
+                if (!iName) continue;
                 const uName = unitIdx !== -1 ? (row[unitIdx]?.trim() || '') : '';
-                
-                for(let j = 0; j < headers.length; j++) {
-                    if(j === itemIdx || j === unitIdx) continue;
+
+                for (let j = 0; j < headers.length; j++) {
+                    if (j === itemIdx || j === unitIdx) continue;
                     const pName = headers[j]?.trim();
-                    if(!pName || pName.startsWith('_') || pName === 'الاجمالي' || pName === 'Total' || pName === 'الإجمالي') continue;
-                    
+                    if (!pName || pName.startsWith('_') || ['الاجمالي', 'Total', 'الإجمالي'].includes(pName)) continue;
+
                     const rawVal = row[j];
-                    if(!rawVal || rawVal.trim() === '') continue;
-                    
+                    if (!rawVal || rawVal.trim() === '') continue;
+
                     const strVal = rawVal.toString().trim();
                     const hasLettersOrSymbols = /[^\d.,\s-]/.test(strVal);
-                    const numStr = strVal.replace(/[^\d.-]/g, '');
-                    let q = parseFloat(numStr);
-                    
+                    let q = parseFloat(strVal.replace(/[^\d.-]/g, ''));
+
                     if (hasLettersOrSymbols || isNaN(q)) {
                         anomaliesData.push({ sheet: res.type, row: i + 1, i: iName, p: pName, val: strVal, act: 'Zeroed' });
                         q = 0;
                     }
-                    if(q > 0) rawData.push({ i: iName, u: uName, p: pName, q, t: res.type });
+                    if (q > 0) rawData.push({ i: iName, u: uName, p: pName, q, t: res.type });
                 }
             }
         }
+
         buildDatabase(rawData);
         overlay.style.opacity = '0';
     } catch (e) {
@@ -745,31 +746,35 @@ async function boot() {
 function buildDatabase(rawData) {
     const regs = new Set();
     activePharms.clear();
+
     db = rawData.map(r => {
         const pk = `${r.i}|${r.u}`;
         if (!(pk in state.prices)) state.prices[pk] = 0;
-        if (!(r.p in state.pharmacies)) state.pharmacies[r.p] = "";
-        
+        if (!(r.p in state.pharmacies)) state.pharmacies[r.p] = '';
+
         const price = state.prices[pk];
-        let rawReg = state.pharmacies[r.p] || "Unmapped";
-        let region = REGION_MAP[rawReg] || rawReg;
-        
+        const region = REGION_MAP[state.pharmacies[r.p]] || state.pharmacies[r.p] || 'Unmapped';
         const tot = r.q * price;
-        regs.add(region); activePharms.add(r.p);
-        
-        return { 
-            ...r, price, region, tot, 
-            t_low: r.t.toLowerCase(), r_low: region.toLowerCase(), p_low: r.p.toLowerCase(),
+
+        regs.add(region);
+        activePharms.add(r.p);
+
+        return {
+            ...r, price, region, tot,
+            t_low: r.t.toLowerCase(),
+            r_low: region.toLowerCase(),
+            p_low: r.p.toLowerCase(),
             _norm: normAr(`${r.i} ${r.u} ${r.p} ${region} ${r.t}`)
         };
     });
+
     localStorage.setItem('uni_prices', JSON.stringify(state.prices));
     localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
-    
+
     const selReg = document.getElementById('sel-reg');
     selReg.innerHTML = '<option value="">All</option>';
     Array.from(regs).sort().forEach(val => selReg.add(new Option(val, val.toLowerCase())));
-    
+
     updatePharmacyDropdown();
     syncFromOmnibox();
 }
@@ -778,12 +783,11 @@ function updatePharmacyDropdown() {
     const fR = document.getElementById('sel-reg').value;
     const selEnd = document.getElementById('sel-end');
     const currentVal = selEnd.value;
-    
+
     selEnd.innerHTML = '<option value="">All</option>';
-    let validEnds = new Set();
-    
+    const validEnds = new Set();
     db.forEach(r => { if (!fR || r.r_low === fR) validEnds.add(r.p); });
-    
+
     Array.from(validEnds).sort().forEach(val => selEnd.add(new Option(val, val.toLowerCase())));
     selEnd.value = Array.from(validEnds).some(v => v.toLowerCase() === currentVal) ? currentVal : '';
 }
@@ -797,7 +801,7 @@ omni.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeou
 function syncFromOmnibox() {
     Object.keys(renderLimits).forEach(k => renderLimits[k] = 100);
 
-    let q = normAr(omni.value.trim());
+    const q = normAr(omni.value.trim());
     const fC = document.getElementById('sel-cat').value;
     const fR = document.getElementById('sel-reg').value;
     const fE = document.getElementById('sel-end').value;
@@ -808,11 +812,14 @@ function syncFromOmnibox() {
         if (fC && r.t_low !== fC) return false;
         if (fR && r.r_low !== fR) return false;
         if (fE && r.p_low !== fE) return false;
-        if (!isMatch(tokens, r._norm, isExact)) return false;
-        return true;
+        return isMatch(tokens, r._norm, isExact);
     });
 
-    precalcOverview(); precalcBreakdown(); precalcPricing(tokens, isExact); precalcPharmacies(tokens, isExact); precalcMissing(tokens, isExact);
+    precalcOverview();
+    precalcBreakdown();
+    precalcPricing(tokens, isExact);
+    precalcPharmacies(tokens, isExact);
+    precalcMissing(tokens, isExact);
     renderActiveView();
 }
 
@@ -830,56 +837,55 @@ function precalcBreakdown() {
     const map = new Map();
     db.forEach(r => {
         let k1, k2;
-        if(currentSlicer === 'r') { k1 = r.region; k2 = '-'; }
-        else if(currentSlicer === 'e') { k1 = r.p; k2 = r.region; }
-        else { k1 = r.t; k2 = '-'; }
+        if      (currentSlicer === 'r') { k1 = r.region; k2 = '-'; }
+        else if (currentSlicer === 'e') { k1 = r.p;      k2 = r.region; }
+        else                            { k1 = r.t;      k2 = '-'; }
+
         const key = `${k1}|${k2}`;
-        if(!map.has(key)) map.set(key, { key: k1, sub: k2, items: new Set(), q: 0, tot: 0 });
+        if (!map.has(key)) map.set(key, { key: k1, sub: k2, items: new Set(), q: 0, tot: 0 });
         const g = map.get(key);
         g.items.add(`${r.i}|${r.u}`);
-        g.q += r.q; g.tot += r.tot;
+        g.q += r.q;
+        g.tot += r.tot;
     });
-    breakdownData = Array.from(map.values()).map(g => ({ ...g, ui: g.items.size })).sort((a,b) => b.tot - a.tot);
+    breakdownData = Array.from(map.values()).map(g => ({ ...g, ui: g.items.size })).sort((a, b) => b.tot - a.tot);
 }
 
 function precalcPricing(tokens, isExact) {
-    priceData =[];
-    Object.keys(state.prices).forEach(k => {
-        const[i, u] = k.split('|');
-        const norm = normAr(`${i} ${u}`);
-        if (!isMatch(tokens, norm, isExact)) return;
-        const p = state.prices[k];
-        priceData.push({ id: k, i, u, p, stat: p === 0 ? 0 : 1 });
-    });
+    priceData = Object.keys(state.prices).reduce((acc, k) => {
+        const [i, u] = k.split('|');
+        if (isMatch(tokens, normAr(`${i} ${u}`), isExact)) {
+            acc.push({ id: k, i, u, p: state.prices[k], stat: state.prices[k] === 0 ? 0 : 1 });
+        }
+        return acc;
+    }, []);
 }
 
 function precalcPharmacies(tokens, isExact) {
-    pharmData =[];
-    Object.keys(state.pharmacies).forEach(k => {
+    pharmData = Object.keys(state.pharmacies).reduce((acc, k) => {
         const reg = state.pharmacies[k];
-        const norm = normAr(`${k} ${reg}`);
-        if (!isMatch(tokens, norm, isExact)) return;
-        let stat = 1; if(reg === "") stat = 0; else if(!activePharms.has(k)) stat = 2;
-        pharmData.push({ k, reg, stat });
-    });
+        if (isMatch(tokens, normAr(`${k} ${reg}`), isExact)) {
+            const stat = reg === '' ? 0 : !activePharms.has(k) ? 2 : 1;
+            acc.push({ k, reg, stat });
+        }
+        return acc;
+    }, []);
 }
 
 function precalcMissing(tokens, isExact) {
-    missingData =[];
     const fR = document.getElementById('sel-reg').value;
-    Object.keys(state.pharmacies).forEach(k => {
-        if (activePharms.has(k)) return;
-        let rawReg = state.pharmacies[k] || "Unmapped";
-        let reg = REGION_MAP[rawReg] || rawReg;
-        if (fR && reg.toLowerCase() !== fR) return;
-        const norm = normAr(`${k} ${reg}`);
-        if (!isMatch(tokens, norm, isExact)) return;
-        missingData.push({ k, reg });
-    });
+    missingData = Object.keys(state.pharmacies).reduce((acc, k) => {
+        if (activePharms.has(k)) return acc;
+        const rawReg = state.pharmacies[k] || 'Unmapped';
+        const reg = REGION_MAP[rawReg] || rawReg;
+        if (fR && reg.toLowerCase() !== fR) return acc;
+        if (isMatch(tokens, normAr(`${k} ${reg}`), isExact)) acc.push({ k, reg });
+        return acc;
+    }, []);
 }
 
 window.loadMore = () => {
-    if(renderLimits[currentView]) {
+    if (renderLimits[currentView]) {
         renderLimits[currentView] += 200;
         renderActiveView();
     }
@@ -888,44 +894,47 @@ window.loadMore = () => {
 function updateCapNotice(viewPrefix, dataLength) {
     const limit = renderLimits[currentView];
     const el = document.getElementById(`cap-${viewPrefix}`);
-    if(!el) return;
-    if(dataLength > limit) {
-        el.innerHTML = `Showing ${fmtNum.format(limit)} of ${fmtNum.format(dataLength)} <button class="btn btn-primary" style="display:inline-flex; padding:6px 16px; font-size:13px; font-weight:700; height:auto; min-height:0; border-radius:12px; margin-left:16px;" onclick="loadMore()">Load More</button>`;
-    } else {
-        el.innerHTML = `Showing all ${fmtNum.format(dataLength)} records`;
-    }
+    if (!el) return;
+    el.innerHTML = dataLength > limit
+        ? `Showing ${fmtNum.format(limit)} of ${fmtNum.format(dataLength)} <button class="btn btn-primary" style="display:inline-flex; padding:6px 16px; font-size:13px; font-weight:700; height:auto; min-height:0; border-radius:12px; margin-left:16px;" onclick="loadMore()">Load More</button>`
+        : `Showing all ${fmtNum.format(dataLength)} records`;
 }
 
 function renderActiveView() {
     activeRowIndex = -1;
-    if (currentView === 'view-overview') renderOverview();
-    if (currentView === 'view-breakdown') renderBreakdown();
-    if (currentView === 'view-drugs') renderDrugs();
-    if (currentView === 'view-pricing') renderPricing();
-    if (currentView === 'view-pharmacies') renderPharmacies();
-    if (currentView === 'view-missing') renderMissing();
-    if (currentView === 'view-anomalies') renderAnomalies();
+    const renderMap = {
+        'view-overview':   renderOverview,
+        'view-breakdown':  renderBreakdown,
+        'view-drugs':      renderDrugs,
+        'view-pricing':    renderPricing,
+        'view-pharmacies': renderPharmacies,
+        'view-missing':    renderMissing,
+        'view-anomalies':  renderAnomalies
+    };
+    renderMap[currentView]?.();
 }
 
 function renderOverview() {
     const finalData = applySort(overviewData, 'view-overview');
     const limit = renderLimits['view-overview'];
-    let tvl = 0, qty = 0, html = [];
-    finalData.forEach((d, idx) => {
+    let tvl = 0, qty = 0;
+
+    const html = finalData.map((d, idx) => {
         tvl += d.tot; qty += d.q;
-        if (idx < limit) html.push(`<tr><td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td><td><span class="arabic-text">${escapeHTML(d.reg)}</span></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td>${fmtNum.format(d.q)}</td><td>${fmtEGP.format(d.p)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
+        if (idx >= limit) return '';
+        return `<tr><td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td><td><span class="arabic-text">${escapeHTML(d.reg)}</span></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td>${fmtNum.format(d.q)}</td><td>${fmtEGP.format(d.p)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`;
     });
+
     document.getElementById('tb-overview').innerHTML = html.join('');
-    document.getElementById('kpi-tvl').textContent = fmtEGP.format(tvl);
-    document.getElementById('kpi-qty').textContent = fmtNum.format(qty);
+    document.getElementById('kpi-tvl').textContent   = fmtEGP.format(tvl);
+    document.getElementById('kpi-qty').textContent   = fmtNum.format(qty);
     document.getElementById('kpi-assets').textContent = fmtNum.format(finalData.length);
     updateCapNotice('overview', finalData.length);
 }
 
 function renderBreakdown() {
-    let html = [];
-    breakdownData.forEach(d => {
-        html.push(`<div class="bento-card">
+    document.getElementById('bento-container').innerHTML = breakdownData.map(d => `
+        <div class="bento-card">
             <div class="bento-header">
                 <div class="bento-title">${escapeHTML(d.key)}</div>
                 <div class="bento-subtitle">${escapeHTML(d.sub)}</div>
@@ -935,18 +944,15 @@ function renderBreakdown() {
                 <span>Items: <span style="color:var(--text-primary); font-weight:800;">${fmtNum.format(d.ui)}</span></span>
                 <span>Qty: <span style="color:var(--text-primary); font-weight:800;">${fmtNum.format(d.q)}</span></span>
             </div>
-        </div>`);
-    });
-    document.getElementById('bento-container').innerHTML = html.join('');
+        </div>`).join('');
 }
 
 function renderDrugs() {
     const finalData = applySort(filteredDB, 'view-drugs');
     const limit = renderLimits['view-drugs'];
-    let html = [];
-    for (let j = 0; j < Math.min(finalData.length, limit); j++) {
-        const d = finalData[j];
-        html.push(`<tr>
+
+    document.getElementById('tb-drugs').innerHTML = finalData.slice(0, limit).map(d => `
+        <tr>
             <td><span class="arabic-text">${escapeHTML(d.i)}</span></td>
             <td><span class="arabic-text">${escapeHTML(d.u)}</span></td>
             <td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>
@@ -954,55 +960,65 @@ function renderDrugs() {
             <td><span class="arabic-text">${escapeHTML(d.p)}</span></td>
             <td>${fmtNum.format(d.q)}</td>
             <td class="highlight">${fmtEGP.format(d.tot)}</td>
-        </tr>`);
-    }
-    document.getElementById('tb-drugs').innerHTML = html.join('');
+        </tr>`).join('');
+
     updateCapNotice('drugs', finalData.length);
 }
 
-window.updatePrice = (k, v) => { 
-    state.prices[k] = parseFloat(v) || 0; 
-    localStorage.setItem('uni_prices', JSON.stringify(state.prices)); 
-    db.forEach(r => { if (`${r.i}|${r.u}` === k) { r.price = state.prices[k]; r.tot = r.q * r.price; } }); 
-    
-    let focusedId = null;
-    if(document.activeElement && document.activeElement.classList.contains('editable')) focusedId = document.activeElement.dataset.id;
-    syncFromOmnibox(); 
-    if(focusedId) { const el = document.querySelector(`.editable[data-id="${focusedId}"]`); if(el) el.focus(); }
+window.updatePrice = (k, v) => {
+    state.prices[k] = parseFloat(v) || 0;
+    localStorage.setItem('uni_prices', JSON.stringify(state.prices));
+    db.forEach(r => { if (`${r.i}|${r.u}` === k) { r.price = state.prices[k]; r.tot = r.q * r.price; } });
+
+    const focusedId = document.activeElement?.classList.contains('editable') ? document.activeElement.dataset.id : null;
+    syncFromOmnibox();
+    if (focusedId) document.querySelector(`.editable[data-id="${focusedId}"]`)?.focus();
 };
 
 function renderPricing() {
     const finalData = applySort(priceData, 'view-pricing');
     const limit = renderLimits['view-pricing'];
-    let html = [], unpriced = 0;
-    finalData.forEach((d, idx) => {
+    let unpriced = 0;
+
+    const html = finalData.map((d, idx) => {
         if (d.stat === 0) unpriced++;
-        if (idx < limit) html.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td><input type="number" class="editable" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
+        if (idx >= limit) return '';
+        return `<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td><input type="number" class="editable" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`;
     });
+
     document.getElementById('tb-pricing').innerHTML = html.join('');
     document.getElementById('kpi-unpriced').textContent = unpriced;
     updateCapNotice('pricing', finalData.length);
 }
 
-window.updateRegion = (p, v) => { 
-    state.pharmacies[p] = v.trim(); 
-    localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies)); 
-    db.forEach(r => { if (r.p === p) { let mapped = state.pharmacies[p] || "Unmapped"; r.region = REGION_MAP[mapped] || mapped; r.r_low = r.region.toLowerCase(); r._norm = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`); } }); 
-    
-    let focusedId = null;
-    if(document.activeElement && document.activeElement.classList.contains('editable')) focusedId = document.activeElement.dataset.id;
-    syncFromOmnibox(); 
-    if(focusedId) { const el = document.querySelector(`.editable[data-id="${focusedId}"]`); if(el) el.focus(); }
+window.updateRegion = (p, v) => {
+    state.pharmacies[p] = v.trim();
+    localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
+    db.forEach(r => {
+        if (r.p !== p) return;
+        const mapped = state.pharmacies[p] || 'Unmapped';
+        r.region = REGION_MAP[mapped] || mapped;
+        r.r_low  = r.region.toLowerCase();
+        r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`);
+    });
+
+    const focusedId = document.activeElement?.classList.contains('editable') ? document.activeElement.dataset.id : null;
+    syncFromOmnibox();
+    if (focusedId) document.querySelector(`.editable[data-id="${focusedId}"]`)?.focus();
 };
 
 function renderPharmacies() {
     const finalData = applySort(pharmData, 'view-pharmacies');
     const limit = renderLimits['view-pharmacies'];
-    let html = [], unm = 0, inact = 0;
-    finalData.forEach((d, idx) => {
-        if(d.stat === 0) unm++; else if(d.stat === 2) inact++;
-        if (idx < limit) html.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`);
+    let unm = 0, inact = 0;
+
+    const html = finalData.map((d, idx) => {
+        if (d.stat === 0) unm++; else if (d.stat === 2) inact++;
+        if (idx >= limit) return '';
+        const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
+        return `<tr><td><div class="status-dot ${dotClass}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`;
     });
+
     document.getElementById('tb-pharmacies').innerHTML = html.join('');
     document.getElementById('kpi-unmapped').textContent = unm;
     document.getElementById('kpi-inactive').textContent = inact;
@@ -1012,82 +1028,96 @@ function renderPharmacies() {
 function renderMissing() {
     const finalData = applySort(missingData, 'view-missing');
     const limit = renderLimits['view-missing'];
-    let html = [];
-    for (let j = 0; j < Math.min(finalData.length, limit); j++) {
-        const d = finalData[j];
-        html.push(`<tr>
+
+    document.getElementById('tb-missing').innerHTML = finalData.slice(0, limit).map(d => `
+        <tr>
             <td><span class="arabic-text">${escapeHTML(d.k)}</span></td>
             <td><span class="arabic-text">${escapeHTML(d.reg)}</span></td>
-        </tr>`);
-    }
-    document.getElementById('tb-missing').innerHTML = html.join('');
+        </tr>`).join('');
+
     updateCapNotice('missing', finalData.length);
 }
 
 function renderAnomalies() {
     const finalData = applySort(anomaliesData, 'view-anomalies');
     const limit = renderLimits['view-anomalies'];
-    let html = [];
-    for (let j = 0; j < Math.min(finalData.length, limit); j++) {
-        const d = finalData[j];
-        html.push(`<tr>
+
+    document.getElementById('tb-anomalies').innerHTML = finalData.slice(0, limit).map(d => `
+        <tr>
             <td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td>
             <td><span style="font-weight:700;">${escapeHTML(d.row)}</span></td>
             <td><span class="arabic-text">${escapeHTML(d.i)}</span></td>
             <td><span class="arabic-text">${escapeHTML(d.p)}</span></td>
             <td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td>
-            <td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(239, 68, 68, 0.3);">${escapeHTML(d.act)}</span></td>
-        </tr>`);
-    }
-    document.getElementById('tb-anomalies').innerHTML = html.join('');
+            <td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(239,68,68,0.3);">${escapeHTML(d.act)}</span></td>
+        </tr>`).join('');
+
     updateCapNotice('anomalies', finalData.length);
 }
 
 document.getElementById('btn-export').addEventListener('click', () => {
-    let data =[];
-    if (currentView === 'view-overview') data = applySort(overviewData, currentView).map(g => ({ Class: g.t, Region: g.reg, Item: g.i, Unit: g.u, Qty: g.q, Price: g.p, Value: g.tot }));
-    else if (currentView === 'view-breakdown') { const slicerName = currentSlicer === 'r' ? 'Region' : currentSlicer === 'e' ? 'Pharmacy' : 'Class'; data = breakdownData.map(g => ({ [slicerName]: g.key, Context: g.sub, 'Unique Items': g.ui, Qty: g.q, Value: g.tot })); }
-    else if (currentView === 'view-drugs') data = applySort(filteredDB, currentView).map(g => ({ Item: g.i, Unit: g.u, Class: g.t, Region: g.region, Pharmacy: g.p, Qty: g.q, Value: g.tot }));
-    else if (currentView === 'view-pricing') data = applySort(priceData, currentView).map(d => ({ Item: d.i, Unit: d.u, Price: d.p }));
-    else if (currentView === 'view-pharmacies') data = applySort(pharmData, currentView).map(d => ({ Pharmacy: d.k, Region: d.reg, Status: d.stat === 0 ? 'Unmapped' : d.stat === 2 ? 'Inactive' : 'Active' }));
-    else if (currentView === 'view-missing') data = applySort(missingData, currentView).map(d => ({ Pharmacy: d.k, 'Expected Region': d.reg }));
-    else data = applySort(anomaliesData, currentView).map(d => ({ Source: d.sheet, Row: d.row, Item: d.i, Pharmacy: d.p, 'Invalid Value': d.val, Action: d.act }));
-    
-    const blob = new Blob(["\uFEFF" + Papa.unparse(data)], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Export_${currentView}.csv`; link.click();
+    const exportMap = {
+        'view-overview':   () => applySort(overviewData, currentView).map(g => ({ Class: g.t, Region: g.reg, Item: g.i, Unit: g.u, Qty: g.q, Price: g.p, Value: g.tot })),
+        'view-breakdown':  () => { const n = currentSlicer === 'r' ? 'Region' : currentSlicer === 'e' ? 'Pharmacy' : 'Class'; return breakdownData.map(g => ({ [n]: g.key, Context: g.sub, 'Unique Items': g.ui, Qty: g.q, Value: g.tot })); },
+        'view-drugs':      () => applySort(filteredDB, currentView).map(g => ({ Item: g.i, Unit: g.u, Class: g.t, Region: g.region, Pharmacy: g.p, Qty: g.q, Value: g.tot })),
+        'view-pricing':    () => applySort(priceData, currentView).map(d => ({ Item: d.i, Unit: d.u, Price: d.p })),
+        'view-pharmacies': () => applySort(pharmData, currentView).map(d => ({ Pharmacy: d.k, Region: d.reg, Status: d.stat === 0 ? 'Unmapped' : d.stat === 2 ? 'Inactive' : 'Active' })),
+        'view-missing':    () => applySort(missingData, currentView).map(d => ({ Pharmacy: d.k, 'Expected Region': d.reg })),
+        'view-anomalies':  () => applySort(anomaliesData, currentView).map(d => ({ Source: d.sheet, Row: d.row, Item: d.i, Pharmacy: d.p, 'Invalid Value': d.val, Action: d.act }))
+    };
+
+    const data = exportMap[currentView]?.() ?? [];
+    const blob = new Blob(['\uFEFF' + Papa.unparse(data)], { type: 'text/csv;charset=utf-8;' });
+    Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `Export_${currentView}.csv` }).click();
 });
 
 document.getElementById('btn-template-prices').addEventListener('click', () => {
-    const blob = new Blob(["\uFEFF" + Papa.unparse(priceData.map(d => ({ 'Item': d.i, 'Unit': d.u, 'Price': d.p })))], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Pricing_Template.csv`; link.click();
+    const blob = new Blob(['\uFEFF' + Papa.unparse(priceData.map(d => ({ Item: d.i, Unit: d.u, Price: d.p })))], { type: 'text/csv;charset=utf-8;' });
+    Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'Pricing_Template.csv' }).click();
 });
+
 document.getElementById('btn-template-regions').addEventListener('click', () => {
-    const blob = new Blob(["\uFEFF" + Papa.unparse(pharmData.map(d => ({ 'Pharmacy': d.k, 'Region': d.reg })))], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Routing_Template.csv`; link.click();
+    const blob = new Blob(['\uFEFF' + Papa.unparse(pharmData.map(d => ({ Pharmacy: d.k, Region: d.reg })))], { type: 'text/csv;charset=utf-8;' });
+    Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'Routing_Template.csv' }).click();
 });
+
 ['file-prices', 'file-regions'].forEach(id => {
     document.getElementById(id).addEventListener('change', e => {
         if (!e.target.files[0]) return;
         Papa.parse(e.target.files[0], {
-            header: true, skipEmptyLines: true,
+            header: true,
+            skipEmptyLines: true,
             complete: res => {
                 res.data.forEach(r => {
-                    if(id === 'file-prices') {
-                        const i = r['Item Name'] || r['Item'] || r['الصنف'] || r[Object.keys(r)[0]], u = r['Unit'] || r['الوحدة'] || r[Object.keys(r)[1]] || '', p = parseFloat(r['Unit Price (EGP)'] || r['Price'] || r['السعر'] || r[Object.keys(r)[2]]) || 0;
+                    if (id === 'file-prices') {
+                        const i = r['Item Name'] || r['Item'] || r['الصنف'] || r[Object.keys(r)[0]];
+                        const u = r['Unit'] || r['الوحدة'] || r[Object.keys(r)[1]] || '';
+                        const p = parseFloat(r['Unit Price (EGP)'] || r['Price'] || r['السعر'] || r[Object.keys(r)[2]]) || 0;
                         if (i) state.prices[`${i.trim()}|${u.trim()}`] = p;
                     } else {
-                        const p = r['Endpoint Name'] || r['Pharmacy'] || r['الصيدلية'] || r[Object.keys(r)[0]], reg = r['Region Route'] || r['Region'] || r['المنطقة'] || r[Object.keys(r)[1]] || '';
+                        const p = r['Endpoint Name'] || r['Pharmacy'] || r['الصيدلية'] || r[Object.keys(r)[0]];
+                        const reg = r['Region Route'] || r['Region'] || r['المنطقة'] || r[Object.keys(r)[1]] || '';
                         if (p) state.pharmacies[p.trim()] = reg.trim();
                     }
                 });
-                if(id === 'file-prices') localStorage.setItem('uni_prices', JSON.stringify(state.prices));
-                else localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
+
+                localStorage.setItem(id === 'file-prices' ? 'uni_prices' : 'uni_pharmacies', JSON.stringify(id === 'file-prices' ? state.prices : state.pharmacies));
+
                 db.forEach(r => {
-                    if(id === 'file-prices') { r.price = state.prices[`${r.i}|${r.u}`]; r.tot = r.q * r.price; }
-                    else if (r.p in state.pharmacies) { let mapped = state.pharmacies[r.p] || "Unmapped"; r.region = REGION_MAP[mapped] || mapped; r.r_low = r.region.toLowerCase(); r._norm = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`); }
+                    if (id === 'file-prices') {
+                        r.price = state.prices[`${r.i}|${r.u}`];
+                        r.tot   = r.q * r.price;
+                    } else if (r.p in state.pharmacies) {
+                        const mapped = state.pharmacies[r.p] || 'Unmapped';
+                        r.region = REGION_MAP[mapped] || mapped;
+                        r.r_low  = r.region.toLowerCase();
+                        r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`);
+                    }
                 });
+
                 updatePharmacyDropdown();
-                syncFromOmnibox(); e.target.value = '';
+                syncFromOmnibox();
+                e.target.value = '';
             }
         });
     });
