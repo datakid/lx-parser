@@ -965,13 +965,18 @@ input[type="file"] { display: none; }
             <div class="card"><div class="metric-title">Unique Items</div><div class="metric-value" id="kpi-assets">0</div></div>
             <div class="card"><div class="metric-title">Total Qty</div><div class="metric-value" id="kpi-qty">0</div></div>
         </div>
+        <div class="slicer-row">
+            <div style="display:flex; align-items:center; padding: 0 10px; color: var(--text-tertiary); font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Group By Columns</div>
+            <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="t">Class</button>
+            <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="reg">Region</button>
+        </div>
         <div class="table-card">
             <div class="table-wrapper">
                 <table data-view="view-overview">
                     <thead>
                         <tr>
-                            <th data-sort="t">Class <span class="sort-icon">↕</span></th>
-                            <th data-sort="reg">Region <span class="sort-icon">↕</span></th>
+                            <th id="th-ov-t" data-sort="t">Class <span class="sort-icon">↕</span></th>
+                            <th id="th-ov-reg" data-sort="reg">Region <span class="sort-icon">↕</span></th>
                             <th data-sort="i">Item <span class="sort-icon">↕</span></th>
                             <th data-sort="u">Unit <span class="sort-icon">↕</span></th>
                             <th data-sort="q">Qty <span class="sort-icon">↕</span></th>
@@ -996,6 +1001,12 @@ input[type="file"] { display: none; }
     </div>
 
     <div id="view-drugs" class="view">
+        <div class="slicer-row">
+            <div style="display:flex; align-items:center; padding: 0 10px; color: var(--text-tertiary); font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Group By Columns</div>
+            <button class="slicer-btn toggle-group active" data-view="view-drugs" data-col="t">Class</button>
+            <button class="slicer-btn toggle-group active" data-view="view-drugs" data-col="region">Region</button>
+            <button class="slicer-btn toggle-group active" data-view="view-drugs" data-col="p">Pharmacy</button>
+        </div>
         <div class="table-card">
             <div class="table-wrapper">
                 <table data-view="view-drugs">
@@ -1003,9 +1014,9 @@ input[type="file"] { display: none; }
                         <tr>
                             <th data-sort="i">Item <span class="sort-icon">↕</span></th>
                             <th data-sort="u">Unit <span class="sort-icon">↕</span></th>
-                            <th data-sort="t">Class <span class="sort-icon">↕</span></th>
-                            <th data-sort="region">Region <span class="sort-icon">↕</span></th>
-                            <th data-sort="p">Pharmacy <span class="sort-icon">↕</span></th>
+                            <th id="th-dr-t" data-sort="t">Class <span class="sort-icon">↕</span></th>
+                            <th id="th-dr-region" data-sort="region">Region <span class="sort-icon">↕</span></th>
+                            <th id="th-dr-p" data-sort="p">Pharmacy <span class="sort-icon">↕</span></th>
                             <th data-sort="q">Qty <span class="sort-icon">↕</span></th>
                             <th data-sort="tot" class="sort-active">Value <span class="sort-icon">↓</span></th>
                         </tr>
@@ -1151,8 +1162,14 @@ let state = {
     pharmacies: JSON.parse(localStorage.getItem('uni_pharmacies') || JSON.stringify(DEFAULT_PHARMACIES))
 };
 
-let db = [], filteredDB = [], overviewData = [], breakdownData = [], priceData = [], pharmData = [], missingData = [], anomaliesData = [], activePharms = new Set();
+let db = [], filteredDB = [], overviewData = [], breakdownData = [], drugsData = [], priceData = [], pharmData = [], missingData = [], anomaliesData = [], activePharms = new Set();
 let currentView = 'view-overview', currentSlicer = 'r';
+
+let groupConfig = {
+    'view-overview': { t: true, reg: true },
+    'view-drugs': { t: true, region: true, p: true }
+};
+
 let sortRules = {
     'view-overview':   [{ k: 'tot',  d: -1 }],
     'view-drugs':      [{ k: 'tot',  d: -1 }],
@@ -1287,13 +1304,31 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     });
 });
 
-document.querySelectorAll('.slicer-btn').forEach(btn => {
+document.querySelectorAll('.slicer-btn:not(.toggle-group)').forEach(btn => {
     btn.addEventListener('click', () => {
-        document.querySelectorAll('.slicer-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.slicer-btn:not(.toggle-group)').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentSlicer = btn.dataset.slice;
         precalcBreakdown();
         renderBreakdown();
+    });
+});
+
+document.querySelectorAll('.toggle-group').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        const col = btn.dataset.col;
+        
+        groupConfig[view][col] = !groupConfig[view][col];
+        btn.classList.toggle('active', groupConfig[view][col]);
+
+        if (view === 'view-overview') {
+            document.getElementById('th-ov-' + col).style.display = groupConfig[view][col] ? '' : 'none';
+        } else if (view === 'view-drugs') {
+            document.getElementById('th-dr-' + col).style.display = groupConfig[view][col] ? '' : 'none';
+        }
+        
+        syncFromOmnibox();
     });
 });
 
@@ -1490,6 +1525,7 @@ function syncFromOmnibox() {
 
     precalcOverview();
     precalcBreakdown();
+    precalcDrugs();
     precalcPricing(tokens, isExact);
     precalcPharmacies(tokens, isExact);
     precalcMissing(tokens, isExact);
@@ -1498,12 +1534,54 @@ function syncFromOmnibox() {
 
 function precalcOverview() {
     const map = new Map();
+    const gc = groupConfig['view-overview'];
     filteredDB.forEach(r => {
-        const k = `${r.t}|${r.region}|${r.i}|${r.u}`;
-        if (!map.has(k)) map.set(k, { t: r.t, reg: r.region, i: r.i, u: r.u, q: 0, p: r.price });
+        let kArr = [r.i, r.u];
+        if (gc.t) kArr.push(r.t);
+        if (gc.reg) kArr.push(r.region);
+        
+        const k = kArr.join('|');
+        if (!map.has(k)) {
+            map.set(k, { 
+                t: gc.t ? r.t : '-', 
+                reg: gc.reg ? r.region : '-', 
+                i: r.i, 
+                u: r.u, 
+                q: 0, 
+                p: r.price 
+            });
+        }
         map.get(k).q += r.q;
     });
     overviewData = Array.from(map.values()).map(g => ({ ...g, tot: g.q * g.p }));
+}
+
+function precalcDrugs() {
+    const map = new Map();
+    const gc = groupConfig['view-drugs'];
+    filteredDB.forEach(r => {
+        let kArr = [r.i, r.u];
+        if (gc.t) kArr.push(r.t);
+        if (gc.region) kArr.push(r.region);
+        if (gc.p) kArr.push(r.p);
+        
+        const k = kArr.join('|');
+        if (!map.has(k)) {
+            map.set(k, {
+                i: r.i, 
+                u: r.u,
+                t: gc.t ? r.t : '-', 
+                region: gc.region ? r.region : '-',
+                p: gc.p ? r.p : '-',
+                q: 0, 
+                tot: 0
+            });
+        }
+        const g = map.get(k);
+        g.q += r.q;
+        g.tot += r.tot;
+    });
+    drugsData = Array.from(map.values());
 }
 
 function precalcBreakdown() {
@@ -1590,12 +1668,17 @@ function renderActiveView() {
 function renderOverview() {
     const finalData = applySort(overviewData, 'view-overview');
     const limit = renderLimits['view-overview'];
+    const gc = groupConfig['view-overview'];
     let tvl = 0, qty = 0;
 
     const html = finalData.map((d, idx) => {
         tvl += d.tot; qty += d.q;
         if (idx >= limit) return '';
-        return `<tr><td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td><td><span class="arabic-text">${escapeHTML(d.reg)}</span></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td>${fmtNum.format(d.q)}</td><td>${fmtEGP.format(d.p)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`;
+
+        let tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
+        let tdReg = gc.reg ? `<td><span class="arabic-text">${escapeHTML(d.reg)}</span></td>` : '';
+
+        return `<tr>${tdClass}${tdReg}<td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td>${fmtNum.format(d.q)}</td><td>${fmtEGP.format(d.p)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`;
     });
 
     document.getElementById('tb-overview').innerHTML = html.join('');
@@ -1621,19 +1704,25 @@ function renderBreakdown() {
 }
 
 function renderDrugs() {
-    const finalData = applySort(filteredDB, 'view-drugs');
+    const finalData = applySort(drugsData, 'view-drugs');
     const limit = renderLimits['view-drugs'];
+    const gc = groupConfig['view-drugs'];
 
-    document.getElementById('tb-drugs').innerHTML = finalData.slice(0, limit).map(d => `
-        <tr>
+    document.getElementById('tb-drugs').innerHTML = finalData.slice(0, limit).map(d => {
+        let tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
+        let tdReg = gc.region ? `<td><span class="arabic-text">${escapeHTML(d.region)}</span></td>` : '';
+        let tdPharm = gc.p ? `<td><span class="arabic-text">${escapeHTML(d.p)}</span></td>` : '';
+
+        return `<tr>
             <td><span class="arabic-text">${escapeHTML(d.i)}</span></td>
             <td><span class="arabic-text">${escapeHTML(d.u)}</span></td>
-            <td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>
-            <td><span class="arabic-text">${escapeHTML(d.region)}</span></td>
-            <td><span class="arabic-text">${escapeHTML(d.p)}</span></td>
+            ${tdClass}
+            ${tdReg}
+            ${tdPharm}
             <td>${fmtNum.format(d.q)}</td>
             <td class="highlight">${fmtEGP.format(d.tot)}</td>
-        </tr>`).join('');
+        </tr>`;
+    }).join('');
 
     updateCapNotice('drugs', finalData.length);
 }
@@ -1730,9 +1819,33 @@ function renderAnomalies() {
 
 document.getElementById('btn-export').addEventListener('click', () => {
     const exportMap = {
-        'view-overview':   () => applySort(overviewData, currentView).map(g => ({ Class: g.t, Region: g.reg, Item: g.i, Unit: g.u, Qty: g.q, Price: g.p, Value: g.tot })),
+        'view-overview':   () => {
+            const gc = groupConfig['view-overview'];
+            return applySort(overviewData, currentView).map(g => {
+                let row = {};
+                if (gc.t) row.Class = g.t;
+                if (gc.reg) row.Region = g.reg;
+                row.Item = g.i;
+                row.Unit = g.u;
+                row.Qty = g.q;
+                row.Price = g.p;
+                row.Value = g.tot;
+                return row;
+            });
+        },
         'view-breakdown':  () => { const n = currentSlicer === 'r' ? 'Region' : currentSlicer === 'e' ? 'Pharmacy' : 'Class'; return breakdownData.map(g => ({ [n]: g.key, Context: g.sub, 'Unique Items': g.ui, Qty: g.q, Value: g.tot })); },
-        'view-drugs':      () => applySort(filteredDB, currentView).map(g => ({ Item: g.i, Unit: g.u, Class: g.t, Region: g.region, Pharmacy: g.p, Qty: g.q, Value: g.tot })),
+        'view-drugs':      () => {
+            const gc = groupConfig['view-drugs'];
+            return applySort(drugsData, currentView).map(g => {
+                let row = { Item: g.i, Unit: g.u };
+                if (gc.t) row.Class = g.t;
+                if (gc.region) row.Region = g.region;
+                if (gc.p) row.Pharmacy = g.p;
+                row.Qty = g.q;
+                row.Value = g.tot;
+                return row;
+            });
+        },
         'view-pricing':    () => applySort(priceData, currentView).map(d => ({ Item: d.i, Unit: d.u, Price: d.p })),
         'view-pharmacies': () => applySort(pharmData, currentView).map(d => ({ Pharmacy: d.k, Region: d.reg, Status: d.stat === 0 ? 'Unmapped' : d.stat === 2 ? 'Inactive' : 'Active' })),
         'view-missing':    () => applySort(missingData, currentView).map(d => ({ Pharmacy: d.k, 'Expected Region': d.reg })),
