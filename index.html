@@ -76,9 +76,7 @@
 }
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 * { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: 'cv11','ss01','ss03'; }
-
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -121,6 +119,9 @@ nav {
     z-index: 100;
     position: sticky;
     top: 20px;
+    transform: translateZ(0);
+    will-change: transform;
+    contain: layout;
 }
 
 [data-theme="dark"] nav {
@@ -173,10 +174,7 @@ nav {
     letter-spacing: -0.1px;
 }
 
-.nav-btn:hover {
-    color: var(--text-primary);
-    background: var(--surface-hover);
-}
+.nav-btn:hover { color: var(--text-primary); background: var(--surface-hover); }
 
 .nav-btn.active {
     background: var(--surface-2);
@@ -210,6 +208,7 @@ nav {
     position: relative;
     overflow: hidden;
     letter-spacing: -0.15px;
+    will-change: transform;
 }
 
 .btn::before {
@@ -220,12 +219,7 @@ nav {
     pointer-events: none;
 }
 
-.btn:hover {
-    border-color: var(--text-tertiary);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm), inset 0 1px 0 var(--glass-inset);
-}
-
+.btn:hover { border-color: var(--text-tertiary); transform: translateY(-1px); box-shadow: var(--shadow-sm), inset 0 1px 0 var(--glass-inset); }
 .btn:active { transform: translateY(0); box-shadow: var(--shadow-xs); }
 
 .btn-primary {
@@ -252,7 +246,6 @@ nav {
 }
 
 .btn-primary:active { transform: translateY(0); filter: brightness(0.97); }
-
 .btn-icon { padding: 10px; border-radius: 14px; }
 
 .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px 20px 60px; width: 100%; max-width: 1400px; margin: 0 auto; }
@@ -293,9 +286,7 @@ nav {
     box-shadow: var(--shadow-glow), var(--shadow), inset 0 1px 0 var(--glass-inset);
 }
 
-[data-theme="dark"] .cmd-palette:focus-within {
-    border-color: rgba(247,28,162,0.32);
-}
+[data-theme="dark"] .cmd-palette:focus-within { border-color: rgba(247,28,162,0.32); }
 
 .cmd-input-area {
     display: flex;
@@ -367,32 +358,130 @@ kbd.shortcut {
     font-weight: 600;
     color: var(--text-secondary);
     transition: border-color 0.18s, color 0.18s, box-shadow 0.18s;
-    cursor: pointer;
     box-shadow: var(--shadow-xs);
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-.dropdown-group:hover {
-    border-color: var(--text-tertiary);
-    color: var(--text-primary);
+.dropdown-group:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
+
+.dropdown-group.open {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px var(--accent-blue-muted), var(--shadow-xs);
 }
 
-.dropdown-group select {
-    background: transparent;
-    border: none;
+[data-theme="dark"] .dropdown-group.open {
+    border-color: var(--accent-pink);
+    box-shadow: 0 0 0 3px var(--accent-pink-muted), var(--shadow-xs);
+}
+
+.dropdown-group select { display: none; }
+
+.custom-select-val {
+    display: flex;
+    align-items: center;
+    gap: 7px;
     color: var(--text-primary);
     font-weight: 700;
     font-size: 13px;
-    outline: none;
     cursor: pointer;
-    appearance: none;
-    padding-right: 20px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right center;
-    background-size: 14px;
+    min-width: 0;
 }
 
-.dropdown-group select option { background: var(--surface); color: var(--text-primary); }
+.custom-select-val span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.custom-select-arrow {
+    flex-shrink: 0;
+    opacity: 0.4;
+    color: var(--text-secondary);
+    transition: transform 0.22s var(--ease-out), opacity 0.2s, color 0.2s;
+}
+
+.dropdown-group.open .custom-select-arrow {
+    opacity: 0.8;
+    color: var(--accent-blue);
+}
+
+[data-theme="dark"] .dropdown-group.open .custom-select-arrow { color: var(--accent-pink); }
+
+.custom-dropdown-panel {
+    position: fixed;
+    min-width: 200px;
+    max-height: 280px;
+    overflow-y: auto;
+    background: var(--palette-bg);
+    backdrop-filter: blur(52px) saturate(200%);
+    -webkit-backdrop-filter: blur(52px) saturate(200%);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-soft);
+    z-index: 9999;
+    padding: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px) scale(0.96);
+    transition: opacity 0.2s var(--ease-out), transform 0.22s var(--ease-spring);
+    transform-origin: top left;
+    will-change: opacity, transform;
+}
+
+[data-theme="dark"] .custom-dropdown-panel {
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+.custom-dropdown-panel.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.custom-dropdown-option {
+    padding: 11px 14px;
+    border-radius: 11px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.custom-dropdown-option:hover { background: var(--surface-hover); color: var(--text-primary); }
+
+.custom-dropdown-option.active {
+    background: var(--accent-blue-muted);
+    color: var(--accent-blue);
+    font-weight: 700;
+}
+
+[data-theme="dark"] .custom-dropdown-option.active {
+    background: var(--accent-pink-muted);
+    color: var(--accent-pink);
+}
+
+.custom-dropdown-option .check-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    opacity: 0;
+    margin-left: auto;
+}
+
+.custom-dropdown-option.active .check-icon { opacity: 1; }
+
+.custom-dropdown-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 5px 8px;
+    border-radius: 1px;
+}
 
 .clear-btn {
     background: transparent;
@@ -448,7 +537,7 @@ input:checked + .slider {
 
 input:checked + .slider:before { transform: translateX(18px); }
 
-.view { width: 100%; display: none; opacity: 0; transform: translateY(10px); transition: all 0.4s var(--ease-out); }
+.view { width: 100%; display: none; opacity: 0; transform: translateY(10px); transition: all 0.4s var(--ease-out); will-change: opacity, transform; }
 .view.active { display: block; opacity: 1; transform: translateY(0); animation: viewEnter 0.38s var(--ease-out) forwards; }
 
 @keyframes viewEnter {
@@ -456,7 +545,7 @@ input:checked + .slider:before { transform: translateX(18px); }
     to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 20px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 20px; contain: layout; }
 
 .card {
     background: var(--surface);
@@ -467,6 +556,8 @@ input:checked + .slider:before { transform: translateX(18px); }
     position: relative;
     overflow: hidden;
     transition: transform 0.28s var(--ease-out), box-shadow 0.28s var(--ease-out), border-color 0.28s var(--ease-out);
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .card::before {
@@ -488,26 +579,12 @@ input:checked + .slider:before { transform: translateX(18px); }
     transition: opacity 0.3s ease;
 }
 
-[data-theme="dark"] .card::after {
-    background: linear-gradient(90deg, var(--accent-pink) 0%, rgba(247,28,162,0) 100%);
-}
+[data-theme="dark"] .card::after { background: linear-gradient(90deg, var(--accent-pink) 0%, rgba(247,28,162,0) 100%); }
 
-.card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow), 0 0 0 1px var(--border);
-    border-color: var(--text-tertiary);
-}
-
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow), 0 0 0 1px var(--border); border-color: var(--text-tertiary); }
 .card:hover::after { opacity: 1; }
 
-.metric-title {
-    color: var(--text-secondary);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.1px;
-    margin-bottom: 14px;
-}
+.metric-title { color: var(--text-secondary); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.1px; margin-bottom: 14px; }
 
 .metric-value {
     font-size: 38px;
@@ -536,10 +613,7 @@ input:checked + .slider:before { transform: translateX(18px); }
     box-shadow: var(--shadow-xs), inset 0 1px 3px rgba(0,0,0,0.04);
 }
 
-[data-theme="dark"] .slicer-row {
-    box-shadow: var(--shadow-xs), inset 0 1px 4px rgba(0,0,0,0.5);
-}
-
+[data-theme="dark"] .slicer-row { box-shadow: var(--shadow-xs), inset 0 1px 4px rgba(0,0,0,0.5); }
 .slicer-row::-webkit-scrollbar { display: none; }
 
 .slicer-btn {
@@ -570,7 +644,7 @@ input:checked + .slider:before { transform: translateX(18px); }
     box-shadow: 0 2px 10px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
 }
 
-.bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 20px; width: 100%; }
+.bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 20px; width: 100%; contain: layout; }
 
 .bento-card {
     background: var(--surface);
@@ -585,6 +659,8 @@ input:checked + .slider:before { transform: translateX(18px); }
     position: relative;
     overflow: hidden;
     z-index: 1;
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .bento-card::before {
@@ -597,9 +673,7 @@ input:checked + .slider:before { transform: translateX(18px); }
     z-index: -1;
 }
 
-[data-theme="light"] .bento-card::before {
-    background: linear-gradient(155deg, var(--accent-blue-muted) 0%, transparent 65%);
-}
+[data-theme="light"] .bento-card::before { background: linear-gradient(155deg, var(--accent-blue-muted) 0%, transparent 65%); }
 
 .bento-card::after {
     content: '';
@@ -613,21 +687,13 @@ input:checked + .slider:before { transform: translateX(18px); }
     z-index: -1;
 }
 
-[data-theme="light"] .bento-card::after {
-    background: radial-gradient(circle, var(--accent-blue-muted) 0%, transparent 72%);
-}
+[data-theme="light"] .bento-card::after { background: radial-gradient(circle, var(--accent-blue-muted) 0%, transparent 72%); }
 
-.bento-card:hover {
-    transform: translateY(-7px) scale(1.012);
-    border-color: var(--text-tertiary);
-    box-shadow: var(--shadow-lg);
-}
-
+.bento-card:hover { transform: translateY(-7px) scale(1.012); border-color: var(--text-tertiary); box-shadow: var(--shadow-lg); }
 .bento-card:hover::before { opacity: 1; }
 .bento-card:hover::after { opacity: 1; transform: scale(1.6); }
 
 .bento-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-
 .bento-title { font-weight: 800; font-size: 17px; color: var(--text-primary); word-break: break-word; line-height: 1.35; letter-spacing: -0.35px; }
 
 .bento-subtitle {
@@ -656,9 +722,10 @@ input:checked + .slider:before { transform: translateX(18px); }
     border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow-sm);
+    contain: paint;
 }
 
-.table-wrapper { overflow-x: auto; max-height: 65vh; scroll-behavior: smooth; }
+.table-wrapper { overflow-x: auto; max-height: 65vh; scroll-behavior: smooth; contain: paint; }
 
 table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
 
@@ -682,7 +749,6 @@ th {
 }
 
 th::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: var(--border); }
-
 th:hover { color: var(--text-primary); background: var(--surface-hover); }
 
 .sort-icon { display: inline-block; margin-left: 7px; font-size: 12px; opacity: 0.22; transition: all 0.2s; transform: translateY(-1px); }
@@ -702,9 +768,7 @@ td {
 }
 
 tr:last-child td { border-bottom: none; }
-
 tr { transition: all 0.15s ease; }
-
 tr:hover td { background: var(--surface-hover); }
 
 tr.selected-row td {
@@ -734,17 +798,8 @@ tr.selected-row td {
     letter-spacing: 0.1px;
 }
 
-.badge.workforce {
-    color: var(--accent-blue);
-    background: var(--accent-blue-muted);
-    border-color: rgba(36,96,232,0.20);
-}
-
-.badge.student {
-    color: var(--accent-pink);
-    background: var(--accent-pink-muted);
-    border-color: rgba(247,28,162,0.20);
-}
+.badge.workforce { color: var(--accent-blue); background: var(--accent-blue-muted); border-color: rgba(36,96,232,0.20); }
+.badge.student { color: var(--accent-pink); background: var(--accent-pink-muted); border-color: rgba(247,28,162,0.20); }
 
 .editable {
     background: transparent;
@@ -761,16 +816,8 @@ tr.selected-row td {
     letter-spacing: -0.1px;
 }
 
-.editable:focus {
-    border-bottom-width: 2px;
-    border-bottom-color: var(--accent-blue);
-    color: var(--accent-blue);
-}
-
-[data-theme="dark"] .editable:focus {
-    border-bottom-color: var(--accent-pink);
-    color: var(--accent-pink);
-}
+.editable:focus { border-bottom-width: 2px; border-bottom-color: var(--accent-blue); color: var(--accent-blue); }
+[data-theme="dark"] .editable:focus { border-bottom-color: var(--accent-pink); color: var(--accent-pink); }
 
 .status-dot {
     display: inline-block;
@@ -789,15 +836,8 @@ tr.selected-row td {
     animation: pulseDanger 2s ease-in-out infinite;
 }
 
-.status-ok {
-    background: var(--success);
-    box-shadow: 0 0 0 3px rgba(5,150,105,0.14), 0 0 8px rgba(5,150,105,0.20);
-}
-
-.status-inactive {
-    background: var(--warning);
-    box-shadow: 0 0 0 3px rgba(201,125,10,0.14), 0 0 8px rgba(201,125,10,0.20);
-}
+.status-ok { background: var(--success); box-shadow: 0 0 0 3px rgba(5,150,105,0.14), 0 0 8px rgba(5,150,105,0.20); }
+.status-inactive { background: var(--warning); box-shadow: 0 0 0 3px rgba(201,125,10,0.14), 0 0 8px rgba(201,125,10,0.20); }
 
 @keyframes pulseDanger {
     0%, 100% { box-shadow: 0 0 0 3px rgba(217,43,43,0.16), 0 0 10px rgba(217,43,43,0.25); }
@@ -819,15 +859,28 @@ tr.selected-row td {
     transition: opacity 0.5s var(--ease-out);
     pointer-events: none;
     opacity: 0;
+    will-change: opacity;
+}
+
+[data-theme="light"] .sync-overlay {
+    background: rgba(218,223,235,0.94);
+}
+
+.sync-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
 }
 
 .spinner {
     width: 44px;
     height: 44px;
-    border: 2.5px solid rgba(255,255,255,0.07);
+    border: 2.5px solid var(--border);
     border-top-color: var(--accent-blue);
     border-radius: 50%;
     animation: spin 0.75s linear infinite;
+    will-change: transform;
 }
 
 [data-theme="dark"] .spinner { border-top-color: var(--accent-pink); }
@@ -894,6 +947,7 @@ input[type="file"] { display: none; }
     .action-group { width: 100%; flex-wrap: wrap; justify-content: space-between; }
     .dropdowns-row { flex-direction: column; align-items: stretch; padding: 0 20px 20px; }
     .dropdown-group { justify-content: space-between; }
+    .custom-dropdown-panel { min-width: unset; }
 }
 </style>
 </head>
@@ -901,7 +955,7 @@ input[type="file"] { display: none; }
 
 <div id="sync-overlay" class="sync-overlay">
     <div id="sync-spinner" class="spinner"></div>
-    <div id="sync-text" style="font-size: 18px; font-weight: 700; color: #FFF; letter-spacing: -0.5px;">Syncing Database...</div>
+    <div id="sync-text" class="sync-text">Syncing Database...</div>
     <div id="sync-error" class="error-card">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
         <div class="error-title">Database Sync Failed</div>
@@ -945,15 +999,27 @@ input[type="file"] { display: none; }
                 <kbd class="shortcut">/</kbd>
             </div>
             <div class="dropdowns-row">
-                <div class="dropdown-group">Class: <select id="sel-cat"><option value="">All</option><option value="workforce">Workforce</option><option value="student">Student</option></select><button class="clear-btn" data-target="sel-cat"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
-                <div class="dropdown-group">Region: <select id="sel-reg"><option value="">All</option></select><button class="clear-btn" data-target="sel-reg"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
-                <div class="dropdown-group">Pharmacy: <select id="sel-end"><option value="">All</option></select><button class="clear-btn" data-target="sel-end"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
-                <div class="dropdown-group" style="padding-right:20px; border:none; background:transparent; margin-left:auto;">
+                <div class="dropdown-group">
+                    <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Class</span>
+                    <select id="sel-cat"><option value="">All</option><option value="workforce">Workforce</option><option value="student">Student</option></select>
+                    <button class="clear-btn" data-target="sel-cat"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="dropdown-group">
+                    <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Region</span>
+                    <select id="sel-reg"><option value="">All</option></select>
+                    <button class="clear-btn" data-target="sel-reg"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="dropdown-group">
+                    <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Pharmacy</span>
+                    <select id="sel-end"><option value="">All</option></select>
+                    <button class="clear-btn" data-target="sel-end"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="dropdown-group" style="border:none; background:transparent; box-shadow:none; margin-left:auto; cursor:default;">
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-exact">
                         <span class="slider"></span>
                     </label>
-                    <span style="margin-left:10px;">Exact Match</span>
+                    <span style="margin-left:10px; color:var(--text-secondary); font-weight:600; font-size:13px;">Exact Match</span>
                 </div>
             </div>
         </div>
@@ -1178,6 +1244,7 @@ let sortRules = {
     'view-missing':    [{ k: 'k',    d:  1 }],
     'view-anomalies':  [{ k: 'row',  d:  1 }]
 };
+
 let renderLimits = {
     'view-overview': 100, 'view-drugs': 100, 'view-pricing': 100,
     'view-pharmacies': 100, 'view-missing': 100, 'view-anomalies': 100
@@ -1187,6 +1254,122 @@ let activeRowIndex = -1, searchTimeout;
 const fmtEGP = new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP' });
 const fmtNum = new Intl.NumberFormat('en-US');
 const escapeHTML = str => str == null ? '' : String(str).replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t]));
+
+const ARROW_SVG = `<svg class="custom-select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+const CHECK_SVG = `<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+function initCustomDropdowns() {
+    let activePanel = null;
+    let activeGroup = null;
+
+    function closeAll() {
+        if (!activePanel) return;
+        activePanel.classList.remove('open');
+        activeGroup.classList.remove('open');
+        const arrow = activeGroup.querySelector('.custom-select-arrow');
+        if (arrow) arrow.style.transform = '';
+        activePanel = null;
+        activeGroup = null;
+    }
+
+    function positionPanel(panel, group) {
+        const r = group.getBoundingClientRect();
+        const w = Math.max(r.width, 210);
+        let left = r.left;
+        let top  = r.bottom + 8;
+
+        if (left + w > window.innerWidth - 10) left = window.innerWidth - w - 10;
+        if (left < 10) left = 10;
+
+        const below = window.innerHeight - r.bottom - 8;
+        if (below < 180 && r.top > below) {
+            const h = Math.min(280, r.top - 10);
+            top = r.top - h - 8;
+            panel.style.maxHeight = h + 'px';
+            panel.style.transformOrigin = 'bottom left';
+        } else {
+            panel.style.maxHeight = '280px';
+            panel.style.transformOrigin = 'top left';
+        }
+
+        panel.style.left     = left + 'px';
+        panel.style.top      = top  + 'px';
+        panel.style.minWidth = w    + 'px';
+    }
+
+    ['sel-cat', 'sel-reg', 'sel-end'].forEach(id => {
+        const select = document.getElementById(id);
+        const group  = select.closest('.dropdown-group');
+
+        const valEl = document.createElement('span');
+        valEl.className = 'custom-select-val';
+
+        const panel = document.createElement('div');
+        panel.className = 'custom-dropdown-panel';
+        document.body.appendChild(panel);
+
+        const syncVal = () => {
+            const opt = select.options[select.selectedIndex];
+            valEl.innerHTML = `<span>${opt ? opt.textContent : 'All'}</span>${ARROW_SVG}`;
+        };
+
+        const buildPanel = () => {
+            const cur = select.value;
+            panel.innerHTML = '';
+            Array.from(select.options).forEach((o, idx) => {
+                if (idx === 1 && select.options.length > 1) {
+                    const hr = document.createElement('div');
+                    hr.className = 'custom-dropdown-divider';
+                    panel.appendChild(hr);
+                }
+                const item = document.createElement('div');
+                item.className = 'custom-dropdown-option' + (o.value === cur ? ' active' : '');
+                item.innerHTML = `<span>${o.textContent}</span>${CHECK_SVG}`;
+                item.addEventListener('mousedown', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    select.value = o.value;
+                    select.dispatchEvent(new Event('change'));
+                    closeAll();
+                    syncVal();
+                });
+                panel.appendChild(item);
+            });
+        };
+
+        select._refreshDropdown = () => { syncVal(); if (activePanel === panel) buildPanel(); };
+        syncVal();
+        select.before(valEl);
+
+        group.addEventListener('mousedown', e => {
+            if (e.target.closest('.clear-btn')) return;
+            e.preventDefault();
+            const isOpen = activePanel === panel;
+            closeAll();
+            if (!isOpen) {
+                buildPanel();
+                positionPanel(panel, group);
+                panel.classList.add('open');
+                group.classList.add('open');
+                const arrow = group.querySelector('.custom-select-arrow');
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+                activePanel = panel;
+                activeGroup = group;
+            }
+        });
+    });
+
+    document.addEventListener('mousedown', e => {
+        if (!activePanel) return;
+        if (!e.target.closest('.dropdown-group') && !e.target.closest('.custom-dropdown-panel')) closeAll();
+    });
+
+    document.addEventListener('scroll', e => {
+        if (activePanel && !activePanel.contains(e.target)) closeAll();
+    }, true);
+
+    window.addEventListener('resize', closeAll);
+}
 
 function initTheme() {
     const saved = localStorage.getItem('uni_theme') || 'dark';
@@ -1202,12 +1385,8 @@ document.getElementById('btn-theme').addEventListener('click', () => {
 initTheme();
 
 const normAr = str => !str ? '' : str.toLowerCase()
-    .replace(/[أإآا]/g, 'ا')
-    .replace(/ة/g, 'ه')
-    .replace(/ى/g, 'ي')
-    .replace(/ؤ/g, 'و')
-    .replace(/ئ/g, 'ي')
-    .replace(/[\u064B-\u065F]/g, '');
+    .replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+    .replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/[\u064B-\u065F]/g, '');
 
 function subseqMatch(token, str) {
     if (token.length > str.length) return false;
@@ -1318,23 +1497,19 @@ document.querySelectorAll('.toggle-group').forEach(btn => {
     btn.addEventListener('click', () => {
         const view = btn.dataset.view;
         const col = btn.dataset.col;
-        
         groupConfig[view][col] = !groupConfig[view][col];
         btn.classList.toggle('active', groupConfig[view][col]);
-
-        if (view === 'view-overview') {
-            document.getElementById('th-ov-' + col).style.display = groupConfig[view][col] ? '' : 'none';
-        } else if (view === 'view-drugs') {
-            document.getElementById('th-dr-' + col).style.display = groupConfig[view][col] ? '' : 'none';
-        }
-        
+        if (view === 'view-overview') document.getElementById('th-ov-' + col).style.display = groupConfig[view][col] ? '' : 'none';
+        else if (view === 'view-drugs') document.getElementById('th-dr-' + col).style.display = groupConfig[view][col] ? '' : 'none';
         syncFromOmnibox();
     });
 });
 
 document.querySelectorAll('.clear-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        document.getElementById(btn.dataset.target).value = '';
+        const sel = document.getElementById(btn.dataset.target);
+        sel.value = '';
+        sel._refreshDropdown?.();
         if (btn.dataset.target === 'sel-reg') updatePharmacyDropdown();
         syncFromOmnibox();
     });
@@ -1482,6 +1657,7 @@ function buildDatabase(rawData) {
     const selReg = document.getElementById('sel-reg');
     selReg.innerHTML = '<option value="">All</option>';
     Array.from(regs).sort().forEach(val => selReg.add(new Option(val, val.toLowerCase())));
+    selReg._refreshDropdown?.();
 
     updatePharmacyDropdown();
     syncFromOmnibox();
@@ -1498,6 +1674,7 @@ function updatePharmacyDropdown() {
 
     Array.from(validEnds).sort().forEach(val => selEnd.add(new Option(val, val.toLowerCase())));
     selEnd.value = Array.from(validEnds).some(v => v.toLowerCase() === currentVal) ? currentVal : '';
+    selEnd._refreshDropdown?.();
 }
 
 document.getElementById('sel-reg').addEventListener('change', () => { updatePharmacyDropdown(); syncFromOmnibox(); });
@@ -1539,18 +1716,8 @@ function precalcOverview() {
         let kArr = [r.i, r.u];
         if (gc.t) kArr.push(r.t);
         if (gc.reg) kArr.push(r.region);
-        
         const k = kArr.join('|');
-        if (!map.has(k)) {
-            map.set(k, { 
-                t: gc.t ? r.t : '-', 
-                reg: gc.reg ? r.region : '-', 
-                i: r.i, 
-                u: r.u, 
-                q: 0, 
-                p: r.price 
-            });
-        }
+        if (!map.has(k)) map.set(k, { t: gc.t ? r.t : '-', reg: gc.reg ? r.region : '-', i: r.i, u: r.u, q: 0, p: r.price });
         map.get(k).q += r.q;
     });
     overviewData = Array.from(map.values()).map(g => ({ ...g, tot: g.q * g.p }));
@@ -1564,19 +1731,8 @@ function precalcDrugs() {
         if (gc.t) kArr.push(r.t);
         if (gc.region) kArr.push(r.region);
         if (gc.p) kArr.push(r.p);
-        
         const k = kArr.join('|');
-        if (!map.has(k)) {
-            map.set(k, {
-                i: r.i, 
-                u: r.u,
-                t: gc.t ? r.t : '-', 
-                region: gc.region ? r.region : '-',
-                p: gc.p ? r.p : '-',
-                q: 0, 
-                tot: 0
-            });
-        }
+        if (!map.has(k)) map.set(k, { i: r.i, u: r.u, t: gc.t ? r.t : '-', region: gc.region ? r.region : '-', p: gc.p ? r.p : '-', q: 0, tot: 0 });
         const g = map.get(k);
         g.q += r.q;
         g.tot += r.tot;
@@ -1588,10 +1744,9 @@ function precalcBreakdown() {
     const map = new Map();
     db.forEach(r => {
         let k1, k2;
-        if      (currentSlicer === 'r') { k1 = r.region; k2 = '-'; }
+        if (currentSlicer === 'r')      { k1 = r.region; k2 = '-'; }
         else if (currentSlicer === 'e') { k1 = r.p;      k2 = r.region; }
         else                            { k1 = r.t;      k2 = '-'; }
-
         const key = `${k1}|${k2}`;
         if (!map.has(key)) map.set(key, { key: k1, sub: k2, items: new Set(), q: 0, tot: 0 });
         const g = map.get(key);
@@ -1605,9 +1760,7 @@ function precalcBreakdown() {
 function precalcPricing(tokens, isExact) {
     priceData = Object.keys(state.prices).reduce((acc, k) => {
         const [i, u] = k.split('|');
-        if (isMatch(tokens, normAr(`${i} ${u}`), isExact)) {
-            acc.push({ id: k, i, u, p: state.prices[k], stat: state.prices[k] === 0 ? 0 : 1 });
-        }
+        if (isMatch(tokens, normAr(`${i} ${u}`), isExact)) acc.push({ id: k, i, u, p: state.prices[k], stat: state.prices[k] === 0 ? 0 : 1 });
         return acc;
     }, []);
 }
@@ -1670,18 +1823,19 @@ function renderOverview() {
     const limit = renderLimits['view-overview'];
     const gc = groupConfig['view-overview'];
     let tvl = 0, qty = 0;
+    const parts = [];
 
-    const html = finalData.map((d, idx) => {
-        tvl += d.tot; qty += d.q;
-        if (idx >= limit) return '';
+    for (let idx = 0; idx < finalData.length; idx++) {
+        const d = finalData[idx];
+        tvl += d.tot;
+        qty += d.q;
+        if (idx >= limit) continue;
+        const tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
+        const tdReg = gc.reg ? `<td><span class="arabic-text">${escapeHTML(d.reg)}</span></td>` : '';
+        parts.push(`<tr>${tdClass}${tdReg}<td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td>${fmtNum.format(d.q)}</td><td>${fmtEGP.format(d.p)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
+    }
 
-        let tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
-        let tdReg = gc.reg ? `<td><span class="arabic-text">${escapeHTML(d.reg)}</span></td>` : '';
-
-        return `<tr>${tdClass}${tdReg}<td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td>${fmtNum.format(d.q)}</td><td>${fmtEGP.format(d.p)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`;
-    });
-
-    document.getElementById('tb-overview').innerHTML = html.join('');
+    document.getElementById('tb-overview').innerHTML = parts.join('');
     document.getElementById('kpi-tvl').textContent   = fmtEGP.format(tvl);
     document.getElementById('kpi-qty').textContent   = fmtNum.format(qty);
     document.getElementById('kpi-assets').textContent = fmtNum.format(finalData.length);
@@ -1707,23 +1861,17 @@ function renderDrugs() {
     const finalData = applySort(drugsData, 'view-drugs');
     const limit = renderLimits['view-drugs'];
     const gc = groupConfig['view-drugs'];
+    const parts = [];
 
-    document.getElementById('tb-drugs').innerHTML = finalData.slice(0, limit).map(d => {
-        let tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
-        let tdReg = gc.region ? `<td><span class="arabic-text">${escapeHTML(d.region)}</span></td>` : '';
-        let tdPharm = gc.p ? `<td><span class="arabic-text">${escapeHTML(d.p)}</span></td>` : '';
+    for (let idx = 0; idx < Math.min(finalData.length, limit); idx++) {
+        const d = finalData[idx];
+        const tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
+        const tdReg   = gc.region ? `<td><span class="arabic-text">${escapeHTML(d.region)}</span></td>` : '';
+        const tdPharm = gc.p ? `<td><span class="arabic-text">${escapeHTML(d.p)}</span></td>` : '';
+        parts.push(`<tr><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td>${tdClass}${tdReg}${tdPharm}<td>${fmtNum.format(d.q)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
+    }
 
-        return `<tr>
-            <td><span class="arabic-text">${escapeHTML(d.i)}</span></td>
-            <td><span class="arabic-text">${escapeHTML(d.u)}</span></td>
-            ${tdClass}
-            ${tdReg}
-            ${tdPharm}
-            <td>${fmtNum.format(d.q)}</td>
-            <td class="highlight">${fmtEGP.format(d.tot)}</td>
-        </tr>`;
-    }).join('');
-
+    document.getElementById('tb-drugs').innerHTML = parts.join('');
     updateCapNotice('drugs', finalData.length);
 }
 
@@ -1731,7 +1879,6 @@ window.updatePrice = (k, v) => {
     state.prices[k] = parseFloat(v) || 0;
     localStorage.setItem('uni_prices', JSON.stringify(state.prices));
     db.forEach(r => { if (`${r.i}|${r.u}` === k) { r.price = state.prices[k]; r.tot = r.q * r.price; } });
-
     const focusedId = document.activeElement?.classList.contains('editable') ? document.activeElement.dataset.id : null;
     syncFromOmnibox();
     if (focusedId) document.querySelector(`.editable[data-id="${focusedId}"]`)?.focus();
@@ -1741,14 +1888,16 @@ function renderPricing() {
     const finalData = applySort(priceData, 'view-pricing');
     const limit = renderLimits['view-pricing'];
     let unpriced = 0;
+    const parts = [];
 
-    const html = finalData.map((d, idx) => {
+    for (let idx = 0; idx < finalData.length; idx++) {
+        const d = finalData[idx];
         if (d.stat === 0) unpriced++;
-        if (idx >= limit) return '';
-        return `<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td><input type="number" class="editable" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`;
-    });
+        if (idx >= limit) continue;
+        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td><input type="number" class="editable" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
+    }
 
-    document.getElementById('tb-pricing').innerHTML = html.join('');
+    document.getElementById('tb-pricing').innerHTML = parts.join('');
     document.getElementById('kpi-unpriced').textContent = unpriced;
     updateCapNotice('pricing', finalData.length);
 }
@@ -1763,7 +1912,6 @@ window.updateRegion = (p, v) => {
         r.r_low  = r.region.toLowerCase();
         r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`);
     });
-
     const focusedId = document.activeElement?.classList.contains('editable') ? document.activeElement.dataset.id : null;
     syncFromOmnibox();
     if (focusedId) document.querySelector(`.editable[data-id="${focusedId}"]`)?.focus();
@@ -1773,15 +1921,17 @@ function renderPharmacies() {
     const finalData = applySort(pharmData, 'view-pharmacies');
     const limit = renderLimits['view-pharmacies'];
     let unm = 0, inact = 0;
+    const parts = [];
 
-    const html = finalData.map((d, idx) => {
+    for (let idx = 0; idx < finalData.length; idx++) {
+        const d = finalData[idx];
         if (d.stat === 0) unm++; else if (d.stat === 2) inact++;
-        if (idx >= limit) return '';
+        if (idx >= limit) continue;
         const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
-        return `<tr><td><div class="status-dot ${dotClass}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`;
-    });
+        parts.push(`<tr><td><div class="status-dot ${dotClass}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`);
+    }
 
-    document.getElementById('tb-pharmacies').innerHTML = html.join('');
+    document.getElementById('tb-pharmacies').innerHTML = parts.join('');
     document.getElementById('kpi-unmapped').textContent = unm;
     document.getElementById('kpi-inactive').textContent = inact;
     updateCapNotice('pharmacies', finalData.length);
@@ -1790,59 +1940,45 @@ function renderPharmacies() {
 function renderMissing() {
     const finalData = applySort(missingData, 'view-missing');
     const limit = renderLimits['view-missing'];
-
-    document.getElementById('tb-missing').innerHTML = finalData.slice(0, limit).map(d => `
-        <tr>
-            <td><span class="arabic-text">${escapeHTML(d.k)}</span></td>
-            <td><span class="arabic-text">${escapeHTML(d.reg)}</span></td>
-        </tr>`).join('');
-
+    document.getElementById('tb-missing').innerHTML = finalData.slice(0, limit).map(d =>
+        `<tr><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><span class="arabic-text">${escapeHTML(d.reg)}</span></td></tr>`
+    ).join('');
     updateCapNotice('missing', finalData.length);
 }
 
 function renderAnomalies() {
     const finalData = applySort(anomaliesData, 'view-anomalies');
     const limit = renderLimits['view-anomalies'];
-
-    document.getElementById('tb-anomalies').innerHTML = finalData.slice(0, limit).map(d => `
-        <tr>
-            <td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td>
-            <td><span style="font-weight:700;">${escapeHTML(d.row)}</span></td>
-            <td><span class="arabic-text">${escapeHTML(d.i)}</span></td>
-            <td><span class="arabic-text">${escapeHTML(d.p)}</span></td>
-            <td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td>
-            <td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(217,43,43,0.25);">${escapeHTML(d.act)}</span></td>
-        </tr>`).join('');
-
+    document.getElementById('tb-anomalies').innerHTML = finalData.slice(0, limit).map(d =>
+        `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span style="font-weight:700;">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.p)}</span></td><td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td><td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(217,43,43,0.25);">${escapeHTML(d.act)}</span></td></tr>`
+    ).join('');
     updateCapNotice('anomalies', finalData.length);
 }
 
 document.getElementById('btn-export').addEventListener('click', () => {
     const exportMap = {
-        'view-overview':   () => {
+        'view-overview': () => {
             const gc = groupConfig['view-overview'];
             return applySort(overviewData, currentView).map(g => {
                 let row = {};
                 if (gc.t) row.Class = g.t;
                 if (gc.reg) row.Region = g.reg;
-                row.Item = g.i;
-                row.Unit = g.u;
-                row.Qty = g.q;
-                row.Price = g.p;
-                row.Value = g.tot;
+                row.Item = g.i; row.Unit = g.u; row.Qty = g.q; row.Price = g.p; row.Value = g.tot;
                 return row;
             });
         },
-        'view-breakdown':  () => { const n = currentSlicer === 'r' ? 'Region' : currentSlicer === 'e' ? 'Pharmacy' : 'Class'; return breakdownData.map(g => ({ [n]: g.key, Context: g.sub, 'Unique Items': g.ui, Qty: g.q, Value: g.tot })); },
-        'view-drugs':      () => {
+        'view-breakdown': () => {
+            const n = currentSlicer === 'r' ? 'Region' : currentSlicer === 'e' ? 'Pharmacy' : 'Class';
+            return breakdownData.map(g => ({ [n]: g.key, Context: g.sub, 'Unique Items': g.ui, Qty: g.q, Value: g.tot }));
+        },
+        'view-drugs': () => {
             const gc = groupConfig['view-drugs'];
             return applySort(drugsData, currentView).map(g => {
                 let row = { Item: g.i, Unit: g.u };
                 if (gc.t) row.Class = g.t;
                 if (gc.region) row.Region = g.region;
                 if (gc.p) row.Pharmacy = g.p;
-                row.Qty = g.q;
-                row.Value = g.tot;
+                row.Qty = g.q; row.Value = g.tot;
                 return row;
             });
         },
@@ -1909,7 +2045,7 @@ document.getElementById('btn-template-regions').addEventListener('click', () => 
     });
 });
 
-window.onload = boot;
+window.onload = () => { initCustomDropdowns(); boot(); };
 </script>
 </body>
 </html>
