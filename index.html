@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <title>LX parser</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
 :root {
@@ -18,10 +18,10 @@
     --text-primary: #09090F;
     --text-secondary: #636D7E;
     --text-tertiary: #9BA3AF;
-    --accent-blue: #2460E8;
-    --accent-pink: #EF0F8A;
-    --accent-blue-muted: rgba(36,96,232,0.09);
-    --accent-pink-muted: rgba(239,15,138,0.09);
+    --accent-blue: #5B3FE0;
+    --accent-pink: #E11D74;
+    --accent-blue-muted: rgba(91,63,224,0.09);
+    --accent-pink-muted: rgba(225,29,116,0.09);
     --danger: #D92B2B;
     --danger-bg: #FEF1F1;
     --success: #059669;
@@ -31,16 +31,21 @@
     --shadow-sm: 0 2px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
     --shadow: 0 10px 52px rgba(0,0,0,0.10), 0 3px 14px rgba(0,0,0,0.05);
     --shadow-lg: 0 24px 80px rgba(0,0,0,0.14), 0 8px 24px rgba(0,0,0,0.06);
-    --shadow-glow: 0 0 40px rgba(36,96,232,0.18), 0 4px 16px rgba(36,96,232,0.11);
+    --shadow-glow: 0 0 40px rgba(91,63,224,0.18), 0 4px 16px rgba(91,63,224,0.11);
     --palette-bg: rgba(255,255,255,0.86);
     --badge-bg: #EDF0F6;
-    --row-active: rgba(36,96,232,0.055);
+    --row-active: rgba(91,63,224,0.055);
     --glass-border: rgba(255,255,255,0.80);
     --glass-inset: rgba(255,255,255,0.60);
-    --gradient-primary: linear-gradient(135deg, #2460E8 0%, #7130F5 100%);
-    --gradient-logo: linear-gradient(135deg, #EF0F8A 0%, #2460E8 100%);
+    --gradient-primary: linear-gradient(135deg, #5B3FE0 0%, #7C3AED 100%);
+    --gradient-logo: linear-gradient(135deg, #E11D74 0%, #5B3FE0 100%);
     --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --font-mono: 'IBM Plex Mono', monospace;
+    --accent-blue-strong-bg: rgba(91,63,224,0.15);
+    --accent-blue-strong-border: rgba(91,63,224,0.34);
+    --accent-pink-strong-bg: rgba(225,29,116,0.15);
+    --accent-pink-strong-border: rgba(225,29,116,0.34);
 }
 
 [data-theme="dark"] {
@@ -53,10 +58,10 @@
     --text-primary: #EDE8F8;
     --text-secondary: #7B7290;
     --text-tertiary: #4C4762;
-    --accent-blue: #4D7EF9;
-    --accent-pink: #F71CA2;
-    --accent-blue-muted: rgba(77,126,249,0.11);
-    --accent-pink-muted: rgba(247,28,162,0.11);
+    --accent-blue: #7C6CF6;
+    --accent-pink: #FF2E9A;
+    --accent-blue-muted: rgba(124,108,246,0.11);
+    --accent-pink-muted: rgba(255,46,154,0.11);
     --danger: #F87171;
     --danger-bg: #1C0812;
     --success: #34D399;
@@ -65,22 +70,30 @@
     --shadow-sm: 0 4px 20px rgba(0,0,0,0.55), 0 1px 5px rgba(0,0,0,0.32);
     --shadow: 0 20px 68px rgba(0,0,0,0.78), 0 6px 20px rgba(0,0,0,0.40);
     --shadow-lg: 0 36px 100px rgba(0,0,0,0.92), 0 12px 38px rgba(0,0,0,0.50);
-    --shadow-glow: 0 0 64px rgba(247,28,162,0.24), 0 6px 30px rgba(247,28,162,0.14);
+    --shadow-glow: 0 0 64px rgba(255,46,154,0.24), 0 6px 30px rgba(255,46,154,0.14);
     --palette-bg: rgba(12,10,18,0.82);
     --badge-bg: #100D1D;
-    --row-active: rgba(247,28,162,0.07);
+    --row-active: rgba(255,46,154,0.07);
     --glass-border: rgba(255,255,255,0.042);
     --glass-inset: rgba(255,255,255,0.028);
-    --gradient-primary: linear-gradient(135deg, #F71CA2 0%, #C0047C 100%);
-    --gradient-logo: linear-gradient(135deg, #F71CA2 0%, #4D7EF9 100%);
+    --gradient-primary: linear-gradient(135deg, #FF2E9A 0%, #C21368 100%);
+    --gradient-logo: linear-gradient(135deg, #FF2E9A 0%, #7C6CF6 100%);
+    --accent-blue-strong-bg: rgba(124,108,246,0.20);
+    --accent-blue-strong-border: rgba(124,108,246,0.42);
+    --accent-pink-strong-bg: rgba(255,46,154,0.20);
+    --accent-pink-strong-border: rgba(255,46,154,0.42);
 }
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-* { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: 'cv11','ss01','ss03'; }
+* { font-family: 'IBM Plex Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; border-radius: 4px; }
+[data-theme="dark"] :focus-visible { outline-color: var(--accent-pink); }
+.omnibox:focus-visible, .editable:focus-visible { outline: none; border-radius: 0; }
 
 body {
     background: var(--bg);
@@ -97,9 +110,9 @@ body {
 
 [data-theme="dark"] body {
     background-image:
-        radial-gradient(ellipse 75% 40% at 50% -2%, rgba(247,28,162,0.07) 0%, transparent 58%),
-        radial-gradient(ellipse 55% 40% at 92% 96%, rgba(77,126,249,0.06) 0%, transparent 52%),
-        radial-gradient(ellipse 40% 28% at -5% 60%, rgba(247,28,162,0.03) 0%, transparent 50%);
+        radial-gradient(ellipse 75% 40% at 50% -2%, rgba(255,46,154,0.07) 0%, transparent 58%),
+        radial-gradient(ellipse 55% 40% at 92% 96%, rgba(124,108,246,0.06) 0%, transparent 52%),
+        radial-gradient(ellipse 40% 28% at -5% 60%, rgba(255,46,154,0.03) 0%, transparent 50%);
 }
 
 nav {
@@ -129,7 +142,7 @@ nav {
 }
 
 .logo {
-    font-weight: 800;
+    font-weight: 700;
     font-size: 19px;
     letter-spacing: -0.7px;
     background: var(--gradient-logo);
@@ -227,22 +240,22 @@ nav {
     color: #FFF;
     border: none;
     font-weight: 700;
-    box-shadow: 0 4px 18px rgba(36,96,232,0.30), inset 0 1px 0 rgba(255,255,255,0.20);
+    box-shadow: 0 4px 18px rgba(91,63,224,0.30), inset 0 1px 0 rgba(255,255,255,0.20);
 }
 
 [data-theme="dark"] .btn-primary {
-    box-shadow: 0 4px 22px rgba(247,28,162,0.35), inset 0 1px 0 rgba(255,255,255,0.16);
+    box-shadow: 0 4px 22px rgba(255,46,154,0.35), inset 0 1px 0 rgba(255,255,255,0.16);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
     border: none;
-    box-shadow: 0 8px 30px rgba(36,96,232,0.40), inset 0 1px 0 rgba(255,255,255,0.24);
+    box-shadow: 0 8px 30px rgba(91,63,224,0.40), inset 0 1px 0 rgba(255,255,255,0.24);
     filter: brightness(1.06);
 }
 
 [data-theme="dark"] .btn-primary:hover {
-    box-shadow: 0 8px 36px rgba(247,28,162,0.48), inset 0 1px 0 rgba(255,255,255,0.20);
+    box-shadow: 0 8px 36px rgba(255,46,154,0.48), inset 0 1px 0 rgba(255,255,255,0.20);
 }
 
 .btn-primary:active { transform: translateY(0); filter: brightness(0.97); }
@@ -282,11 +295,11 @@ nav {
 
 .cmd-palette:focus-within {
     transform: translateY(-2px);
-    border-color: rgba(36,96,232,0.32);
+    border-color: rgba(91,63,224,0.32);
     box-shadow: var(--shadow-glow), var(--shadow), inset 0 1px 0 var(--glass-inset);
 }
 
-[data-theme="dark"] .cmd-palette:focus-within { border-color: rgba(247,28,162,0.32); }
+[data-theme="dark"] .cmd-palette:focus-within { border-color: rgba(255,46,154,0.32); }
 
 .cmd-input-area {
     display: flex;
@@ -322,13 +335,35 @@ nav {
 
 .omnibox::placeholder { color: var(--text-secondary); opacity: 0.45; }
 
+.clear-omni {
+    background: var(--surface-2);
+    border: none;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+    transition: opacity 0.16s var(--ease-out), transform 0.16s var(--ease-spring), color 0.16s, background 0.16s;
+    margin-right: 4px;
+}
+
+.clear-omni.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+.clear-omni:hover { color: var(--danger); background: var(--danger-bg); }
+
 kbd.shortcut {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 4px 10px;
     font-size: 12px;
-    font-family: 'SF Mono', 'Fira Mono', 'Courier New', monospace;
+    font-family: var(--font-mono);
     color: var(--text-tertiary);
     margin-left: auto;
     display: inline-block;
@@ -526,13 +561,13 @@ kbd.shortcut {
 }
 
 input:checked + .slider {
-    background: linear-gradient(135deg, #2460E8, #7130F5);
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.10), 0 0 14px rgba(36,96,232,0.28);
+    background: linear-gradient(135deg, #5B3FE0, #7C3AED);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.10), 0 0 14px rgba(91,63,224,0.28);
 }
 
 [data-theme="dark"] input:checked + .slider {
-    background: linear-gradient(135deg, #F71CA2, #BF0474);
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.10), 0 0 16px rgba(247,28,162,0.35);
+    background: linear-gradient(135deg, #FF2E9A, #C21368);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.10), 0 0 16px rgba(255,46,154,0.35);
 }
 
 input:checked + .slider:before { transform: translateX(18px); }
@@ -574,12 +609,12 @@ input:checked + .slider:before { transform: translateX(18px); }
     position: absolute;
     top: 0; left: 0;
     width: 70%; height: 3px;
-    background: linear-gradient(90deg, var(--accent-blue) 0%, rgba(36,96,232,0) 100%);
+    background: linear-gradient(90deg, var(--accent-blue) 0%, rgba(91,63,224,0) 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
 
-[data-theme="dark"] .card::after { background: linear-gradient(90deg, var(--accent-pink) 0%, rgba(247,28,162,0) 100%); }
+[data-theme="dark"] .card::after { background: linear-gradient(90deg, var(--accent-pink) 0%, rgba(255,46,154,0) 100%); }
 
 .card:hover { transform: translateY(-3px); box-shadow: var(--shadow), 0 0 0 1px var(--border); border-color: var(--text-tertiary); }
 .card:hover::after { opacity: 1; }
@@ -587,9 +622,10 @@ input:checked + .slider:before { transform: translateX(18px); }
 .metric-title { color: var(--text-secondary); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.1px; margin-bottom: 14px; }
 
 .metric-value {
-    font-size: 38px;
-    font-weight: 800;
-    letter-spacing: -2px;
+    font-family: var(--font-mono);
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
     display: flex;
     align-items: baseline;
     gap: 8px;
@@ -694,7 +730,7 @@ input:checked + .slider:before { transform: translateX(18px); }
 .bento-card:hover::after { opacity: 1; transform: scale(1.6); }
 
 .bento-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.bento-title { font-weight: 800; font-size: 17px; color: var(--text-primary); word-break: break-word; line-height: 1.35; letter-spacing: -0.35px; }
+.bento-title { font-weight: 700; font-size: 17px; color: var(--text-primary); word-break: break-word; line-height: 1.35; letter-spacing: -0.35px; }
 
 .bento-subtitle {
     font-size: 11.5px;
@@ -709,7 +745,7 @@ input:checked + .slider:before { transform: translateX(18px); }
     flex-shrink: 0;
 }
 
-.bento-metric { font-size: 30px; font-weight: 800; color: var(--text-primary); letter-spacing: -1.2px; font-variant-numeric: tabular-nums; }
+.bento-metric { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--text-primary); letter-spacing: -1px; font-variant-numeric: tabular-nums; }
 
 [data-theme="dark"] .bento-metric { background: linear-gradient(135deg, #FFF 45%, var(--accent-pink)); -webkit-background-clip: text; color: transparent; }
 [data-theme="light"] .bento-metric { background: linear-gradient(135deg, #09090F 45%, var(--accent-blue)); -webkit-background-clip: text; color: transparent; }
@@ -751,7 +787,36 @@ th {
 th::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: var(--border); }
 th:hover { color: var(--text-primary); background: var(--surface-hover); }
 
-.sort-icon { display: inline-block; margin-left: 7px; font-size: 12px; opacity: 0.22; transition: all 0.2s; transform: translateY(-1px); }
+.sort-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 9px;
+    height: 9px;
+    margin-left: 7px;
+    font-size: 0;
+    opacity: 0.28;
+    transition: opacity 0.2s, transform 0.2s var(--ease-out);
+    position: relative;
+    top: -1px;
+    vertical-align: middle;
+}
+
+.sort-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.2s var(--ease-out);
+}
+
+th[data-dir="asc"] .sort-icon::before { transform: rotate(-135deg); }
+th[data-dir="desc"] .sort-icon::before { transform: rotate(45deg); }
 
 th.sort-active { color: var(--text-primary); }
 th.sort-active .sort-icon { opacity: 1; color: var(--accent-blue); }
@@ -779,7 +844,7 @@ tr.selected-row td {
 [data-theme="dark"] tr.selected-row td { box-shadow: inset 3px 0 0 var(--accent-pink); }
 
 .arabic-text {
-    font-family: system-ui, -apple-system, 'Segoe UI', 'Arial', sans-serif;
+    font-family: 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', 'Arial', sans-serif;
     direction: rtl;
     display: inline-block;
     font-weight: 600;
@@ -798,8 +863,8 @@ tr.selected-row td {
     letter-spacing: 0.1px;
 }
 
-.badge.workforce { color: var(--accent-blue); background: var(--accent-blue-muted); border-color: rgba(36,96,232,0.20); }
-.badge.student { color: var(--accent-pink); background: var(--accent-pink-muted); border-color: rgba(247,28,162,0.20); }
+.badge.workforce { color: var(--accent-blue); background: var(--accent-blue-strong-bg); border-color: var(--accent-blue-strong-border); font-weight: 700; }
+.badge.student { color: var(--accent-pink); background: var(--accent-pink-strong-bg); border-color: var(--accent-pink-strong-border); font-weight: 700; }
 
 .editable {
     background: transparent;
@@ -818,6 +883,7 @@ tr.selected-row td {
 
 .editable:focus { border-bottom-width: 2px; border-bottom-color: var(--accent-blue); color: var(--accent-blue); }
 [data-theme="dark"] .editable:focus { border-bottom-color: var(--accent-pink); color: var(--accent-pink); }
+.editable.input-saved { border-bottom-color: var(--success) !important; color: var(--success) !important; }
 
 .status-dot {
     display: inline-block;
@@ -828,6 +894,7 @@ tr.selected-row td {
     position: relative;
     flex-shrink: 0;
     transition: box-shadow 0.3s;
+    cursor: help;
 }
 
 .status-missing {
@@ -903,14 +970,17 @@ tr.selected-row td {
 }
 
 .error-card svg { color: var(--danger); filter: drop-shadow(0 4px 12px rgba(217,43,43,0.32)); }
-.error-title { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+.error-title { font-weight: 700; font-size: 20px; letter-spacing: -0.5px; }
 .error-msg { font-size: 14.5px; color: var(--text-secondary); line-height: 1.65; }
 
 input[type="file"] { display: none; }
 
-.highlight { font-weight: 800; }
+.highlight { font-family: var(--font-mono); font-weight: 700; font-variant-numeric: tabular-nums; }
 [data-theme="light"] .highlight { color: var(--accent-blue); }
 [data-theme="dark"] .highlight { color: var(--accent-pink); }
+
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+input.editable[type="number"] { font-family: var(--font-mono); }
 
 .cap-notice {
     display: flex;
@@ -935,6 +1005,25 @@ input[type="file"] { display: none; }
 
 .action-group { display: flex; gap: 12px; align-items: center; }
 
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 64px 20px;
+    color: var(--text-tertiary);
+}
+
+.empty-state svg { opacity: 0.5; filter: drop-shadow(0 4px 14px rgba(91,63,224,0.15)); }
+[data-theme="dark"] .empty-state svg { filter: drop-shadow(0 4px 16px rgba(255,46,154,0.18)); }
+.empty-state span { font-size: 13.5px; font-weight: 600; color: var(--text-secondary); }
+tr.empty-row:hover td { background: transparent; }
+tr.empty-row td { border-bottom: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
+
 @media (max-width: 850px) {
     nav { flex-direction: column; padding: 20px; gap: 20px; margin: 10px auto; width: calc(100% - 20px); }
     .nav-links { overflow-x: auto; width: 100%; justify-content: flex-start; flex-wrap: nowrap; padding-bottom: 8px; -webkit-overflow-scrolling: touch; border: none; background: transparent; box-shadow: none; }
@@ -953,7 +1042,7 @@ input[type="file"] { display: none; }
 </head>
 <body>
 
-<div id="sync-overlay" class="sync-overlay">
+<div id="sync-overlay" class="sync-overlay" role="status" aria-live="polite">
     <div id="sync-spinner" class="spinner"></div>
     <div id="sync-text" class="sync-text">Syncing Database...</div>
     <div id="sync-error" class="error-card">
@@ -979,7 +1068,7 @@ input[type="file"] { display: none; }
         <button class="nav-btn" data-target="view-anomalies">Anomalies</button>
     </div>
     <div class="controls">
-        <button class="btn btn-icon" id="btn-theme">
+        <button class="btn btn-icon" id="btn-theme" aria-label="Toggle color theme">
             <svg id="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             <svg id="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
@@ -995,7 +1084,8 @@ input[type="file"] { display: none; }
         <div class="cmd-palette">
             <div class="cmd-input-area">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="omnibox" class="omnibox" placeholder="Search globally..." autocomplete="off">
+                <input type="text" id="omnibox" class="omnibox" placeholder="Search globally..." autocomplete="off" aria-label="Global search">
+                <button type="button" class="clear-omni" id="btn-clear-omni" aria-label="Clear search"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 <kbd class="shortcut">/</kbd>
             </div>
             <div class="dropdowns-row">
@@ -1041,13 +1131,13 @@ input[type="file"] { display: none; }
                 <table data-view="view-overview">
                     <thead>
                         <tr>
-                            <th id="th-ov-t" data-sort="t">Class <span class="sort-icon">↕</span></th>
-                            <th id="th-ov-reg" data-sort="reg">Region <span class="sort-icon">↕</span></th>
-                            <th data-sort="i">Item <span class="sort-icon">↕</span></th>
-                            <th data-sort="u">Unit <span class="sort-icon">↕</span></th>
-                            <th data-sort="q">Qty <span class="sort-icon">↕</span></th>
-                            <th data-sort="p">Price <span class="sort-icon">↕</span></th>
-                            <th data-sort="tot" class="sort-active">Value <span class="sort-icon">↓</span></th>
+                            <th id="th-ov-t" data-sort="t">Class <span class="sort-icon"></span></th>
+                            <th id="th-ov-reg" data-sort="reg">Region <span class="sort-icon"></span></th>
+                            <th data-sort="i">Item <span class="sort-icon"></span></th>
+                            <th data-sort="u">Unit <span class="sort-icon"></span></th>
+                            <th data-sort="q">Qty <span class="sort-icon"></span></th>
+                            <th data-sort="p">Price <span class="sort-icon"></span></th>
+                            <th data-sort="tot" class="sort-active" data-dir="desc">Value <span class="sort-icon"></span></th>
                         </tr>
                     </thead>
                     <tbody id="tb-overview"></tbody>
@@ -1078,13 +1168,13 @@ input[type="file"] { display: none; }
                 <table data-view="view-drugs">
                     <thead>
                         <tr>
-                            <th data-sort="i">Item <span class="sort-icon">↕</span></th>
-                            <th data-sort="u">Unit <span class="sort-icon">↕</span></th>
-                            <th id="th-dr-t" data-sort="t">Class <span class="sort-icon">↕</span></th>
-                            <th id="th-dr-region" data-sort="region">Region <span class="sort-icon">↕</span></th>
-                            <th id="th-dr-p" data-sort="p">Pharmacy <span class="sort-icon">↕</span></th>
-                            <th data-sort="q">Qty <span class="sort-icon">↕</span></th>
-                            <th data-sort="tot" class="sort-active">Value <span class="sort-icon">↓</span></th>
+                            <th data-sort="i">Item <span class="sort-icon"></span></th>
+                            <th data-sort="u">Unit <span class="sort-icon"></span></th>
+                            <th id="th-dr-t" data-sort="t">Class <span class="sort-icon"></span></th>
+                            <th id="th-dr-region" data-sort="region">Region <span class="sort-icon"></span></th>
+                            <th id="th-dr-p" data-sort="p">Pharmacy <span class="sort-icon"></span></th>
+                            <th data-sort="q">Qty <span class="sort-icon"></span></th>
+                            <th data-sort="tot" class="sort-active" data-dir="desc">Value <span class="sort-icon"></span></th>
                         </tr>
                     </thead>
                     <tbody id="tb-drugs"></tbody>
@@ -1110,10 +1200,10 @@ input[type="file"] { display: none; }
                 <table data-view="view-pricing">
                     <thead>
                         <tr>
-                            <th data-sort="stat">Status <span class="sort-icon">↕</span></th>
-                            <th data-sort="i">Item <span class="sort-icon">↕</span></th>
-                            <th data-sort="u">Unit <span class="sort-icon">↕</span></th>
-                            <th data-sort="p">Price (EGP) <span class="sort-icon">↕</span></th>
+                            <th data-sort="stat">Status <span class="sort-icon"></span></th>
+                            <th data-sort="i">Item <span class="sort-icon"></span></th>
+                            <th data-sort="u">Unit <span class="sort-icon"></span></th>
+                            <th data-sort="p">Price (EGP) <span class="sort-icon"></span></th>
                         </tr>
                     </thead>
                     <tbody id="tb-pricing"></tbody>
@@ -1129,7 +1219,7 @@ input[type="file"] { display: none; }
             <div class="card"><div class="metric-title">Inactive Pharmacies</div><div class="metric-value" id="kpi-inactive" style="color: var(--warning); text-shadow: 0 4px 12px rgba(201,125,10,0.2);">0</div></div>
         </div>
         <div class="card action-row">
-            <div style="font-weight:800; font-size:16px; letter-spacing:-0.3px;">Routing Actions</div>
+            <div style="font-weight:700; font-size:16px; letter-spacing:-0.3px;">Routing Actions</div>
             <div class="action-group">
                 <button class="btn" id="btn-template-regions">Download Template</button>
                 <label class="btn btn-primary">Upload CSV <input type="file" id="file-regions" accept=".csv"></label>
@@ -1140,9 +1230,9 @@ input[type="file"] { display: none; }
                 <table data-view="view-pharmacies">
                     <thead>
                         <tr>
-                            <th data-sort="stat">Status <span class="sort-icon">↕</span></th>
-                            <th data-sort="k">Pharmacy <span class="sort-icon">↕</span></th>
-                            <th data-sort="reg">Region <span class="sort-icon">↕</span></th>
+                            <th data-sort="stat">Status <span class="sort-icon"></span></th>
+                            <th data-sort="k">Pharmacy <span class="sort-icon"></span></th>
+                            <th data-sort="reg">Region <span class="sort-icon"></span></th>
                         </tr>
                     </thead>
                     <tbody id="tb-pharmacies"></tbody>
@@ -1154,7 +1244,7 @@ input[type="file"] { display: none; }
 
     <div id="view-missing" class="view">
         <div class="card action-row">
-            <div style="font-weight:800; font-size:16px; display:flex; align-items:center; gap:12px; letter-spacing:-0.3px;">
+            <div style="font-weight:700; font-size:16px; display:flex; align-items:center; gap:12px; letter-spacing:-0.3px;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 Missing Pharmacies
             </div>
@@ -1165,8 +1255,8 @@ input[type="file"] { display: none; }
                 <table data-view="view-missing">
                     <thead>
                         <tr>
-                            <th data-sort="k">Pharmacy <span class="sort-icon">↕</span></th>
-                            <th data-sort="reg">Expected Region <span class="sort-icon">↕</span></th>
+                            <th data-sort="k">Pharmacy <span class="sort-icon"></span></th>
+                            <th data-sort="reg">Expected Region <span class="sort-icon"></span></th>
                         </tr>
                     </thead>
                     <tbody id="tb-missing"></tbody>
@@ -1178,7 +1268,7 @@ input[type="file"] { display: none; }
 
     <div id="view-anomalies" class="view">
         <div class="card action-row">
-            <div style="font-weight:800; font-size:16px; display:flex; align-items:center; gap:12px; letter-spacing:-0.3px;">
+            <div style="font-weight:700; font-size:16px; display:flex; align-items:center; gap:12px; letter-spacing:-0.3px;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 Data Anomalies Detected
             </div>
@@ -1189,12 +1279,12 @@ input[type="file"] { display: none; }
                 <table data-view="view-anomalies">
                     <thead>
                         <tr>
-                            <th data-sort="sheet">Source <span class="sort-icon">↕</span></th>
-                            <th data-sort="row">Row Index <span class="sort-icon">↕</span></th>
-                            <th data-sort="i">Item <span class="sort-icon">↕</span></th>
-                            <th data-sort="p">Pharmacy <span class="sort-icon">↕</span></th>
-                            <th data-sort="val">Invalid Value <span class="sort-icon">↕</span></th>
-                            <th data-sort="act">Action <span class="sort-icon">↕</span></th>
+                            <th data-sort="sheet">Source <span class="sort-icon"></span></th>
+                            <th data-sort="row">Row Index <span class="sort-icon"></span></th>
+                            <th data-sort="i">Item <span class="sort-icon"></span></th>
+                            <th data-sort="p">Pharmacy <span class="sort-icon"></span></th>
+                            <th data-sort="val">Invalid Value <span class="sort-icon"></span></th>
+                            <th data-sort="act">Action <span class="sort-icon"></span></th>
                         </tr>
                     </thead>
                     <tbody id="tb-anomalies"></tbody>
@@ -1231,6 +1321,14 @@ let state = {
 let db = [], filteredDB = [], overviewData = [], breakdownData = [], drugsData = [], priceData = [], pharmData = [], missingData = [], anomaliesData = [], activePharms = new Set();
 let currentView = 'view-overview', currentSlicer = 'r';
 
+let viewDirty = { 'view-overview': true, 'view-breakdown': true, 'view-drugs': true, 'view-pricing': true, 'view-pharmacies': true, 'view-missing': true };
+let filteredDBDirty = true;
+
+function markAllDirty() {
+    Object.keys(viewDirty).forEach(k => viewDirty[k] = true);
+    filteredDBDirty = true;
+}
+
 let groupConfig = {
     'view-overview': { t: true, reg: true },
     'view-drugs': { t: true, region: true, p: true }
@@ -1254,6 +1352,32 @@ let activeRowIndex = -1, searchTimeout;
 const fmtEGP = new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP' });
 const fmtNum = new Intl.NumberFormat('en-US');
 const escapeHTML = str => str == null ? '' : String(str).replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t]));
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const EMPTY_ICON = `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+function emptyRowHTML(label) {
+    return `<tr class="empty-row"><td colspan="12"><div class="empty-state">${EMPTY_ICON}<span>${escapeHTML(label)}</span></div></td></tr>`;
+}
+
+function animateKpi(el, target, formatter, round) {
+    if (!el) return;
+    if (reduceMotion()) { el.textContent = formatter(target); el._val = target; return; }
+    if (el._raf) cancelAnimationFrame(el._raf);
+    const start = typeof el._val === 'number' ? el._val : 0;
+    const t0 = performance.now();
+    const dur = 420;
+    function step(t) {
+        const p = Math.min(1, (t - t0) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        let val = start + (target - start) * eased;
+        if (round) val = Math.round(val);
+        el.textContent = formatter(val);
+        if (p < 1) { el._raf = requestAnimationFrame(step); }
+        else { el._val = target; el.textContent = formatter(target); }
+    }
+    el._val = start;
+    el._raf = requestAnimationFrame(step);
+}
 
 const ARROW_SVG = `<svg class="custom-select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
 const CHECK_SVG = `<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
@@ -1415,24 +1539,37 @@ function lev(a, b) {
     return r[b.length];
 }
 
-function fuzzyMatch(token, str) {
+function fuzzyMatch(token, str, words) {
     if (str.includes(token)) return true;
     if (token.length <= 2) return false;
-    const md = Math.max(1, Math.floor(token.length / 3));
-    return str.split(' ').some(w => lev(token, w) <= md);
+    const md = Math.min(3, Math.max(1, Math.ceil(token.length / 2.5)));
+    const targetWords = words || str.split(' ');
+    for (let i = 0; i < targetWords.length; i++) {
+        const w = targetWords[i];
+        if (w.length && Math.abs(token.length - w.length) <= md && lev(token, w) <= md) return true;
+    }
+    return false;
 }
 
-function isMatch(tokens, normStr, isExact) {
+function isMatch(tokens, normStr, isExact, words) {
     if (!tokens.length) return true;
     return tokens.every(t => {
         if (isExact || /\d/.test(t)) return normStr.includes(t);
-        return subseqMatch(t, normStr) || fuzzyMatch(t, normStr);
+        return subseqMatch(t, normStr) || fuzzyMatch(t, normStr, words || normStr.split(' '));
     });
 }
 
 document.addEventListener('keydown', e => {
     const activeTag = document.activeElement.tagName;
     const isInput = activeTag === 'INPUT' || activeTag === 'SELECT';
+
+    if (e.key === 'Escape' && document.activeElement === omni) {
+        omni.value = '';
+        syncOmniClearVisibility();
+        syncFromOmnibox();
+        omni.blur();
+        return;
+    }
 
     if (e.key === '/' && !isInput) {
         e.preventDefault();
@@ -1488,8 +1625,8 @@ document.querySelectorAll('.slicer-btn:not(.toggle-group)').forEach(btn => {
         document.querySelectorAll('.slicer-btn:not(.toggle-group)').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentSlicer = btn.dataset.slice;
-        precalcBreakdown();
-        renderBreakdown();
+        viewDirty['view-breakdown'] = true;
+        renderActiveView();
     });
 });
 
@@ -1532,11 +1669,10 @@ document.querySelectorAll('th').forEach(th => {
         sortRules[viewId] = viewRules.slice(0, 3);
         th.closest('tr').querySelectorAll('th').forEach(el => {
             el.classList.remove('sort-active');
-            const icon = el.querySelector('.sort-icon');
-            if (icon) icon.textContent = '↕';
+            el.removeAttribute('data-dir');
         });
         th.classList.add('sort-active');
-        th.querySelector('.sort-icon').textContent = sortRules[viewId][0].d === 1 ? '↑' : '↓';
+        th.setAttribute('data-dir', sortRules[viewId][0].d === 1 ? 'asc' : 'desc');
         renderActiveView();
     });
 });
@@ -1642,12 +1778,14 @@ function buildDatabase(rawData) {
         regs.add(region);
         activePharms.add(r.p);
 
+        const norm = normAr(`${r.i} ${r.u} ${r.p} ${region} ${r.t}`);
         return {
             ...r, price, region, tot,
             t_low: r.t.toLowerCase(),
             r_low: region.toLowerCase(),
             p_low: r.p.toLowerCase(),
-            _norm: normAr(`${r.i} ${r.u} ${r.p} ${region} ${r.t}`)
+            _norm: norm,
+            _words: norm.split(' ')
         };
     });
 
@@ -1680,32 +1818,37 @@ function updatePharmacyDropdown() {
 document.getElementById('sel-reg').addEventListener('change', () => { updatePharmacyDropdown(); syncFromOmnibox(); });
 
 const omni = document.getElementById('omnibox');
-omni.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(syncFromOmnibox, 150); });
+const btnClearOmni = document.getElementById('btn-clear-omni');
+
+function syncOmniClearVisibility() {
+    btnClearOmni.classList.toggle('visible', omni.value.length > 0);
+}
+
+omni.addEventListener('input', () => {
+    syncOmniClearVisibility();
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(syncFromOmnibox, 80);
+});
+
+btnClearOmni.addEventListener('click', () => {
+    omni.value = '';
+    syncOmniClearVisibility();
+    omni.focus();
+    syncFromOmnibox();
+});
+
 ['sel-cat', 'sel-end', 'toggle-exact'].forEach(id => document.getElementById(id).addEventListener('change', syncFromOmnibox));
+
+document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        document.getElementById('btn-export').click();
+    }
+});
 
 function syncFromOmnibox() {
     Object.keys(renderLimits).forEach(k => renderLimits[k] = 100);
-
-    const q = normAr(omni.value.trim());
-    const fC = document.getElementById('sel-cat').value;
-    const fR = document.getElementById('sel-reg').value;
-    const fE = document.getElementById('sel-end').value;
-    const isExact = document.getElementById('toggle-exact').checked;
-    const tokens = q.split(/\s+/).filter(Boolean);
-
-    filteredDB = db.filter(r => {
-        if (fC && r.t_low !== fC) return false;
-        if (fR && r.r_low !== fR) return false;
-        if (fE && r.p_low !== fE) return false;
-        return isMatch(tokens, r._norm, isExact);
-    });
-
-    precalcOverview();
-    precalcBreakdown();
-    precalcDrugs();
-    precalcPricing(tokens, isExact);
-    precalcPharmacies(tokens, isExact);
-    precalcMissing(tokens, isExact);
+    markAllDirty();
     renderActiveView();
 }
 
@@ -1776,8 +1919,7 @@ function precalcPharmacies(tokens, isExact) {
     }, []);
 }
 
-function precalcMissing(tokens, isExact) {
-    const fR = document.getElementById('sel-reg').value;
+function precalcMissing(tokens, isExact, fR) {
     missingData = Object.keys(state.pharmacies).reduce((acc, k) => {
         if (activePharms.has(k)) return acc;
         const rawReg = state.pharmacies[k] || 'Unmapped';
@@ -1806,6 +1948,37 @@ function updateCapNotice(viewPrefix, dataLength) {
 
 function renderActiveView() {
     activeRowIndex = -1;
+
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+    const fC = document.getElementById('sel-cat').value;
+    const fR = document.getElementById('sel-reg').value;
+    const fE = document.getElementById('sel-end').value;
+
+    const needsFilteredDB = currentView === 'view-overview' || currentView === 'view-drugs';
+    if (needsFilteredDB && filteredDBDirty) {
+        filteredDB = db.filter(r => {
+            if (fC && r.t_low !== fC) return false;
+            if (fR && r.r_low !== fR) return false;
+            if (fE && r.p_low !== fE) return false;
+            return isMatch(tokens, r._norm, isExact, r._words);
+        });
+        filteredDBDirty = false;
+    }
+
+    if (viewDirty[currentView]) {
+        switch (currentView) {
+            case 'view-overview':   precalcOverview(); break;
+            case 'view-drugs':      precalcDrugs(); break;
+            case 'view-breakdown':  precalcBreakdown(); break;
+            case 'view-pricing':    precalcPricing(tokens, isExact); break;
+            case 'view-pharmacies': precalcPharmacies(tokens, isExact); break;
+            case 'view-missing':    precalcMissing(tokens, isExact, fR); break;
+        }
+        viewDirty[currentView] = false;
+    }
+
     const renderMap = {
         'view-overview':   renderOverview,
         'view-breakdown':  renderBreakdown,
@@ -1832,18 +2005,18 @@ function renderOverview() {
         if (idx >= limit) continue;
         const tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
         const tdReg = gc.reg ? `<td><span class="arabic-text">${escapeHTML(d.reg)}</span></td>` : '';
-        parts.push(`<tr>${tdClass}${tdReg}<td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td>${fmtNum.format(d.q)}</td><td>${fmtEGP.format(d.p)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
+        parts.push(`<tr>${tdClass}${tdReg}<td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td class="num">${fmtNum.format(d.q)}</td><td class="num">${fmtEGP.format(d.p)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
     }
 
-    document.getElementById('tb-overview').innerHTML = parts.join('');
-    document.getElementById('kpi-tvl').textContent   = fmtEGP.format(tvl);
-    document.getElementById('kpi-qty').textContent   = fmtNum.format(qty);
-    document.getElementById('kpi-assets').textContent = fmtNum.format(finalData.length);
+    document.getElementById('tb-overview').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No records match your filters');
+    animateKpi(document.getElementById('kpi-tvl'), tvl, v => fmtEGP.format(v));
+    animateKpi(document.getElementById('kpi-qty'), qty, v => fmtNum.format(v), true);
+    animateKpi(document.getElementById('kpi-assets'), finalData.length, v => fmtNum.format(v), true);
     updateCapNotice('overview', finalData.length);
 }
 
 function renderBreakdown() {
-    document.getElementById('bento-container').innerHTML = breakdownData.map(d => `
+    document.getElementById('bento-container').innerHTML = breakdownData.length ? breakdownData.map(d => `
         <div class="bento-card">
             <div class="bento-header">
                 <div class="bento-title">${escapeHTML(d.key)}</div>
@@ -1851,10 +2024,10 @@ function renderBreakdown() {
             </div>
             <div class="bento-metric">${fmtEGP.format(d.tot)}</div>
             <div class="bento-submetric">
-                <span>Items: <span style="color:var(--text-primary); font-weight:800;">${fmtNum.format(d.ui)}</span></span>
-                <span>Qty: <span style="color:var(--text-primary); font-weight:800;">${fmtNum.format(d.q)}</span></span>
+                <span>Items: <span style="color:var(--text-primary); font-weight:700; font-family:var(--font-mono);">${fmtNum.format(d.ui)}</span></span>
+                <span>Qty: <span style="color:var(--text-primary); font-weight:700; font-family:var(--font-mono);">${fmtNum.format(d.q)}</span></span>
             </div>
-        </div>`).join('');
+        </div>`).join('') : `<div class="empty-state" style="grid-column:1/-1;">${EMPTY_ICON}<span>No data available for this grouping</span></div>`;
 }
 
 function renderDrugs() {
@@ -1868,10 +2041,10 @@ function renderDrugs() {
         const tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
         const tdReg   = gc.region ? `<td><span class="arabic-text">${escapeHTML(d.region)}</span></td>` : '';
         const tdPharm = gc.p ? `<td><span class="arabic-text">${escapeHTML(d.p)}</span></td>` : '';
-        parts.push(`<tr><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td>${tdClass}${tdReg}${tdPharm}<td>${fmtNum.format(d.q)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
+        parts.push(`<tr><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td>${tdClass}${tdReg}${tdPharm}<td class="num">${fmtNum.format(d.q)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
     }
 
-    document.getElementById('tb-drugs').innerHTML = parts.join('');
+    document.getElementById('tb-drugs').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No records match your filters');
     updateCapNotice('drugs', finalData.length);
 }
 
@@ -1879,9 +2052,13 @@ window.updatePrice = (k, v) => {
     state.prices[k] = parseFloat(v) || 0;
     localStorage.setItem('uni_prices', JSON.stringify(state.prices));
     db.forEach(r => { if (`${r.i}|${r.u}` === k) { r.price = state.prices[k]; r.tot = r.q * r.price; } });
+    markAllDirty();
     const focusedId = document.activeElement?.classList.contains('editable') ? document.activeElement.dataset.id : null;
     syncFromOmnibox();
-    if (focusedId) document.querySelector(`.editable[data-id="${focusedId}"]`)?.focus();
+    if (focusedId) {
+        const el = document.querySelector(`.editable[data-id="${focusedId}"]`);
+        if (el) { el.focus(); el.classList.add('input-saved'); setTimeout(() => el.classList.remove('input-saved'), 600); }
+    }
 };
 
 function renderPricing() {
@@ -1894,11 +2071,12 @@ function renderPricing() {
         const d = finalData[idx];
         if (d.stat === 0) unpriced++;
         if (idx >= limit) continue;
-        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td><input type="number" class="editable" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
+        const statLabel = d.stat === 0 ? 'Missing price' : 'Priced';
+        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td><input type="number" class="editable" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
     }
 
-    document.getElementById('tb-pricing').innerHTML = parts.join('');
-    document.getElementById('kpi-unpriced').textContent = unpriced;
+    document.getElementById('tb-pricing').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No items match your filters');
+    animateKpi(document.getElementById('kpi-unpriced'), unpriced, v => fmtNum.format(v), true);
     updateCapNotice('pricing', finalData.length);
 }
 
@@ -1911,10 +2089,15 @@ window.updateRegion = (p, v) => {
         r.region = REGION_MAP[mapped] || mapped;
         r.r_low  = r.region.toLowerCase();
         r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`);
+        r._words = r._norm.split(' ');
     });
+    markAllDirty();
     const focusedId = document.activeElement?.classList.contains('editable') ? document.activeElement.dataset.id : null;
     syncFromOmnibox();
-    if (focusedId) document.querySelector(`.editable[data-id="${focusedId}"]`)?.focus();
+    if (focusedId) {
+        const el = document.querySelector(`.editable[data-id="${focusedId}"]`);
+        if (el) { el.focus(); el.classList.add('input-saved'); setTimeout(() => el.classList.remove('input-saved'), 600); }
+    }
 };
 
 function renderPharmacies() {
@@ -1928,30 +2111,33 @@ function renderPharmacies() {
         if (d.stat === 0) unm++; else if (d.stat === 2) inact++;
         if (idx >= limit) continue;
         const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
-        parts.push(`<tr><td><div class="status-dot ${dotClass}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`);
+        const statLabel = d.stat === 0 ? 'Unrouted — no region assigned' : d.stat === 2 ? 'Inactive — no records this period' : 'Active';
+        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`);
     }
 
-    document.getElementById('tb-pharmacies').innerHTML = parts.join('');
-    document.getElementById('kpi-unmapped').textContent = unm;
-    document.getElementById('kpi-inactive').textContent = inact;
+    document.getElementById('tb-pharmacies').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No pharmacies match your filters');
+    animateKpi(document.getElementById('kpi-unmapped'), unm, v => fmtNum.format(v), true);
+    animateKpi(document.getElementById('kpi-inactive'), inact, v => fmtNum.format(v), true);
     updateCapNotice('pharmacies', finalData.length);
 }
 
 function renderMissing() {
     const finalData = applySort(missingData, 'view-missing');
     const limit = renderLimits['view-missing'];
-    document.getElementById('tb-missing').innerHTML = finalData.slice(0, limit).map(d =>
+    const rows = finalData.slice(0, limit).map(d =>
         `<tr><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><span class="arabic-text">${escapeHTML(d.reg)}</span></td></tr>`
     ).join('');
+    document.getElementById('tb-missing').innerHTML = rows || emptyRowHTML('No missing pharmacies — all mapped routes are reporting');
     updateCapNotice('missing', finalData.length);
 }
 
 function renderAnomalies() {
     const finalData = applySort(anomaliesData, 'view-anomalies');
     const limit = renderLimits['view-anomalies'];
-    document.getElementById('tb-anomalies').innerHTML = finalData.slice(0, limit).map(d =>
-        `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span style="font-weight:700;">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.p)}</span></td><td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td><td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(217,43,43,0.25);">${escapeHTML(d.act)}</span></td></tr>`
+    const rows = finalData.slice(0, limit).map(d =>
+        `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span style="font-family:var(--font-mono); font-weight:700;">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.p)}</span></td><td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td><td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(217,43,43,0.25);">${escapeHTML(d.act)}</span></td></tr>`
     ).join('');
+    document.getElementById('tb-anomalies').innerHTML = rows || emptyRowHTML('No anomalies detected in the current import');
     updateCapNotice('anomalies', finalData.length);
 }
 
@@ -2034,9 +2220,11 @@ document.getElementById('btn-template-regions').addEventListener('click', () => 
                         r.region = REGION_MAP[mapped] || mapped;
                         r.r_low  = r.region.toLowerCase();
                         r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`);
+                        r._words = r._norm.split(' ');
                     }
                 });
 
+                markAllDirty();
                 updatePharmacyDropdown();
                 syncFromOmnibox();
                 e.target.value = '';
