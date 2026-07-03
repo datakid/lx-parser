@@ -7,6 +7,7 @@
 <title>LX parser</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
     --bg: #E8EBF0;
@@ -46,6 +47,8 @@
     --accent-blue-strong-border: rgba(91,63,224,0.34);
     --accent-pink-strong-bg: rgba(225,29,116,0.15);
     --accent-pink-strong-border: rgba(225,29,116,0.34);
+    --mark-bg: rgba(255, 235, 59, 0.35);
+    --mark-text: inherit;
 }
 
 [data-theme="dark"] {
@@ -82,6 +85,8 @@
     --accent-blue-strong-border: rgba(124,108,246,0.42);
     --accent-pink-strong-bg: rgba(255,46,154,0.20);
     --accent-pink-strong-border: rgba(255,46,154,0.42);
+    --mark-bg: rgba(255, 46, 154, 0.25);
+    --mark-text: #FFF;
 }
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -762,7 +767,6 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 
 .table-wrapper { overflow-x: auto; max-height: 65vh; scroll-behavior: smooth; contain: paint; }
-
 table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
 
 th {
@@ -782,10 +786,24 @@ th {
     user-select: none;
     transition: color 0.18s, background 0.18s;
     box-shadow: 0 1px 0 var(--border);
+    backdrop-filter: blur(10px);
 }
 
 th::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: var(--border); }
 th:hover { color: var(--text-primary); background: var(--surface-hover); }
+
+th:first-child, td:first-child {
+    position: sticky;
+    left: 0;
+    background: var(--surface);
+    z-index: 10;
+    box-shadow: 2px 0 0 var(--border);
+}
+
+th:first-child { z-index: 12; box-shadow: 2px 0 0 var(--border), 0 1px 0 var(--border); }
+tr:hover td:first-child { background: var(--surface-hover); }
+tr.selected-row td:first-child { box-shadow: inset 3px 0 0 var(--accent-blue), 2px 0 0 var(--border); }
+[data-theme="dark"] tr.selected-row td:first-child { box-shadow: inset 3px 0 0 var(--accent-pink), 2px 0 0 var(--border); }
 
 .sort-icon {
     display: inline-flex;
@@ -833,15 +851,46 @@ td {
 }
 
 tr:last-child td { border-bottom: none; }
-tr { transition: all 0.15s ease; }
+tr { transition: all 0.15s ease; cursor: pointer; }
 tr:hover td { background: var(--surface-hover); }
 
 tr.selected-row td {
     background: var(--row-active);
-    box-shadow: inset 3px 0 0 var(--accent-blue);
 }
 
-[data-theme="dark"] tr.selected-row td { box-shadow: inset 3px 0 0 var(--accent-pink); }
+.drill-down-row td {
+    background: var(--surface-2) !important;
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+    box-shadow: none !important;
+}
+
+.drill-content {
+    padding: 16px 24px 16px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: viewEnter 0.2s var(--ease-out);
+}
+
+.drill-item {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.drill-item:last-child { border-bottom: none; }
+.drill-item .val { font-family: var(--font-mono); color: var(--text-primary); font-weight: 700; }
+
+.drill-name { display: flex; flex-direction: column; gap: 2px; }
+.drill-context { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
+.drill-stats { display: flex; align-items: center; gap: 16px; }
+.drill-qty { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); }
 
 .arabic-text {
     font-family: 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', 'Arial', sans-serif;
@@ -849,6 +898,13 @@ tr.selected-row td {
     display: inline-block;
     font-weight: 600;
     font-size: 14.5px;
+}
+
+mark {
+    background: var(--mark-bg);
+    color: var(--mark-text);
+    border-radius: 3px;
+    padding: 0 2px;
 }
 
 .badge {
@@ -884,6 +940,12 @@ tr.selected-row td {
 .editable:focus { border-bottom-width: 2px; border-bottom-color: var(--accent-blue); color: var(--accent-blue); }
 [data-theme="dark"] .editable:focus { border-bottom-color: var(--accent-pink); color: var(--accent-pink); }
 .editable.input-saved { border-bottom-color: var(--success) !important; color: var(--success) !important; }
+.editable.anomaly-warn { border-bottom-color: var(--warning); animation: pulseWarn 2s ease-in-out infinite; }
+
+@keyframes pulseWarn {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,125,10,0); }
+    50% { box-shadow: 0 0 0 4px rgba(201,125,10,0.15); }
+}
 
 .status-dot {
     display: inline-block;
@@ -905,6 +967,7 @@ tr.selected-row td {
 
 .status-ok { background: var(--success); box-shadow: 0 0 0 3px rgba(5,150,105,0.14), 0 0 8px rgba(5,150,105,0.20); }
 .status-inactive { background: var(--warning); box-shadow: 0 0 0 3px rgba(201,125,10,0.14), 0 0 8px rgba(201,125,10,0.20); }
+.status-anomaly { background: var(--warning); box-shadow: 0 0 0 3px rgba(201,125,10,0.16), 0 0 10px rgba(201,125,10,0.25); animation: pulseDanger 2s ease-in-out infinite; }
 
 @keyframes pulseDanger {
     0%, 100% { box-shadow: 0 0 0 3px rgba(217,43,43,0.16), 0 0 10px rgba(217,43,43,0.25); }
@@ -1017,8 +1080,76 @@ input.editable[type="number"] { font-family: var(--font-mono); }
 .empty-state svg { opacity: 0.5; filter: drop-shadow(0 4px 14px rgba(91,63,224,0.15)); }
 [data-theme="dark"] .empty-state svg { filter: drop-shadow(0 4px 16px rgba(255,46,154,0.18)); }
 .empty-state span { font-size: 13.5px; font-weight: 600; color: var(--text-secondary); }
-tr.empty-row:hover td { background: transparent; }
+tr.empty-row:hover td { background: transparent !important; }
 tr.empty-row td { border-bottom: none; }
+
+.cmd-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+    z-index: 2000;
+    display: none;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 15vh;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.cmd-modal.open { display: flex; opacity: 1; }
+
+.cmd-modal-content {
+    width: 100%;
+    max-width: 600px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    transform: scale(0.96);
+    transition: transform 0.2s var(--ease-spring);
+}
+
+.cmd-modal.open .cmd-modal-content { transform: scale(1); }
+
+.cmd-modal-input {
+    width: 100%;
+    padding: 22px 26px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 500;
+    outline: none;
+    border-bottom: 1px solid var(--border);
+}
+
+.cmd-modal-results {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.cmd-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: background 0.12s, color 0.12s;
+}
+
+.cmd-item:hover, .cmd-item.active {
+    background: var(--surface-hover);
+    color: var(--text-primary);
+}
+
+.cmd-item svg { flex-shrink: 0; }
+.cmd-item-title { font-weight: 600; font-size: 14.5px; }
+.cmd-item-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
@@ -1053,6 +1184,13 @@ tr.empty-row td { border-bottom: none; }
     </div>
 </div>
 
+<div id="cmd-modal" class="cmd-modal">
+    <div class="cmd-modal-content">
+        <input type="text" id="cmd-modal-input" class="cmd-modal-input" placeholder="Type a command or search..." autocomplete="off">
+        <div id="cmd-modal-results" class="cmd-modal-results"></div>
+    </div>
+</div>
+
 <nav>
     <div class="logo">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
@@ -1061,7 +1199,6 @@ tr.empty-row td { border-bottom: none; }
     <div class="nav-links">
         <button class="nav-btn active" data-target="view-overview">Overview</button>
         <button class="nav-btn" data-target="view-breakdown">Breakdown</button>
-        <button class="nav-btn" data-target="view-drugs">Item Insights</button>
         <button class="nav-btn" data-target="view-pricing">Pricing Config</button>
         <button class="nav-btn" data-target="view-pharmacies">Region Map</button>
         <button class="nav-btn" data-target="view-missing">Missing Pharms</button>
@@ -1104,6 +1241,11 @@ tr.empty-row td { border-bottom: none; }
                     <select id="sel-end"><option value="">All</option></select>
                     <button class="clear-btn" data-target="sel-end"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
+                <div class="dropdown-group">
+                    <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Unit</span>
+                    <select id="sel-unit"><option value="">All</option></select>
+                    <button class="clear-btn" data-target="sel-unit"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
                 <div class="dropdown-group" style="border:none; background:transparent; box-shadow:none; margin-left:auto; cursor:default;">
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-exact">
@@ -1125,6 +1267,7 @@ tr.empty-row td { border-bottom: none; }
             <div style="display:flex; align-items:center; padding: 0 10px; color: var(--text-tertiary); font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Group By Columns</div>
             <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="t">Class</button>
             <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="reg">Region</button>
+            <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="p">Pharmacy</button>
         </div>
         <div class="table-card">
             <div class="table-wrapper">
@@ -1133,10 +1276,11 @@ tr.empty-row td { border-bottom: none; }
                         <tr>
                             <th id="th-ov-t" data-sort="t">Class <span class="sort-icon"></span></th>
                             <th id="th-ov-reg" data-sort="reg">Region <span class="sort-icon"></span></th>
+                            <th id="th-ov-p" data-sort="p">Pharmacy <span class="sort-icon"></span></th>
                             <th data-sort="i">Item <span class="sort-icon"></span></th>
                             <th data-sort="u">Unit <span class="sort-icon"></span></th>
                             <th data-sort="q">Qty <span class="sort-icon"></span></th>
-                            <th data-sort="p">Price <span class="sort-icon"></span></th>
+                            <th data-sort="price">Price <span class="sort-icon"></span></th>
                             <th data-sort="tot" class="sort-active" data-dir="desc">Value <span class="sort-icon"></span></th>
                         </tr>
                     </thead>
@@ -1154,34 +1298,6 @@ tr.empty-row td { border-bottom: none; }
             <button class="slicer-btn" data-slice="c">Group by Class</button>
         </div>
         <div class="bento-grid" id="bento-container"></div>
-    </div>
-
-    <div id="view-drugs" class="view">
-        <div class="slicer-row">
-            <div style="display:flex; align-items:center; padding: 0 10px; color: var(--text-tertiary); font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Group By Columns</div>
-            <button class="slicer-btn toggle-group active" data-view="view-drugs" data-col="t">Class</button>
-            <button class="slicer-btn toggle-group active" data-view="view-drugs" data-col="region">Region</button>
-            <button class="slicer-btn toggle-group active" data-view="view-drugs" data-col="p">Pharmacy</button>
-        </div>
-        <div class="table-card">
-            <div class="table-wrapper">
-                <table data-view="view-drugs">
-                    <thead>
-                        <tr>
-                            <th data-sort="i">Item <span class="sort-icon"></span></th>
-                            <th data-sort="u">Unit <span class="sort-icon"></span></th>
-                            <th id="th-dr-t" data-sort="t">Class <span class="sort-icon"></span></th>
-                            <th id="th-dr-region" data-sort="region">Region <span class="sort-icon"></span></th>
-                            <th id="th-dr-p" data-sort="p">Pharmacy <span class="sort-icon"></span></th>
-                            <th data-sort="q">Qty <span class="sort-icon"></span></th>
-                            <th data-sort="tot" class="sort-active" data-dir="desc">Value <span class="sort-icon"></span></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tb-drugs"></tbody>
-                </table>
-            </div>
-            <div class="cap-notice" id="cap-drugs"></div>
-        </div>
     </div>
 
     <div id="view-pricing" class="view">
@@ -1318,10 +1434,10 @@ let state = {
     pharmacies: JSON.parse(localStorage.getItem('uni_pharmacies') || JSON.stringify(DEFAULT_PHARMACIES))
 };
 
-let db = [], filteredDB = [], overviewData = [], breakdownData = [], drugsData = [], priceData = [], pharmData = [], missingData = [], anomaliesData = [], activePharms = new Set();
+let db = [], filteredDB = [], overviewData = [], breakdownData = [], priceData = [], pharmData = [], missingData = [], anomaliesData = [], activePharms = new Set();
 let currentView = 'view-overview', currentSlicer = 'r';
 
-let viewDirty = { 'view-overview': true, 'view-breakdown': true, 'view-drugs': true, 'view-pricing': true, 'view-pharmacies': true, 'view-missing': true };
+let viewDirty = { 'view-overview': true, 'view-breakdown': true, 'view-pricing': true, 'view-pharmacies': true, 'view-missing': true };
 let filteredDBDirty = true;
 
 function markAllDirty() {
@@ -1330,13 +1446,11 @@ function markAllDirty() {
 }
 
 let groupConfig = {
-    'view-overview': { t: true, reg: true },
-    'view-drugs': { t: true, region: true, p: true }
+    'view-overview': { t: true, reg: true, p: true }
 };
 
 let sortRules = {
     'view-overview':   [{ k: 'tot',  d: -1 }],
-    'view-drugs':      [{ k: 'tot',  d: -1 }],
     'view-pricing':    [{ k: 'stat', d: -1 }],
     'view-pharmacies': [{ k: 'stat', d: -1 }],
     'view-missing':    [{ k: 'k',    d:  1 }],
@@ -1344,7 +1458,7 @@ let sortRules = {
 };
 
 let renderLimits = {
-    'view-overview': 100, 'view-drugs': 100, 'view-pricing': 100,
+    'view-overview': 100, 'view-pricing': 100,
     'view-pharmacies': 100, 'view-missing': 100, 'view-anomalies': 100
 };
 
@@ -1421,7 +1535,7 @@ function initCustomDropdowns() {
         panel.style.minWidth = w    + 'px';
     }
 
-    ['sel-cat', 'sel-reg', 'sel-end'].forEach(id => {
+    ['sel-cat', 'sel-reg', 'sel-end', 'sel-unit'].forEach(id => {
         const select = document.getElementById(id);
         const group  = select.closest('.dropdown-group');
 
@@ -1559,9 +1673,145 @@ function isMatch(tokens, normStr, isExact, words) {
     });
 }
 
+function highlightText(text, tokens) {
+    if (!tokens || !tokens.length || !text) return escapeHTML(text);
+    
+    const normText = normAr(text);
+    let matches = [];
+    
+    tokens.forEach(t => {
+        if (!t) return;
+        let idx = normText.indexOf(t);
+        while (idx !== -1) {
+            matches.push([idx, idx + t.length]);
+            idx = normText.indexOf(t, idx + 1);
+        }
+    });
+    
+    if (!matches.length) return escapeHTML(text);
+    
+    matches.sort((a, b) => a[0] - b[0]);
+    let merged = [];
+    for (let m of matches) {
+        if (merged.length === 0 || m[0] > merged[merged.length - 1][1]) {
+            merged.push([...m]);
+        } else {
+            merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], m[1]);
+        }
+    }
+    
+    let map = [];
+    for (let i = 0; i < text.length; i++) {
+        let normChar = normAr(text[i]);
+        for (let j = 0; j < normChar.length; j++) {
+            map.push(i);
+        }
+    }
+    
+    let result = '';
+    let lastOrig = 0;
+    
+    for (let m of merged) {
+        let startNorm = m[0];
+        let endNorm = m[1];
+        
+        let startOrig = map[startNorm];
+        let endOrig = map[endNorm - 1] + 1;
+        
+        result += escapeHTML(text.substring(lastOrig, startOrig));
+        result += '<mark>' + escapeHTML(text.substring(startOrig, endOrig)) + '</mark>';
+        lastOrig = endOrig;
+    }
+    result += escapeHTML(text.substring(lastOrig));
+    return result;
+}
+
+const cmdModal = document.getElementById('cmd-modal');
+const cmdInput = document.getElementById('cmd-modal-input');
+const cmdResults = document.getElementById('cmd-modal-results');
+let cmdActiveIndex = 0;
+
+function openCmdPalette() {
+    cmdModal.classList.add('open');
+    cmdInput.value = '';
+    renderCmdResults('');
+    setTimeout(() => cmdInput.focus(), 50);
+}
+
+function closeCmdPalette() {
+    cmdModal.classList.remove('open');
+}
+
+function renderCmdResults(query) {
+    const actions = [
+        { title: 'Go to Overview', sub: 'View', action: () => switchView('view-overview') },
+        { title: 'Go to Breakdown', sub: 'View', action: () => switchView('view-breakdown') },
+        { title: 'Go to Pricing Config', sub: 'View', action: () => switchView('view-pricing') },
+        { title: 'Go to Region Map', sub: 'View', action: () => switchView('view-pharmacies') },
+        { title: 'Go to Missing Pharms', sub: 'View', action: () => switchView('view-missing') },
+        { title: 'Go to Anomalies', sub: 'View', action: () => switchView('view-anomalies') },
+        { title: 'Toggle Dark/Light Theme', sub: 'Action', action: () => document.getElementById('btn-theme').click() },
+        { title: 'Export Current View', sub: 'Action', action: () => document.getElementById('btn-export').click() },
+        { title: 'Clear All Filters', sub: 'Action', action: () => {
+            document.querySelectorAll('.clear-btn').forEach(b => b.click());
+            document.getElementById('omnibox').value = '';
+            syncFromOmnibox();
+        }}
+    ];
+
+    const filtered = actions.filter(a => a.title.toLowerCase().includes(query.toLowerCase()));
+    cmdActiveIndex = 0;
+    cmdResults.innerHTML = filtered.length ? filtered.map((a, i) => `
+        <div class="cmd-item ${i === 0 ? 'active' : ''}" data-idx="${i}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div><div class="cmd-item-title">${a.title}</div><div class="cmd-item-sub">${a.sub}</div></div>
+        </div>
+    `).join('') : `<div class="cmd-item"><div class="cmd-item-title">No results</div></div>`;
+
+    cmdResults.querySelectorAll('.cmd-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const idx = parseInt(item.dataset.idx);
+            if (filtered[idx]) {
+                filtered[idx].action();
+                closeCmdPalette();
+            }
+        });
+        item.addEventListener('mouseenter', () => {
+            cmdActiveIndex = parseInt(item.dataset.idx);
+            updateCmdActive();
+        });
+    });
+}
+
+function updateCmdActive() {
+    cmdResults.querySelectorAll('.cmd-item').forEach((el, i) => {
+        el.classList.toggle('active', i === cmdActiveIndex);
+    });
+}
+
+cmdInput.addEventListener('input', e => renderCmdResults(e.target.value));
+cmdInput.addEventListener('keydown', e => {
+    const items = cmdResults.querySelectorAll('.cmd-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); cmdActiveIndex = Math.min(cmdActiveIndex + 1, items.length - 1); updateCmdActive(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); cmdActiveIndex = Math.max(cmdActiveIndex - 1, 0); updateCmdActive(); }
+    else if (e.key === 'Enter') { e.preventDefault(); items[cmdActiveIndex]?.click(); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeCmdPalette(); }
+});
+
+cmdModal.addEventListener('click', e => { if (e.target === cmdModal) closeCmdPalette(); });
+
 document.addEventListener('keydown', e => {
     const activeTag = document.activeElement.tagName;
     const isInput = activeTag === 'INPUT' || activeTag === 'SELECT';
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCmdPalette();
+        return;
+    }
+
+    if (cmdModal.classList.contains('open')) return;
 
     if (e.key === 'Escape' && document.activeElement === omni) {
         omni.value = '';
@@ -1608,16 +1858,20 @@ document.addEventListener('keydown', e => {
     });
 });
 
+function switchView(viewId) {
+    if (viewId === 'view-drugs') viewId = 'view-overview';
+    document.querySelectorAll('.nav-btn, .view').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.nav-btn[data-target="${viewId}"]`)?.classList.add('active');
+    currentView = viewId;
+    document.getElementById(currentView).classList.add('active');
+    document.getElementById('cmd-wrapper').style.display = currentView === 'view-breakdown' ? 'none' : 'block';
+    activeRowIndex = -1;
+    renderActiveView();
+    syncURLState();
+}
+
 document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.nav-btn, .view').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        currentView = btn.dataset.target;
-        document.getElementById(currentView).classList.add('active');
-        document.getElementById('cmd-wrapper').style.display = currentView === 'view-breakdown' ? 'none' : 'block';
-        activeRowIndex = -1;
-        renderActiveView();
-    });
+    btn.addEventListener('click', () => switchView(btn.dataset.target));
 });
 
 document.querySelectorAll('.slicer-btn:not(.toggle-group)').forEach(btn => {
@@ -1636,8 +1890,11 @@ document.querySelectorAll('.toggle-group').forEach(btn => {
         const col = btn.dataset.col;
         groupConfig[view][col] = !groupConfig[view][col];
         btn.classList.toggle('active', groupConfig[view][col]);
-        if (view === 'view-overview') document.getElementById('th-ov-' + col).style.display = groupConfig[view][col] ? '' : 'none';
-        else if (view === 'view-drugs') document.getElementById('th-dr-' + col).style.display = groupConfig[view][col] ? '' : 'none';
+        if (view === 'view-overview') {
+            if (col === 't') document.getElementById('th-ov-t').style.display = groupConfig[view][col] ? '' : 'none';
+            else if (col === 'reg') document.getElementById('th-ov-reg').style.display = groupConfig[view][col] ? '' : 'none';
+            else if (col === 'p') document.getElementById('th-ov-p').style.display = groupConfig[view][col] ? '' : 'none';
+        }
         syncFromOmnibox();
     });
 });
@@ -1764,6 +2021,7 @@ async function boot() {
 
 function buildDatabase(rawData) {
     const regs = new Set();
+    const units = new Set();
     activePharms.clear();
 
     db = rawData.map(r => {
@@ -1776,6 +2034,7 @@ function buildDatabase(rawData) {
         const tot = r.q * price;
 
         regs.add(region);
+        units.add(r.u);
         activePharms.add(r.p);
 
         const norm = normAr(`${r.i} ${r.u} ${r.p} ${region} ${r.t}`);
@@ -1784,6 +2043,7 @@ function buildDatabase(rawData) {
             t_low: r.t.toLowerCase(),
             r_low: region.toLowerCase(),
             p_low: r.p.toLowerCase(),
+            u_low: r.u.toLowerCase(),
             _norm: norm,
             _words: norm.split(' ')
         };
@@ -1797,7 +2057,14 @@ function buildDatabase(rawData) {
     Array.from(regs).sort().forEach(val => selReg.add(new Option(val, val.toLowerCase())));
     selReg._refreshDropdown?.();
 
+    const selUnit = document.getElementById('sel-unit');
+    selUnit.innerHTML = '<option value="">All</option>';
+    Array.from(units).sort().forEach(val => selUnit.add(new Option(val, val.toLowerCase())));
+    selUnit._refreshDropdown?.();
+
     updatePharmacyDropdown();
+    
+    applyURLState();
     syncFromOmnibox();
 }
 
@@ -1837,7 +2104,7 @@ btnClearOmni.addEventListener('click', () => {
     syncFromOmnibox();
 });
 
-['sel-cat', 'sel-end', 'toggle-exact'].forEach(id => document.getElementById(id).addEventListener('change', syncFromOmnibox));
+['sel-cat', 'sel-end', 'sel-unit', 'toggle-exact'].forEach(id => document.getElementById(id).addEventListener('change', syncFromOmnibox));
 
 document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
@@ -1846,10 +2113,45 @@ document.addEventListener('keydown', e => {
     }
 });
 
+function syncURLState() {
+    const params = new URLSearchParams();
+    params.set('view', currentView);
+    if (omni.value) params.set('q', omni.value);
+    const fC = document.getElementById('sel-cat').value;
+    const fR = document.getElementById('sel-reg').value;
+    const fE = document.getElementById('sel-end').value;
+    const fU = document.getElementById('sel-unit').value;
+    if (fC) params.set('cat', fC);
+    if (fR) params.set('reg', fR);
+    if (fE) params.set('end', fE);
+    if (fU) params.set('unit', fU);
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+}
+
+function applyURLState() {
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    const q = params.get('q');
+    const cat = params.get('cat');
+    const reg = params.get('reg');
+    const end = params.get('end');
+    const unit = params.get('unit');
+    
+    if (view) switchView(view);
+    if (q) omni.value = q;
+    if (cat) document.getElementById('sel-cat').value = cat;
+    if (reg) document.getElementById('sel-reg').value = reg;
+    if (end) document.getElementById('sel-end').value = end;
+    if (unit) document.getElementById('sel-unit').value = unit;
+    
+    syncOmniClearVisibility();
+}
+
 function syncFromOmnibox() {
     Object.keys(renderLimits).forEach(k => renderLimits[k] = 100);
     markAllDirty();
     renderActiveView();
+    syncURLState();
 }
 
 function precalcOverview() {
@@ -1859,28 +2161,12 @@ function precalcOverview() {
         let kArr = [r.i, r.u];
         if (gc.t) kArr.push(r.t);
         if (gc.reg) kArr.push(r.region);
-        const k = kArr.join('|');
-        if (!map.has(k)) map.set(k, { t: gc.t ? r.t : '-', reg: gc.reg ? r.region : '-', i: r.i, u: r.u, q: 0, p: r.price });
-        map.get(k).q += r.q;
-    });
-    overviewData = Array.from(map.values()).map(g => ({ ...g, tot: g.q * g.p }));
-}
-
-function precalcDrugs() {
-    const map = new Map();
-    const gc = groupConfig['view-drugs'];
-    filteredDB.forEach(r => {
-        let kArr = [r.i, r.u];
-        if (gc.t) kArr.push(r.t);
-        if (gc.region) kArr.push(r.region);
         if (gc.p) kArr.push(r.p);
         const k = kArr.join('|');
-        if (!map.has(k)) map.set(k, { i: r.i, u: r.u, t: gc.t ? r.t : '-', region: gc.region ? r.region : '-', p: gc.p ? r.p : '-', q: 0, tot: 0 });
-        const g = map.get(k);
-        g.q += r.q;
-        g.tot += r.tot;
+        if (!map.has(k)) map.set(k, { t: gc.t ? r.t : '-', reg: gc.reg ? r.region : '-', p: gc.p ? r.p : '-', i: r.i, u: r.u, q: 0, price: r.price });
+        map.get(k).q += r.q;
     });
-    drugsData = Array.from(map.values());
+    overviewData = Array.from(map.values()).map(g => ({ ...g, tot: g.q * g.price }));
 }
 
 function precalcBreakdown() {
@@ -1955,13 +2241,15 @@ function renderActiveView() {
     const fC = document.getElementById('sel-cat').value;
     const fR = document.getElementById('sel-reg').value;
     const fE = document.getElementById('sel-end').value;
+    const fU = document.getElementById('sel-unit').value;
 
-    const needsFilteredDB = currentView === 'view-overview' || currentView === 'view-drugs';
+    const needsFilteredDB = currentView === 'view-overview';
     if (needsFilteredDB && filteredDBDirty) {
         filteredDB = db.filter(r => {
             if (fC && r.t_low !== fC) return false;
             if (fR && r.r_low !== fR) return false;
             if (fE && r.p_low !== fE) return false;
+            if (fU && r.u_low !== fU) return false;
             return isMatch(tokens, r._norm, isExact, r._words);
         });
         filteredDBDirty = false;
@@ -1970,7 +2258,6 @@ function renderActiveView() {
     if (viewDirty[currentView]) {
         switch (currentView) {
             case 'view-overview':   precalcOverview(); break;
-            case 'view-drugs':      precalcDrugs(); break;
             case 'view-breakdown':  precalcBreakdown(); break;
             case 'view-pricing':    precalcPricing(tokens, isExact); break;
             case 'view-pharmacies': precalcPharmacies(tokens, isExact); break;
@@ -1982,7 +2269,6 @@ function renderActiveView() {
     const renderMap = {
         'view-overview':   renderOverview,
         'view-breakdown':  renderBreakdown,
-        'view-drugs':      renderDrugs,
         'view-pricing':    renderPricing,
         'view-pharmacies': renderPharmacies,
         'view-missing':    renderMissing,
@@ -1997,15 +2283,29 @@ function renderOverview() {
     const gc = groupConfig['view-overview'];
     let tvl = 0, qty = 0;
     const parts = [];
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
 
     for (let idx = 0; idx < finalData.length; idx++) {
         const d = finalData[idx];
         tvl += d.tot;
         qty += d.q;
         if (idx >= limit) continue;
-        const tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
-        const tdReg = gc.reg ? `<td><span class="arabic-text">${escapeHTML(d.reg)}</span></td>` : '';
-        parts.push(`<tr>${tdClass}${tdReg}<td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td class="num">${fmtNum.format(d.q)}</td><td class="num">${fmtEGP.format(d.p)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
+        
+        const tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${highlightText(d.t, tokens)}</span></td>` : '';
+        const tdReg = gc.reg ? `<td><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td>` : '';
+        const tdPharm = gc.p ? `<td><span class="arabic-text">${highlightText(d.p, tokens)}</span></td>` : '';
+        const tdItem = `<td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td>`;
+        const tdUnit = `<td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td>`;
+        
+        const keyArr = [d.i, d.u];
+        if (gc.t) keyArr.push(d.t);
+        if (gc.reg) keyArr.push(d.reg);
+        if (gc.p) keyArr.push(d.p);
+        const dataKey = escapeHTML(keyArr.join('|'));
+        
+        parts.push(`<tr data-key="${dataKey}" data-view="overview">${tdClass}${tdReg}${tdPharm}${tdItem}${tdUnit}<td class="num">${fmtNum.format(d.q)}</td><td class="num">${fmtEGP.format(d.price)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
     }
 
     document.getElementById('tb-overview').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No records match your filters');
@@ -2030,23 +2330,56 @@ function renderBreakdown() {
         </div>`).join('') : `<div class="empty-state" style="grid-column:1/-1;">${EMPTY_ICON}<span>No data available for this grouping</span></div>`;
 }
 
-function renderDrugs() {
-    const finalData = applySort(drugsData, 'view-drugs');
-    const limit = renderLimits['view-drugs'];
-    const gc = groupConfig['view-drugs'];
-    const parts = [];
-
-    for (let idx = 0; idx < Math.min(finalData.length, limit); idx++) {
-        const d = finalData[idx];
-        const tdClass = gc.t ? `<td><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
-        const tdReg   = gc.region ? `<td><span class="arabic-text">${escapeHTML(d.region)}</span></td>` : '';
-        const tdPharm = gc.p ? `<td><span class="arabic-text">${escapeHTML(d.p)}</span></td>` : '';
-        parts.push(`<tr><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td>${tdClass}${tdReg}${tdPharm}<td class="num">${fmtNum.format(d.q)}</td><td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
+function handleRowClick(e) {
+    const tr = e.target.closest('tr');
+    if (!tr || tr.classList.contains('empty-row') || tr.classList.contains('drill-down-row') || e.target.closest('.editable')) return;
+    
+    document.querySelectorAll('.drill-down-row').forEach(r => r.remove());
+    
+    const existing = tr.nextElementSibling;
+    if (existing && existing.classList.contains('drill-down-row')) {
+        return;
     }
 
-    document.getElementById('tb-drugs').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No records match your filters');
-    updateCapNotice('drugs', finalData.length);
+    const key = tr.dataset.key;
+    const view = tr.dataset.view;
+    if (!key) return;
+
+    const parts = key.split('|');
+    const i = parts[0], u = parts[1];
+    
+    let matches = [];
+    if (view === 'overview') {
+        matches = filteredDB.filter(r => r.i === i && r.u === u);
+        const gc = groupConfig['view-overview'];
+        let partIdx = 2;
+        if (gc.t) { const t = parts[partIdx++]; matches = matches.filter(r => r.t === t); }
+        if (gc.reg) { const reg = parts[partIdx++]; matches = matches.filter(r => r.region === reg); }
+        if (gc.p) { const p = parts[partIdx++]; matches = matches.filter(r => r.p === p); }
+    }
+
+    if (!matches.length) return;
+
+    matches.sort((a, b) => b.tot - a.tot).slice(0, 5);
+
+    const drillTr = document.createElement('tr');
+    drillTr.className = 'drill-down-row';
+    drillTr.innerHTML = `<td colspan="${tr.children.length}"><div class="drill-content">${matches.map(m => `
+        <div class="drill-item">
+            <span class="drill-name">
+                <span class="arabic-text">${escapeHTML(m.p)}</span>
+                <span class="drill-context">${escapeHTML(m.t)} &bull; ${escapeHTML(m.region)}</span>
+            </span>
+            <span class="drill-stats">
+                <span class="drill-qty">${fmtNum.format(m.q)} units</span>
+                <span class="val">${fmtEGP.format(m.tot)}</span>
+            </span>
+        </div>
+    `).join('')}</div></td>`;
+    tr.after(drillTr);
 }
+
+document.getElementById('tb-overview').addEventListener('click', handleRowClick);
 
 window.updatePrice = (k, v) => {
     state.prices[k] = parseFloat(v) || 0;
@@ -2066,13 +2399,27 @@ function renderPricing() {
     const limit = renderLimits['view-pricing'];
     let unpriced = 0;
     const parts = [];
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    const pricedItems = finalData.filter(d => d.p > 0).map(d => d.p).sort((a,b) => a-b);
+    const median = pricedItems.length ? pricedItems[Math.floor(pricedItems.length / 2)] : 0;
 
     for (let idx = 0; idx < finalData.length; idx++) {
         const d = finalData[idx];
         if (d.stat === 0) unpriced++;
         if (idx >= limit) continue;
         const statLabel = d.stat === 0 ? 'Missing price' : 'Priced';
-        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td><input type="number" class="editable" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
+        let anomalyClass = '';
+        let anomalyDot = '';
+        
+        if (d.p > 0 && median > 0 && (d.p > median * 3 || d.p < median * 0.3)) {
+            anomalyClass = 'anomaly-warn';
+            anomalyDot = `<div class="status-dot status-anomaly" title="Potential pricing anomaly (Deviation > 3x)"></div>`;
+        }
+
+        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td style="display:flex; align-items:center; gap:8px;">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
     }
 
     document.getElementById('tb-pricing').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No items match your filters');
@@ -2105,6 +2452,9 @@ function renderPharmacies() {
     const limit = renderLimits['view-pharmacies'];
     let unm = 0, inact = 0;
     const parts = [];
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
 
     for (let idx = 0; idx < finalData.length; idx++) {
         const d = finalData[idx];
@@ -2112,7 +2462,7 @@ function renderPharmacies() {
         if (idx >= limit) continue;
         const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
         const statLabel = d.stat === 0 ? 'Unrouted — no region assigned' : d.stat === 2 ? 'Inactive — no records this period' : 'Active';
-        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`);
+        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`);
     }
 
     document.getElementById('tb-pharmacies').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No pharmacies match your filters');
@@ -2124,8 +2474,11 @@ function renderPharmacies() {
 function renderMissing() {
     const finalData = applySort(missingData, 'view-missing');
     const limit = renderLimits['view-missing'];
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
     const rows = finalData.slice(0, limit).map(d =>
-        `<tr><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><span class="arabic-text">${escapeHTML(d.reg)}</span></td></tr>`
+        `<tr><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td></tr>`
     ).join('');
     document.getElementById('tb-missing').innerHTML = rows || emptyRowHTML('No missing pharmacies — all mapped routes are reporting');
     updateCapNotice('missing', finalData.length);
@@ -2134,8 +2487,11 @@ function renderMissing() {
 function renderAnomalies() {
     const finalData = applySort(anomaliesData, 'view-anomalies');
     const limit = renderLimits['view-anomalies'];
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
     const rows = finalData.slice(0, limit).map(d =>
-        `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span style="font-family:var(--font-mono); font-weight:700;">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.p)}</span></td><td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td><td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(217,43,43,0.25);">${escapeHTML(d.act)}</span></td></tr>`
+        `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span style="font-family:var(--font-mono); font-weight:700;">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.p, tokens)}</span></td><td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td><td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(217,43,43,0.25);">${escapeHTML(d.act)}</span></td></tr>`
     ).join('');
     document.getElementById('tb-anomalies').innerHTML = rows || emptyRowHTML('No anomalies detected in the current import');
     updateCapNotice('anomalies', finalData.length);
@@ -2149,24 +2505,14 @@ document.getElementById('btn-export').addEventListener('click', () => {
                 let row = {};
                 if (gc.t) row.Class = g.t;
                 if (gc.reg) row.Region = g.reg;
-                row.Item = g.i; row.Unit = g.u; row.Qty = g.q; row.Price = g.p; row.Value = g.tot;
+                if (gc.p) row.Pharmacy = g.p;
+                row.Item = g.i; row.Unit = g.u; row.Qty = g.q; row.Price = g.price; row.Value = g.tot;
                 return row;
             });
         },
         'view-breakdown': () => {
             const n = currentSlicer === 'r' ? 'Region' : currentSlicer === 'e' ? 'Pharmacy' : 'Class';
             return breakdownData.map(g => ({ [n]: g.key, Context: g.sub, 'Unique Items': g.ui, Qty: g.q, Value: g.tot }));
-        },
-        'view-drugs': () => {
-            const gc = groupConfig['view-drugs'];
-            return applySort(drugsData, currentView).map(g => {
-                let row = { Item: g.i, Unit: g.u };
-                if (gc.t) row.Class = g.t;
-                if (gc.region) row.Region = g.region;
-                if (gc.p) row.Pharmacy = g.p;
-                row.Qty = g.q; row.Value = g.tot;
-                return row;
-            });
         },
         'view-pricing':    () => applySort(priceData, currentView).map(d => ({ Item: d.i, Unit: d.u, Price: d.p })),
         'view-pharmacies': () => applySort(pharmData, currentView).map(d => ({ Pharmacy: d.k, Region: d.reg, Status: d.stat === 0 ? 'Unmapped' : d.stat === 2 ? 'Inactive' : 'Active' })),
@@ -2175,18 +2521,34 @@ document.getElementById('btn-export').addEventListener('click', () => {
     };
 
     const data = exportMap[currentView]?.() ?? [];
-    const blob = new Blob(['\uFEFF' + Papa.unparse(data)], { type: 'text/csv;charset=utf-8;' });
-    Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `Export_${currentView}.csv` }).click();
+    if (!data.length) return;
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = Object.keys(data[0]).map(k => ({ wch: k.length + 10 }));
+    ws['!views'] = [{ RTL: true }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Export");
+    XLSX.writeFile(wb, `Export_${currentView}.xlsx`);
 });
 
 document.getElementById('btn-template-prices').addEventListener('click', () => {
-    const blob = new Blob(['\uFEFF' + Papa.unparse(priceData.map(d => ({ Item: d.i, Unit: d.u, Price: d.p })))], { type: 'text/csv;charset=utf-8;' });
-    Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'Pricing_Template.csv' }).click();
+    const data = priceData.map(d => ({ Item: d.i, Unit: d.u, Price: d.p }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }];
+    ws['!views'] = [{ RTL: true }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pricing_Template");
+    XLSX.writeFile(wb, 'Pricing_Template.xlsx');
 });
 
 document.getElementById('btn-template-regions').addEventListener('click', () => {
-    const blob = new Blob(['\uFEFF' + Papa.unparse(pharmData.map(d => ({ Pharmacy: d.k, Region: d.reg })))], { type: 'text/csv;charset=utf-8;' });
-    Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'Routing_Template.csv' }).click();
+    const data = pharmData.map(d => ({ Pharmacy: d.k, Region: d.reg }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [{ wch: 30 }, { wch: 20 }];
+    ws['!views'] = [{ RTL: true }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Routing_Template");
+    XLSX.writeFile(wb, 'Routing_Template.xlsx');
 });
 
 ['file-prices', 'file-regions'].forEach(id => {
