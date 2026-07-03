@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <title>LX parser</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -47,6 +47,8 @@
     --accent-blue-strong-border: rgba(91,63,224,0.34);
     --accent-pink-strong-bg: rgba(225,29,116,0.15);
     --accent-pink-strong-border: rgba(225,29,116,0.34);
+    --mark-bg: rgba(91, 63, 224, 0.25);
+    --mark-text: inherit;
 }
 
 [data-theme="dark"] {
@@ -83,6 +85,8 @@
     --accent-blue-strong-border: rgba(124,108,246,0.42);
     --accent-pink-strong-bg: rgba(255,46,154,0.20);
     --accent-pink-strong-border: rgba(255,46,154,0.42);
+    --mark-bg: rgba(255, 46, 154, 0.35);
+    --mark-text: #FFF;
 }
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -790,6 +794,8 @@ tr.selected-row td { background: var(--row-active); }
 
 .arabic-text { font-family: 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', 'Arial', sans-serif; direction: rtl; display: inline-block; font-weight: 600; font-size: 14.5px; }
 
+mark { background: var(--mark-bg); color: var(--mark-text); border-radius: 3px; padding: 0 2px; }
+
 .badge { padding: 5px 13px; border-radius: 10px; font-size: 12px; font-weight: 700; background: var(--badge-bg); border: 1px solid var(--border); display: inline-block; white-space: nowrap; letter-spacing: 0.1px; }
 .badge.workforce { color: var(--accent-blue); background: var(--accent-blue-strong-bg); border-color: var(--accent-blue-strong-border); font-weight: 700; }
 .badge.student { color: var(--accent-pink); background: var(--accent-pink-strong-bg); border-color: var(--accent-pink-strong-border); font-weight: 700; }
@@ -926,22 +932,22 @@ tr.empty-row td { border-bottom: none; }
             <div class="dropdowns-row">
                 <div class="dropdown-group">
                     <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Class</span>
-                    <select id="sel-cat"><option value="">All</option><option value="workforce">Workforce</option><option value="student">Student</option></select>
+                    <select id="sel-cat"><option value="ALL">All</option><option value="workforce">Workforce</option><option value="student">Student</option></select>
                     <button class="clear-btn" data-target="sel-cat"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group">
                     <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Region</span>
-                    <select id="sel-reg"><option value="">All</option></select>
+                    <select id="sel-reg"><option value="ALL">All</option></select>
                     <button class="clear-btn" data-target="sel-reg"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group">
                     <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Pharmacy</span>
-                    <select id="sel-end"><option value="">All</option></select>
+                    <select id="sel-end"><option value="ALL">All</option></select>
                     <button class="clear-btn" data-target="sel-end"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group">
                     <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Unit</span>
-                    <select id="sel-unit"><option value="">All</option></select>
+                    <select id="sel-unit"><option value="ALL">All</option></select>
                     <button class="clear-btn" data-target="sel-unit"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group" style="border:none; background:transparent; box-shadow:none; margin-left:auto; cursor:default;">
@@ -1371,6 +1377,16 @@ function isMatch(tokens, normStr, isExact, words) {
     });
 }
 
+function highlightText(text, tokens) {
+    if (!tokens || !tokens.length || !text) return escapeHTML(text);
+    const words = String(text).split(' ');
+    return words.map(w => {
+        const nw = normAr(w);
+        const isMatch = tokens.some(t => nw.includes(t) || lev(t, nw) <= Math.max(1, Math.floor(t.length / 3)));
+        return isMatch ? `<mark>${escapeHTML(w)}</mark>` : escapeHTML(w);
+    }).join(' ');
+}
+
 const cmdModal = document.getElementById('cmd-modal');
 const cmdInput = document.getElementById('cmd-modal-input');
 const cmdResults = document.getElementById('cmd-modal-results');
@@ -1474,7 +1490,7 @@ document.addEventListener('keydown', e => {
 
     const tbody = document.querySelector(`#${currentView} tbody`);
     if (!tbody) return;
-    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row):not(.drill-down-row)'));
     if (!rows.length) return;
 
     if (isInput && document.activeElement.classList.contains('editable')) {
@@ -1557,7 +1573,7 @@ document.querySelectorAll('.toggle-group').forEach(btn => {
 document.querySelectorAll('.clear-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const sel = document.getElementById(btn.dataset.target);
-        sel.value = '';
+        sel.value = 'ALL';
         sel._refreshDropdown?.();
         if (btn.dataset.target === 'sel-reg') updatePharmacyDropdown();
         syncFromOmnibox();
@@ -1708,13 +1724,13 @@ function buildDatabase(rawData) {
     localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
 
     const selReg = document.getElementById('sel-reg');
-    selReg.innerHTML = '<option value="">All</option>';
-    Array.from(regs).sort().forEach(val => selReg.add(new Option(val, val.toLowerCase())));
+    selReg.innerHTML = '<option value="ALL">All</option>';
+    Array.from(regs).sort().forEach(val => selReg.add(new Option(val || '(Empty)', val)));
     selReg._refreshDropdown?.();
 
     const selUnit = document.getElementById('sel-unit');
-    selUnit.innerHTML = '<option value="">All</option>';
-    Array.from(units).sort().forEach(val => selUnit.add(new Option(val, val.toLowerCase())));
+    selUnit.innerHTML = '<option value="ALL">All</option>';
+    Array.from(units).sort().forEach(val => selUnit.add(new Option(val || '(No Unit)', val)));
     selUnit._refreshDropdown?.();
 
     updatePharmacyDropdown();
@@ -1728,12 +1744,12 @@ function updatePharmacyDropdown() {
     const selEnd = document.getElementById('sel-end');
     const currentVal = selEnd.value;
 
-    selEnd.innerHTML = '<option value="">All</option>';
+    selEnd.innerHTML = '<option value="ALL">All</option>';
     const validEnds = new Set();
-    db.forEach(r => { if (!fR || r.r_low === fR) validEnds.add(r.p); });
+    db.forEach(r => { if (fR === 'ALL' || r.r_low === fR) validEnds.add(r.p); });
 
-    Array.from(validEnds).sort().forEach(val => selEnd.add(new Option(val, val.toLowerCase())));
-    selEnd.value = Array.from(validEnds).some(v => v.toLowerCase() === currentVal) ? currentVal : '';
+    Array.from(validEnds).sort().forEach(val => selEnd.add(new Option(val || '(Empty)', val)));
+    selEnd.value = Array.from(validEnds).some(v => v.toLowerCase() === currentVal) ? currentVal : 'ALL';
     selEnd._refreshDropdown?.();
 }
 
@@ -1776,10 +1792,10 @@ function syncURLState() {
     const fR = document.getElementById('sel-reg').value;
     const fE = document.getElementById('sel-end').value;
     const fU = document.getElementById('sel-unit').value;
-    if (fC) params.set('cat', fC);
-    if (fR) params.set('reg', fR);
-    if (fE) params.set('end', fE);
-    if (fU) params.set('unit', fU);
+    if (fC && fC !== 'ALL') params.set('cat', fC);
+    if (fR && fR !== 'ALL') params.set('reg', fR);
+    if (fE && fE !== 'ALL') params.set('end', fE);
+    if (fU && fU !== 'ALL') params.set('unit', fU);
     window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
 }
 
@@ -1794,10 +1810,11 @@ function applyURLState() {
     
     if (view && document.querySelector(`.nav-btn[data-target="${view}"]`)) switchView(view);
     if (q) omni.value = q;
-    if (cat) document.getElementById('sel-cat').value = cat;
-    if (reg) document.getElementById('sel-reg').value = reg;
-    if (end) document.getElementById('sel-end').value = end;
-    if (unit) document.getElementById('sel-unit').value = unit;
+    
+    document.getElementById('sel-cat').value = cat || 'ALL';
+    document.getElementById('sel-reg').value = reg || 'ALL';
+    document.getElementById('sel-end').value = end || 'ALL';
+    document.getElementById('sel-unit').value = unit || 'ALL';
     
     syncOmniClearVisibility();
 }
@@ -1865,7 +1882,7 @@ function precalcMissing(tokens, isExact, fR) {
         if (activePharms.has(k)) return acc;
         const rawReg = state.pharmacies[k] || 'Unmapped';
         const reg = REGION_MAP[rawReg] || rawReg;
-        if (fR && reg.toLowerCase() !== fR) return acc;
+        if (fR !== 'ALL' && reg.toLowerCase() !== fR) return acc;
         if (isMatch(tokens, normAr(`${k} ${reg}`), isExact)) acc.push({ k, reg });
         return acc;
     }, []);
@@ -1901,10 +1918,10 @@ function renderActiveView() {
     const needsFilteredDB = currentView === 'view-overview';
     if (needsFilteredDB && filteredDBDirty) {
         filteredDB = db.filter(r => {
-            if (fC && r.t_low !== fC) return false;
-            if (fR && r.r_low !== fR) return false;
-            if (fE && r.p_low !== fE) return false;
-            if (fU && r.u_low !== fU) return false;
+            if (fC !== 'ALL' && r.t_low !== fC) return false;
+            if (fR !== 'ALL' && r.r_low !== fR) return false;
+            if (fE !== 'ALL' && r.p_low !== fE) return false;
+            if (fU !== 'ALL' && r.u_low !== fU) return false;
             return isMatch(tokens, r._norm, isExact, r._words);
         });
         filteredDBDirty = false;
@@ -1939,6 +1956,10 @@ function renderOverview() {
     let tvl = 0, qty = 0;
     const parts = [];
     
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+    
     const firstVis = updateStickyColumn();
 
     for (let idx = 0; idx < finalData.length; idx++) {
@@ -1947,11 +1968,11 @@ function renderOverview() {
         qty += d.q;
         if (idx >= limit) continue;
         
-        const tdClass = gc.t ? `<td class="${firstVis==='t'?'sticky-col':''}"><span class="badge ${escapeHTML(d.t.toLowerCase())}">${escapeHTML(d.t)}</span></td>` : '';
-        const tdReg = gc.reg ? `<td class="${firstVis==='reg'?'sticky-col':''}"><span class="arabic-text">${escapeHTML(d.reg)}</span></td>` : '';
-        const tdPharm = gc.p ? `<td class="${firstVis==='p'?'sticky-col':''}"><span class="arabic-text">${escapeHTML(d.p)}</span></td>` : '';
-        const tdItem = `<td class="${firstVis==='i'?'sticky-col':''}"><span class="arabic-text">${escapeHTML(d.i)}</span></td>`;
-        const tdUnit = `<td><span class="arabic-text">${escapeHTML(d.u)}</span></td>`;
+        const tdClass = gc.t ? `<td class="${firstVis==='t'?'sticky-col':''}"><span class="badge ${escapeHTML(d.t.toLowerCase())}">${highlightText(d.t, tokens)}</span></td>` : '';
+        const tdReg = gc.reg ? `<td class="${firstVis==='reg'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td>` : '';
+        const tdPharm = gc.p ? `<td class="${firstVis==='p'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.p, tokens)}</span></td>` : '';
+        const tdItem = `<td class="${firstVis==='i'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.i, tokens)}</span></td>`;
+        const tdUnit = `<td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td>`;
         
         const keyArr = [d.i, d.u];
         if (gc.t) keyArr.push(d.t);
@@ -1988,12 +2009,12 @@ function handleRowClick(e) {
     const tr = e.target.closest('tr');
     if (!tr || tr.classList.contains('empty-row') || tr.classList.contains('drill-down-row') || e.target.closest('.editable')) return;
     
-    document.querySelectorAll('.drill-down-row').forEach(r => r.remove());
-    
     const existing = tr.nextElementSibling;
-    if (existing && existing.classList.contains('drill-down-row')) {
-        return;
-    }
+    const hasDrillOpen = existing && existing.classList.contains('drill-down-row');
+
+    document.querySelectorAll('.drill-down-row').forEach(r => r.remove());
+
+    if (hasDrillOpen) return; 
 
     const key = tr.dataset.key;
     const view = tr.dataset.view;
@@ -2054,6 +2075,10 @@ function renderPricing() {
     let unpriced = 0;
     const parts = [];
 
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+
     const pricedItems = finalData.filter(d => d.p > 0).map(d => d.p).sort((a,b) => a-b);
     const median = pricedItems.length ? pricedItems[Math.floor(pricedItems.length / 2)] : 0;
 
@@ -2070,7 +2095,7 @@ function renderPricing() {
             anomalyDot = `<div class="status-dot status-anomaly" title="Potential pricing anomaly (Deviation > 3x median)"></div>`;
         }
 
-        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.u)}</span></td><td style="display:flex; align-items:center; gap:8px;">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
+        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td style="display:flex; align-items:center; gap:8px;">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
     }
 
     document.getElementById('tb-pricing').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No items match your filters');
@@ -2104,13 +2129,17 @@ function renderPharmacies() {
     let unm = 0, inact = 0;
     const parts = [];
 
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+
     for (let idx = 0; idx < finalData.length; idx++) {
         const d = finalData[idx];
         if (d.stat === 0) unm++; else if (d.stat === 2) inact++;
         if (idx >= limit) continue;
         const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
         const statLabel = d.stat === 0 ? 'Unrouted — no region assigned' : d.stat === 2 ? 'Inactive — no records this period' : 'Active';
-        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`);
+        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`);
     }
 
     document.getElementById('tb-pharmacies').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No pharmacies match your filters');
@@ -2122,8 +2151,11 @@ function renderPharmacies() {
 function renderMissing() {
     const finalData = applySort(missingData, 'view-missing');
     const limit = renderLimits['view-missing'];
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
     const rows = finalData.slice(0, limit).map(d =>
-        `<tr><td><span class="arabic-text">${escapeHTML(d.k)}</span></td><td><span class="arabic-text">${escapeHTML(d.reg)}</span></td></tr>`
+        `<tr><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td></tr>`
     ).join('');
     document.getElementById('tb-missing').innerHTML = rows || emptyRowHTML('No missing pharmacies — all mapped routes are reporting');
     updateCapNotice('missing', finalData.length);
@@ -2132,8 +2164,11 @@ function renderMissing() {
 function renderAnomalies() {
     const finalData = applySort(anomaliesData, 'view-anomalies');
     const limit = renderLimits['view-anomalies'];
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
     const rows = finalData.slice(0, limit).map(d =>
-        `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span style="font-family:var(--font-mono); font-weight:700;">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${escapeHTML(d.i)}</span></td><td><span class="arabic-text">${escapeHTML(d.p)}</span></td><td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td><td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(217,43,43,0.25);">${escapeHTML(d.act)}</span></td></tr>`
+        `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span style="font-family:var(--font-mono); font-weight:700;">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.p, tokens)}</span></td><td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td><td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(217,43,43,0.25);">${escapeHTML(d.act)}</span></td></tr>`
     ).join('');
     document.getElementById('tb-anomalies').innerHTML = rows || emptyRowHTML('No anomalies detected in the current import');
     updateCapNotice('anomalies', finalData.length);
