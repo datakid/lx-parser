@@ -266,6 +266,69 @@ nav {
 .btn-primary:active { transform: translateY(0); filter: brightness(0.97); }
 .btn-icon { padding: 10px; border-radius: 14px; }
 
+.sync-cluster { display: flex; align-items: center; gap: 10px; }
+
+.last-sync {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    letter-spacing: 0.1px;
+    padding-right: 2px;
+    transition: color 0.2s ease;
+}
+
+.last-sync.stale { color: var(--warning); }
+
+.btn-sync svg { transition: transform 0.25s var(--ease-spring); }
+.btn-sync:hover svg { transform: rotate(50deg); }
+.btn-sync.syncing { pointer-events: none; border-color: var(--accent-blue); color: var(--accent-blue); }
+[data-theme="dark"] .btn-sync.syncing { border-color: var(--accent-pink); color: var(--accent-pink); }
+.btn-sync.syncing svg { animation: spin 0.85s linear infinite; }
+.btn-sync.syncing:hover svg { transform: none; }
+
+.btn-sync.sync-success { border-color: var(--success); color: var(--success); }
+.btn-sync.sync-error { border-color: var(--danger); color: var(--danger); }
+
+.toast-stack {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3000;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    align-items: center;
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 20px;
+    background: var(--palette-bg);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg), inset 0 1px 0 var(--glass-inset);
+    color: var(--text-primary);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+    transition: opacity 0.28s var(--ease-out), transform 0.32s var(--ease-spring);
+    white-space: nowrap;
+}
+
+.toast.visible { opacity: 1; transform: translateY(0) scale(1); }
+.toast svg { flex-shrink: 0; }
+.toast.toast-success svg { color: var(--success); }
+.toast.toast-error svg { color: var(--danger); }
+
 .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px 20px 60px; width: 100%; max-width: 1400px; margin: 0 auto; }
 
 .cmd-wrapper { width: 100%; max-width: 900px; margin-bottom: 32px; position: relative; z-index: 50; perspective: 1000px; }
@@ -872,6 +935,7 @@ tr.empty-row td { border-bottom: none; }
     .dropdowns-row { flex-direction: column; align-items: stretch; padding: 0 20px 20px; }
     .dropdown-group { justify-content: space-between; }
     .custom-dropdown-panel { min-width: unset; }
+    .last-sync { display: none; }
 }
 </style>
 </head>
@@ -887,6 +951,8 @@ tr.empty-row td { border-bottom: none; }
         <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 8px;">Retry Connection</button>
     </div>
 </div>
+
+<div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 
 <div id="cmd-modal" class="cmd-modal">
     <div class="cmd-modal-content">
@@ -909,6 +975,12 @@ tr.empty-row td { border-bottom: none; }
         <button class="nav-btn" data-target="view-anomalies">Anomalies</button>
     </div>
     <div class="controls">
+        <div class="sync-cluster">
+            <span class="last-sync" id="last-sync-label"></span>
+            <button class="btn btn-icon btn-sync" id="btn-sync" aria-label="Sync latest data">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </button>
+        </div>
         <button class="btn btn-icon" id="btn-theme" aria-label="Toggle color theme">
             <svg id="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             <svg id="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
@@ -1627,68 +1699,130 @@ function triggerFatalError(msg) {
     document.getElementById('sync-overlay').style.pointerEvents = 'auto';
 }
 
+async function fetchAndBuildDatabase() {
+    const results = await Promise.all(
+        SOURCES.map(s => fetch(s.url).then(r => {
+            if (!r.ok) throw new Error(`HTTP Error ${r.status} fetching ${s.type} sheet.`);
+            return r.text();
+        }).then(text => ({ text, type: s.type })))
+    );
+
+    let rawData = [];
+    anomaliesData = [];
+
+    for (const res of results) {
+        const parsed = Papa.parse(res.text, { skipEmptyLines: true }).data;
+        if (!parsed.length) throw new Error(`Sheet ${res.type} is completely empty.`);
+
+        let headerIdx = -1;
+        for (let i = 0; i < Math.min(parsed.length, 30); i++) {
+            if (parsed[i].includes('الصنف')) { headerIdx = i; break; }
+        }
+        if (headerIdx === -1) throw new Error(`Could not find "الصنف" header in first 30 rows of ${res.type} sheet.`);
+
+        const headers = parsed[headerIdx];
+        const itemIdx = headers.indexOf('الصنف');
+        const unitIdx = headers.indexOf('الوحدة');
+
+        for (let i = headerIdx + 1; i < parsed.length; i++) {
+            const row = parsed[i];
+            if (!row?.length) continue;
+            const iName = row[itemIdx]?.trim();
+            if (!iName) continue;
+            const uName = unitIdx !== -1 ? (row[unitIdx]?.trim() || '') : '';
+
+            for (let j = 0; j < headers.length; j++) {
+                if (j === itemIdx || j === unitIdx) continue;
+                const pName = headers[j]?.trim();
+                if (!pName || pName.startsWith('_') || ['الاجمالي', 'Total', 'الإجمالي'].includes(pName)) continue;
+
+                const rawVal = row[j];
+                if (!rawVal || rawVal.trim() === '') continue;
+
+                const strVal = rawVal.toString().trim();
+                const hasLettersOrSymbols = /[^\d.,\s-]/.test(strVal);
+                let q = parseFloat(strVal.replace(/[^\d.-]/g, ''));
+
+                if (hasLettersOrSymbols || isNaN(q)) {
+                    anomaliesData.push({ sheet: res.type, row: i + 1, i: iName, p: pName, val: strVal, act: 'Zeroed' });
+                    q = 0;
+                }
+                if (q > 0) rawData.push({ i: iName, u: uName, p: pName, q, t: res.type });
+            }
+        }
+    }
+
+    buildDatabase(rawData);
+    localStorage.setItem('uni_last_sync', Date.now().toString());
+    updateLastSyncLabel();
+}
+
 async function boot() {
     const overlay = document.getElementById('sync-overlay');
     overlay.style.opacity = '1';
     try {
-        const results = await Promise.all(
-            SOURCES.map(s => fetch(s.url).then(r => {
-                if (!r.ok) throw new Error(`HTTP Error ${r.status} fetching ${s.type} sheet.`);
-                return r.text();
-            }).then(text => ({ text, type: s.type })))
-        );
-
-        let rawData = [];
-        anomaliesData = [];
-
-        for (const res of results) {
-            const parsed = Papa.parse(res.text, { skipEmptyLines: true }).data;
-            if (!parsed.length) throw new Error(`Sheet ${res.type} is completely empty.`);
-
-            let headerIdx = -1;
-            for (let i = 0; i < Math.min(parsed.length, 30); i++) {
-                if (parsed[i].includes('الصنف')) { headerIdx = i; break; }
-            }
-            if (headerIdx === -1) throw new Error(`Could not find "الصنف" header in first 30 rows of ${res.type} sheet.`);
-
-            const headers = parsed[headerIdx];
-            const itemIdx = headers.indexOf('الصنف');
-            const unitIdx = headers.indexOf('الوحدة');
-
-            for (let i = headerIdx + 1; i < parsed.length; i++) {
-                const row = parsed[i];
-                if (!row?.length) continue;
-                const iName = row[itemIdx]?.trim();
-                if (!iName) continue;
-                const uName = unitIdx !== -1 ? (row[unitIdx]?.trim() || '') : '';
-
-                for (let j = 0; j < headers.length; j++) {
-                    if (j === itemIdx || j === unitIdx) continue;
-                    const pName = headers[j]?.trim();
-                    if (!pName || pName.startsWith('_') || ['الاجمالي', 'Total', 'الإجمالي'].includes(pName)) continue;
-
-                    const rawVal = row[j];
-                    if (!rawVal || rawVal.trim() === '') continue;
-
-                    const strVal = rawVal.toString().trim();
-                    const hasLettersOrSymbols = /[^\d.,\s-]/.test(strVal);
-                    let q = parseFloat(strVal.replace(/[^\d.-]/g, ''));
-
-                    if (hasLettersOrSymbols || isNaN(q)) {
-                        anomaliesData.push({ sheet: res.type, row: i + 1, i: iName, p: pName, val: strVal, act: 'Zeroed' });
-                        q = 0;
-                    }
-                    if (q > 0) rawData.push({ i: iName, u: uName, p: pName, q, t: res.type });
-                }
-            }
-        }
-
-        buildDatabase(rawData);
+        await fetchAndBuildDatabase();
         overlay.style.opacity = '0';
     } catch (e) {
         triggerFatalError(e.message);
     }
+    updateLastSyncLabel();
+    setInterval(updateLastSyncLabel, 30000);
 }
+
+function showToast(message, type = 'success') {
+    const stack = document.getElementById('toast-stack');
+    const icon = type === 'success'
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.innerHTML = `${icon}<span>${escapeHTML(message)}</span>`;
+    stack.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('visible'));
+    setTimeout(() => {
+        el.classList.remove('visible');
+        setTimeout(() => el.remove(), 350);
+    }, 3200);
+}
+
+function formatRelativeTime(ts) {
+    const diff = Math.max(0, Date.now() - ts);
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Synced just now';
+    if (mins < 60) return `Synced ${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `Synced ${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `Synced ${days}d ago`;
+}
+
+function updateLastSyncLabel() {
+    const label = document.getElementById('last-sync-label');
+    const ts = parseInt(localStorage.getItem('uni_last_sync'), 10);
+    if (!ts) { label.textContent = ''; return; }
+    label.textContent = formatRelativeTime(ts);
+    label.classList.toggle('stale', Date.now() - ts > 3600000);
+}
+
+document.getElementById('btn-sync').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-sync');
+    if (btn.classList.contains('syncing')) return;
+    btn.classList.remove('sync-success', 'sync-error');
+    btn.classList.add('syncing');
+    try {
+        await fetchAndBuildDatabase();
+        btn.classList.remove('syncing');
+        btn.classList.add('sync-success');
+        showToast('Data synced successfully', 'success');
+    } catch (e) {
+        btn.classList.remove('syncing');
+        btn.classList.add('sync-error');
+        showToast(e.message || 'Sync failed', 'error');
+    } finally {
+        setTimeout(() => btn.classList.remove('sync-success', 'sync-error'), 1600);
+    }
+});
 
 function buildDatabase(rawData) {
     const regs = new Set();
