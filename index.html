@@ -26,7 +26,9 @@
     --danger: #D92B2B;
     --danger-bg: #FEF1F1;
     --success: #059669;
+    --success-bg: #ECFDF5;
     --warning: #C97D0A;
+    --warning-bg: #FEF7EC;
     --radius: 20px;
     --shadow-xs: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
     --shadow-sm: 0 2px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
@@ -68,7 +70,9 @@
     --danger: #F87171;
     --danger-bg: #1C0812;
     --success: #34D399;
+    --success-bg: rgba(52,211,153,0.12);
     --warning: #FBBF24;
+    --warning-bg: rgba(251,191,36,0.10);
     --shadow-xs: 0 1px 4px rgba(0,0,0,0.50);
     --shadow-sm: 0 4px 20px rgba(0,0,0,0.55), 0 1px 5px rgba(0,0,0,0.32);
     --shadow: 0 20px 68px rgba(0,0,0,0.78), 0 6px 20px rgba(0,0,0,0.40);
@@ -265,6 +269,25 @@ nav {
 
 .btn-primary:active { transform: translateY(0); filter: brightness(0.97); }
 .btn-icon { padding: 10px; border-radius: 14px; }
+.retry-btn { margin-top: 8px; }
+.icon-hidden { display: none; }
+
+.dropdown-label { color: var(--text-secondary); font-weight: 600; font-size: 13px; flex-shrink: 0; }
+.dropdown-group-plain { border: none; background: transparent; box-shadow: none; margin-left: auto; cursor: default; }
+.exact-match-label { margin-left: 10px; color: var(--text-secondary); font-weight: 600; font-size: 13px; }
+.section-label { display: flex; align-items: center; padding: 0 10px; color: var(--text-tertiary); font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.metric-value-danger { color: var(--danger); text-shadow: 0 4px 12px rgba(217,43,43,0.2); }
+.metric-value-warning { color: var(--warning); text-shadow: 0 4px 12px rgba(201,125,10,0.2); }
+.section-title { font-weight: 700; font-size: 16px; letter-spacing: -0.3px; }
+.section-title-row { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 12px; letter-spacing: -0.3px; }
+.section-desc { font-size: 14px; font-weight: 500; color: var(--text-secondary); max-width: 60%; }
+.load-more-btn { display: inline-flex; padding: 6px 16px; font-size: 13px; font-weight: 700; height: auto; min-height: 0; border-radius: 12px; margin-left: 16px; }
+.mono-strong { color: var(--text-primary); font-weight: 700; font-family: var(--font-mono); }
+.mono-bold { font-family: var(--font-mono); font-weight: 700; }
+.empty-state-full { grid-column: 1/-1; }
+.cell-flex { display: flex; align-items: center; gap: 8px; }
+.value-danger { color: var(--danger); }
+.badge-danger { background: var(--danger-bg); color: var(--danger); border-color: rgba(217,43,43,0.25); }
 
 .sync-cluster { display: flex; align-items: center; gap: 10px; }
 
@@ -328,6 +351,101 @@ nav {
 .toast svg { flex-shrink: 0; }
 .toast.toast-success svg { color: var(--success); }
 .toast.toast-error svg { color: var(--danger); }
+
+.sync-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    z-index: 4000;
+    background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+    background-size: 40% 100%;
+    background-repeat: no-repeat;
+    background-position: -40% 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+[data-theme="dark"] .sync-progress { background: linear-gradient(90deg, transparent, var(--accent-pink), transparent); background-size: 40% 100%; background-repeat: no-repeat; }
+.sync-progress.active { opacity: 1; animation: sync-sweep 1.15s ease-in-out infinite; }
+
+@keyframes sync-sweep {
+    0% { background-position: -40% 0; }
+    100% { background-position: 140% 0; }
+}
+
+.auto-toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 12px 7px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-tertiary);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.auto-toggle:hover { color: var(--text-secondary); border-color: var(--text-tertiary); }
+.auto-toggle-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-tertiary); transition: background 0.2s ease; }
+.auto-toggle.active { color: var(--accent-blue); border-color: var(--accent-blue); }
+[data-theme="dark"] .auto-toggle.active { color: var(--accent-pink); border-color: var(--accent-pink); }
+.auto-toggle.active .auto-toggle-dot { background: var(--success); box-shadow: 0 0 0 3px var(--success-bg); }
+
+.stale-banner {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 18px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(201,125,10,0.3);
+    background: var(--warning-bg);
+    color: var(--warning);
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.stale-banner.visible { display: flex; }
+.stale-banner svg { flex-shrink: 0; }
+.stale-banner-action {
+    margin-left: auto;
+    border: 1px solid rgba(201,125,10,0.4);
+    background: transparent;
+    color: var(--warning);
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    flex-shrink: 0;
+}
+
+.stale-banner-action:hover { background: rgba(201,125,10,0.12); }
+
+.skeleton-bar {
+    height: 14px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--surface-hover) 25%, var(--border) 50%, var(--surface-hover) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-row td { padding: 15px 20px; }
+.skeleton-bar.w-60 { width: 60%; }
+.skeleton-bar.w-40 { width: 40%; }
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
 
 .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px 20px 60px; width: 100%; max-width: 1400px; margin: 0 auto; }
 
@@ -547,6 +665,9 @@ kbd.shortcut {
 }
 
 .custom-dropdown-option:hover { background: var(--surface-hover); color: var(--text-primary); }
+.custom-dropdown-option.kbd-focus { background: var(--surface-hover); color: var(--text-primary); }
+.dropdown-group:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+[data-theme="dark"] .dropdown-group:focus-visible { outline-color: var(--accent-pink); }
 
 .custom-dropdown-option.active { background: var(--accent-blue-muted); color: var(--accent-blue); font-weight: 700; }
 [data-theme="dark"] .custom-dropdown-option.active { background: var(--accent-pink-muted); color: var(--accent-pink); }
@@ -941,6 +1062,8 @@ tr.empty-row td { border-bottom: none; }
 </head>
 <body>
 
+<div id="sync-progress" class="sync-progress"></div>
+
 <div id="sync-overlay" class="sync-overlay" role="status" aria-live="polite">
     <div id="sync-spinner" class="spinner"></div>
     <div id="sync-text" class="sync-text">Syncing Database...</div>
@@ -948,14 +1071,14 @@ tr.empty-row td { border-bottom: none; }
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
         <div class="error-title">Database Sync Failed</div>
         <div id="error-message" class="error-msg"></div>
-        <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 8px;">Retry Connection</button>
+        <button class="btn btn-primary retry-btn" onclick="location.reload()">Retry Connection</button>
     </div>
 </div>
 
 <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 
 <div id="cmd-modal" class="cmd-modal">
-    <div class="cmd-modal-content">
+    <div class="cmd-modal-content" role="dialog" aria-modal="true" aria-label="Command palette">
         <input type="text" id="cmd-modal-input" class="cmd-modal-input" placeholder="Type a command or search..." autocomplete="off">
         <div id="cmd-modal-results" class="cmd-modal-results"></div>
     </div>
@@ -977,13 +1100,16 @@ tr.empty-row td { border-bottom: none; }
     <div class="controls">
         <div class="sync-cluster">
             <span class="last-sync" id="last-sync-label"></span>
+            <button class="auto-toggle" id="btn-autosync" aria-pressed="false" title="Auto-sync every 10 minutes">
+                <span class="auto-toggle-dot"></span>Auto
+            </button>
             <button class="btn btn-icon btn-sync" id="btn-sync" aria-label="Sync latest data">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
             </button>
         </div>
         <button class="btn btn-icon" id="btn-theme" aria-label="Toggle color theme">
             <svg id="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            <svg id="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg id="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="icon-hidden"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
         <button class="btn btn-primary" id="btn-export">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
@@ -1003,44 +1129,49 @@ tr.empty-row td { border-bottom: none; }
             </div>
             <div class="dropdowns-row">
                 <div class="dropdown-group">
-                    <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Class</span>
+                    <span class="dropdown-label">Class</span>
                     <select id="sel-cat"><option value="ALL">All</option><option value="workforce">Workforce</option><option value="student">Student</option></select>
                     <button class="clear-btn" data-target="sel-cat"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group">
-                    <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Region</span>
+                    <span class="dropdown-label">Region</span>
                     <select id="sel-reg"><option value="ALL">All</option></select>
                     <button class="clear-btn" data-target="sel-reg"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group">
-                    <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Pharmacy</span>
+                    <span class="dropdown-label">Pharmacy</span>
                     <select id="sel-end"><option value="ALL">All</option></select>
                     <button class="clear-btn" data-target="sel-end"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group">
-                    <span style="color:var(--text-secondary);font-weight:600;font-size:13px;flex-shrink:0;">Unit</span>
+                    <span class="dropdown-label">Unit</span>
                     <select id="sel-unit"><option value="ALL">All</option></select>
                     <button class="clear-btn" data-target="sel-unit"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
-                <div class="dropdown-group" style="border:none; background:transparent; box-shadow:none; margin-left:auto; cursor:default;">
+                <div class="dropdown-group dropdown-group-plain">
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-exact">
                         <span class="slider"></span>
                     </label>
-                    <span style="margin-left:10px; color:var(--text-secondary); font-weight:600; font-size:13px;">Exact Match</span>
+                    <span class="exact-match-label">Exact Match</span>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="view-overview" class="view active">
+        <div class="stale-banner" id="stale-banner">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Data hasn't synced in over 24 hours.</span>
+            <button class="stale-banner-action" id="stale-banner-sync">Sync now</button>
+        </div>
         <div class="kpi-grid">
             <div class="card"><div class="metric-title">Total Value</div><div class="metric-value" id="kpi-tvl">0.00</div></div>
             <div class="card"><div class="metric-title">Unique Items</div><div class="metric-value" id="kpi-assets">0</div></div>
             <div class="card"><div class="metric-title">Total Qty</div><div class="metric-value" id="kpi-qty">0</div></div>
         </div>
         <div class="slicer-row">
-            <div style="display:flex; align-items:center; padding: 0 10px; color: var(--text-tertiary); font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Group By Columns</div>
+            <div class="section-label">Group By Columns</div>
             <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="t">Class</button>
             <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="reg">Region</button>
             <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="p">Pharmacy</button>
@@ -1080,7 +1211,7 @@ tr.empty-row td { border-bottom: none; }
         <div class="card action-row">
             <div>
                 <div class="metric-title">Unpriced Items</div>
-                <div class="metric-value" id="kpi-unpriced" style="color: var(--danger); text-shadow: 0 4px 12px rgba(217,43,43,0.2);">0</div>
+                <div class="metric-value" id="kpi-unpriced" class="metric-value-danger">0</div>
             </div>
             <div class="action-group">
                 <button class="btn" id="btn-template-prices">Download Template</button>
@@ -1107,11 +1238,11 @@ tr.empty-row td { border-bottom: none; }
 
     <div id="view-pharmacies" class="view">
         <div class="kpi-grid">
-            <div class="card"><div class="metric-title">Unmapped Pharmacies</div><div class="metric-value" id="kpi-unmapped" style="color: var(--danger); text-shadow: 0 4px 12px rgba(217,43,43,0.2);">0</div></div>
-            <div class="card"><div class="metric-title">Inactive Pharmacies</div><div class="metric-value" id="kpi-inactive" style="color: var(--warning); text-shadow: 0 4px 12px rgba(201,125,10,0.2);">0</div></div>
+            <div class="card"><div class="metric-title">Unmapped Pharmacies</div><div class="metric-value" id="kpi-unmapped" class="metric-value-danger">0</div></div>
+            <div class="card"><div class="metric-title">Inactive Pharmacies</div><div class="metric-value" id="kpi-inactive" class="metric-value-warning">0</div></div>
         </div>
         <div class="card action-row">
-            <div style="font-weight:700; font-size:16px; letter-spacing:-0.3px;">Routing Actions</div>
+            <div class="section-title">Routing Actions</div>
             <div class="action-group">
                 <button class="btn" id="btn-template-regions">Download Template</button>
                 <label class="btn btn-primary">Upload CSV <input type="file" id="file-regions" accept=".csv"></label>
@@ -1136,11 +1267,11 @@ tr.empty-row td { border-bottom: none; }
 
     <div id="view-missing" class="view">
         <div class="card action-row">
-            <div style="font-weight:700; font-size:16px; display:flex; align-items:center; gap:12px; letter-spacing:-0.3px;">
+            <div class="section-title-row">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 Missing Pharmacies
             </div>
-            <div style="font-size:14px; font-weight:500; color:var(--text-secondary); max-width: 60%;">Pharmacies recognized in the routing map but absent or reporting 0 records in current imported data.</div>
+            <div class="section-desc">Pharmacies recognized in the routing map but absent or reporting 0 records in current imported data.</div>
         </div>
         <div class="table-card">
             <div class="table-wrapper">
@@ -1160,11 +1291,11 @@ tr.empty-row td { border-bottom: none; }
 
     <div id="view-anomalies" class="view">
         <div class="card action-row">
-            <div style="font-weight:700; font-size:16px; display:flex; align-items:center; gap:12px; letter-spacing:-0.3px;">
+            <div class="section-title-row">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 Data Anomalies Detected
             </div>
-            <div style="font-size:14px; font-weight:500; color:var(--text-secondary); max-width: 60%;">Non-numeric quantities found in sheets are forced to zero to preserve aggregate integrity.</div>
+            <div class="section-desc">Non-numeric quantities found in sheets are forced to zero to preserve aggregate integrity.</div>
         </div>
         <div class="table-card">
             <div class="table-wrapper">
@@ -1280,6 +1411,7 @@ function initCustomDropdowns() {
         if (!activePanel) return;
         activePanel.classList.remove('open');
         activeGroup.classList.remove('open');
+        activeGroup.setAttribute('aria-expanded', 'false');
         const arrow = activeGroup.querySelector('.custom-select-arrow');
         if (arrow) arrow.style.transform = '';
         activePanel = null;
@@ -1314,12 +1446,19 @@ function initCustomDropdowns() {
     ['sel-cat', 'sel-reg', 'sel-end', 'sel-unit'].forEach(id => {
         const select = document.getElementById(id);
         const group  = select.closest('.dropdown-group');
+        let kbdIndex = -1;
+
+        group.tabIndex = 0;
+        group.setAttribute('role', 'button');
+        group.setAttribute('aria-haspopup', 'listbox');
+        group.setAttribute('aria-expanded', 'false');
 
         const valEl = document.createElement('span');
         valEl.className = 'custom-select-val';
 
         const panel = document.createElement('div');
         panel.className = 'custom-dropdown-panel';
+        panel.setAttribute('role', 'listbox');
         document.body.appendChild(panel);
 
         const syncVal = () => {
@@ -1338,6 +1477,7 @@ function initCustomDropdowns() {
                 }
                 const item = document.createElement('div');
                 item.className = 'custom-dropdown-option' + (o.value === cur ? ' active' : '');
+                item.setAttribute('role', 'option');
                 item.innerHTML = `<span>${o.textContent}</span>${CHECK_SVG}`;
                 item.addEventListener('mousedown', e => {
                     e.preventDefault();
@@ -1349,6 +1489,28 @@ function initCustomDropdowns() {
                 });
                 panel.appendChild(item);
             });
+        };
+
+        const highlightKbd = () => {
+            const opts = panel.querySelectorAll('.custom-dropdown-option');
+            opts.forEach((o, i) => o.classList.toggle('kbd-focus', i === kbdIndex));
+            opts[kbdIndex]?.scrollIntoView({ block: 'nearest' });
+        };
+
+        const openViaKeyboard = () => {
+            closeAll();
+            buildPanel();
+            positionPanel(panel, group);
+            panel.classList.add('open');
+            group.classList.add('open');
+            group.setAttribute('aria-expanded', 'true');
+            const arrow = group.querySelector('.custom-select-arrow');
+            if (arrow) arrow.style.transform = 'rotate(180deg)';
+            activePanel = panel;
+            activeGroup = group;
+            const opts = panel.querySelectorAll('.custom-dropdown-option');
+            kbdIndex = Math.max(0, Array.from(opts).findIndex(o => o.classList.contains('active')));
+            highlightKbd();
         };
 
         select._refreshDropdown = () => { syncVal(); if (activePanel === panel) buildPanel(); };
@@ -1365,10 +1527,31 @@ function initCustomDropdowns() {
                 positionPanel(panel, group);
                 panel.classList.add('open');
                 group.classList.add('open');
+                group.setAttribute('aria-expanded', 'true');
                 const arrow = group.querySelector('.custom-select-arrow');
                 if (arrow) arrow.style.transform = 'rotate(180deg)';
                 activePanel = panel;
                 activeGroup = group;
+            }
+        });
+
+        group.addEventListener('keydown', e => {
+            const isOpen = activePanel === panel;
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (!isOpen) { openViaKeyboard(); }
+                else { panel.querySelectorAll('.custom-dropdown-option')[kbdIndex]?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (!isOpen) { openViaKeyboard(); }
+                else { const opts = panel.querySelectorAll('.custom-dropdown-option'); kbdIndex = Math.min(kbdIndex + 1, opts.length - 1); highlightKbd(); }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (isOpen) { kbdIndex = Math.max(kbdIndex - 1, 0); highlightKbd(); }
+            } else if (e.key === 'Escape') {
+                if (isOpen) { e.preventDefault(); closeAll(); group.focus(); }
+            } else if (e.key === 'Tab') {
+                if (isOpen) closeAll();
             }
         });
     });
@@ -1388,8 +1571,8 @@ function initCustomDropdowns() {
 function initTheme() {
     const saved = localStorage.getItem('uni_theme') || 'dark';
     document.documentElement.setAttribute('data-theme', saved);
-    document.getElementById('icon-moon').style.display = saved === 'light' ? 'block' : 'none';
-    document.getElementById('icon-sun').style.display  = saved === 'dark'  ? 'block' : 'none';
+    document.getElementById('icon-moon').classList.toggle('icon-hidden', saved !== 'light');
+    document.getElementById('icon-sun').classList.toggle('icon-hidden', saved !== 'dark');
 }
 
 document.getElementById('btn-theme').addEventListener('click', () => {
@@ -1463,8 +1646,10 @@ const cmdModal = document.getElementById('cmd-modal');
 const cmdInput = document.getElementById('cmd-modal-input');
 const cmdResults = document.getElementById('cmd-modal-results');
 let cmdActiveIndex = 0;
+let cmdPreviousFocus = null;
 
 function openCmdPalette() {
+    cmdPreviousFocus = document.activeElement;
     cmdModal.classList.add('open');
     cmdInput.value = '';
     renderCmdResults('');
@@ -1473,6 +1658,8 @@ function openCmdPalette() {
 
 function closeCmdPalette() {
     cmdModal.classList.remove('open');
+    if (cmdPreviousFocus && typeof cmdPreviousFocus.focus === 'function') cmdPreviousFocus.focus();
+    cmdPreviousFocus = null;
 }
 
 function renderCmdResults(query) {
@@ -1484,6 +1671,7 @@ function renderCmdResults(query) {
         { title: 'Go to Missing Pharms', sub: 'View', action: () => switchView('view-missing') },
         { title: 'Go to Anomalies', sub: 'View', action: () => switchView('view-anomalies') },
         { title: 'Toggle Dark/Light Theme', sub: 'Action', action: () => document.getElementById('btn-theme').click() },
+        { title: 'Sync Latest Data', sub: 'Action', action: () => document.getElementById('btn-sync').click() },
         { title: 'Export Current View', sub: 'Action', action: () => document.getElementById('btn-export').click() },
         { title: 'Clear All Filters', sub: 'Action', action: () => {
             document.querySelectorAll('.clear-btn').forEach(b => b.click());
@@ -1530,6 +1718,7 @@ cmdInput.addEventListener('keydown', e => {
     else if (e.key === 'ArrowUp') { e.preventDefault(); cmdActiveIndex = Math.max(cmdActiveIndex - 1, 0); updateCmdActive(); }
     else if (e.key === 'Enter') { e.preventDefault(); items[cmdActiveIndex]?.click(); }
     else if (e.key === 'Escape') { e.preventDefault(); closeCmdPalette(); }
+    else if (e.key === 'Tab') { e.preventDefault(); }
 });
 
 cmdModal.addEventListener('click', e => { if (e.target === cmdModal) closeCmdPalette(); });
@@ -1699,7 +1888,7 @@ function triggerFatalError(msg) {
     document.getElementById('sync-overlay').style.pointerEvents = 'auto';
 }
 
-async function fetchAndBuildDatabase() {
+async function fetchRemoteRows() {
     const results = await Promise.all(
         SOURCES.map(s => fetch(s.url).then(r => {
             if (!r.ok) throw new Error(`HTTP Error ${r.status} fetching ${s.type} sheet.`);
@@ -1708,7 +1897,7 @@ async function fetchAndBuildDatabase() {
     );
 
     let rawData = [];
-    anomaliesData = [];
+    let anomalies = [];
 
     for (const res of results) {
         const parsed = Papa.parse(res.text, { skipEmptyLines: true }).data;
@@ -1744,7 +1933,7 @@ async function fetchAndBuildDatabase() {
                 let q = parseFloat(strVal.replace(/[^\d.-]/g, ''));
 
                 if (hasLettersOrSymbols || isNaN(q)) {
-                    anomaliesData.push({ sheet: res.type, row: i + 1, i: iName, p: pName, val: strVal, act: 'Zeroed' });
+                    anomalies.push({ sheet: res.type, row: i + 1, i: iName, p: pName, val: strVal, act: 'Zeroed' });
                     q = 0;
                 }
                 if (q > 0) rawData.push({ i: iName, u: uName, p: pName, q, t: res.type });
@@ -1752,22 +1941,85 @@ async function fetchAndBuildDatabase() {
         }
     }
 
-    buildDatabase(rawData);
-    localStorage.setItem('uni_last_sync', Date.now().toString());
-    updateLastSyncLabel();
+    return { rawData, anomalies };
+}
+
+function getCachedRaw() {
+    try {
+        const raw = localStorage.getItem('uni_cache_raw');
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function cacheRawData(rawData, anomalies) {
+    try {
+        localStorage.setItem('uni_cache_raw', JSON.stringify({ rawData, anomalies }));
+    } catch (e) {
+        console.warn('Cache skipped, storage full', e);
+    }
+}
+
+function setSyncBarActive(active) {
+    document.getElementById('sync-progress').classList.toggle('active', active);
+}
+
+async function fetchAndBuildDatabase() {
+    setSyncBarActive(true);
+    try {
+        try {
+            const { rawData, anomalies } = await fetchRemoteRows();
+            anomaliesData = anomalies;
+            buildDatabase(rawData);
+            localStorage.setItem('uni_last_sync', Date.now().toString());
+            cacheRawData(rawData, anomalies);
+            updateLastSyncLabel();
+            updateStaleBanner();
+            return { usedCache: false };
+        } catch (e) {
+            const cached = getCachedRaw();
+            if (cached) {
+                anomaliesData = cached.anomalies || [];
+                buildDatabase(cached.rawData);
+                updateLastSyncLabel();
+                updateStaleBanner();
+                return { usedCache: true, error: e };
+            }
+            throw e;
+        }
+    } finally {
+        setSyncBarActive(false);
+    }
+}
+
+function showSkeleton() {
+    const tbody = document.querySelector(`#${currentView} tbody`);
+    if (!tbody) return;
+    const table = tbody.closest('table');
+    const cols = table ? table.querySelectorAll('thead th').length : 6;
+    const widths = ['w-60', '', 'w-40', '', 'w-60', ''];
+    tbody.innerHTML = Array.from({ length: 6 }).map(() =>
+        `<tr class="skeleton-row">${Array.from({ length: cols }).map((_, i) => `<td><div class="skeleton-bar ${widths[i % widths.length]}"></div></td>`).join('')}</tr>`
+    ).join('');
 }
 
 async function boot() {
     const overlay = document.getElementById('sync-overlay');
     overlay.style.opacity = '1';
+    showSkeleton();
     try {
-        await fetchAndBuildDatabase();
+        const result = await fetchAndBuildDatabase();
         overlay.style.opacity = '0';
+        if (result.usedCache) showToast('Live sheet unreachable — showing last cached data', 'error');
     } catch (e) {
         triggerFatalError(e.message);
     }
     updateLastSyncLabel();
+    updateStaleBanner();
     setInterval(updateLastSyncLabel, 30000);
+    setInterval(updateStaleBanner, 30000);
+    initAutoSync();
 }
 
 function showToast(message, type = 'success') {
@@ -1805,16 +2057,28 @@ function updateLastSyncLabel() {
     label.classList.toggle('stale', Date.now() - ts > 3600000);
 }
 
-document.getElementById('btn-sync').addEventListener('click', async () => {
+function updateStaleBanner() {
+    const banner = document.getElementById('stale-banner');
+    const ts = parseInt(localStorage.getItem('uni_last_sync'), 10);
+    banner.classList.toggle('visible', !ts || Date.now() - ts > 86400000);
+}
+
+async function runManualSync(silent = false) {
     const btn = document.getElementById('btn-sync');
     if (btn.classList.contains('syncing')) return;
     btn.classList.remove('sync-success', 'sync-error');
     btn.classList.add('syncing');
+    if (!silent) showSkeleton();
     try {
-        await fetchAndBuildDatabase();
+        const result = await fetchAndBuildDatabase();
         btn.classList.remove('syncing');
-        btn.classList.add('sync-success');
-        showToast('Data synced successfully', 'success');
+        if (result.usedCache) {
+            btn.classList.add('sync-error');
+            showToast('Sync failed — showing last cached data', 'error');
+        } else {
+            btn.classList.add('sync-success');
+            showToast('Data synced successfully', 'success');
+        }
     } catch (e) {
         btn.classList.remove('syncing');
         btn.classList.add('sync-error');
@@ -1822,7 +2086,32 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
     } finally {
         setTimeout(() => btn.classList.remove('sync-success', 'sync-error'), 1600);
     }
-});
+}
+
+function initAutoSync() {
+    const btn = document.getElementById('btn-autosync');
+    let intervalId = null;
+
+    const setEnabled = enabled => {
+        btn.classList.toggle('active', enabled);
+        btn.setAttribute('aria-pressed', String(enabled));
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+        if (enabled) intervalId = setInterval(() => runManualSync(true), 10 * 60 * 1000);
+    };
+
+    setEnabled(localStorage.getItem('uni_autosync') === '1');
+
+    btn.addEventListener('click', () => {
+        const next = !btn.classList.contains('active');
+        localStorage.setItem('uni_autosync', next ? '1' : '0');
+        setEnabled(next);
+        showToast(next ? 'Auto-sync enabled — every 10 minutes' : 'Auto-sync disabled', 'success');
+    });
+}
+
+document.getElementById('btn-sync').addEventListener('click', () => runManualSync(false));
+document.getElementById('stale-banner-sync').addEventListener('click', () => runManualSync(false));
+
 
 function buildDatabase(rawData) {
     const regs = new Set();
@@ -2034,7 +2323,7 @@ function updateCapNotice(viewPrefix, dataLength) {
     const el = document.getElementById(`cap-${viewPrefix}`);
     if (!el) return;
     el.innerHTML = dataLength > limit
-        ? `Showing ${fmtNum.format(limit)} of ${fmtNum.format(dataLength)} <button class="btn btn-primary" style="display:inline-flex; padding:6px 16px; font-size:13px; font-weight:700; height:auto; min-height:0; border-radius:12px; margin-left:16px;" onclick="loadMore()">Load More</button>`
+        ? `Showing ${fmtNum.format(limit)} of ${fmtNum.format(dataLength)} <button class="btn btn-primary load-more-btn" onclick="loadMore()">Load More</button>`
         : `Showing all ${fmtNum.format(dataLength)} records`;
 }
 
@@ -2133,10 +2422,10 @@ function renderBreakdown() {
             </div>
             <div class="bento-metric">${fmtEGP.format(d.tot)}</div>
             <div class="bento-submetric">
-                <span>Items: <span style="color:var(--text-primary); font-weight:700; font-family:var(--font-mono);">${fmtNum.format(d.ui)}</span></span>
-                <span>Qty: <span style="color:var(--text-primary); font-weight:700; font-family:var(--font-mono);">${fmtNum.format(d.q)}</span></span>
+                <span>Items: <span class="mono-strong">${fmtNum.format(d.ui)}</span></span>
+                <span>Qty: <span class="mono-strong">${fmtNum.format(d.q)}</span></span>
             </div>
-        </div>`).join('') : `<div class="empty-state" style="grid-column:1/-1;">${EMPTY_ICON}<span>No data available for this grouping</span></div>`;
+        </div>`).join('') : `<div class="empty-state empty-state-full">${EMPTY_ICON}<span>No data available for this grouping</span></div>`;
 }
 
 function handleRowClick(e) {
@@ -2229,7 +2518,7 @@ function renderPricing() {
             anomalyDot = `<div class="status-dot status-anomaly" title="Potential pricing anomaly (Deviation > 3x median)"></div>`;
         }
 
-        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td style="display:flex; align-items:center; gap:8px;">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
+        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td class="cell-flex">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
     }
 
     document.getElementById('tb-pricing').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No items match your filters');
@@ -2302,7 +2591,7 @@ function renderAnomalies() {
     const q = normAr(omni.value.trim());
     const tokens = q.split(/\s+/).filter(Boolean);
     const rows = finalData.slice(0, limit).map(d =>
-        `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span style="font-family:var(--font-mono); font-weight:700;">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.p, tokens)}</span></td><td class="highlight" style="color:var(--danger);">${escapeHTML(d.val)}</td><td><span class="badge" style="background:var(--danger-bg); color:var(--danger); border-color:rgba(217,43,43,0.25);">${escapeHTML(d.act)}</span></td></tr>`
+        `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span class="mono-bold">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.p, tokens)}</span></td><td class="highlight value-danger">${escapeHTML(d.val)}</td><td><span class="badge badge-danger">${escapeHTML(d.act)}</span></td></tr>`
     ).join('');
     document.getElementById('tb-anomalies').innerHTML = rows || emptyRowHTML('No anomalies detected in the current import');
     updateCapNotice('anomalies', finalData.length);
@@ -2332,7 +2621,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
     };
 
     const data = exportMap[currentView]?.() ?? [];
-    if (!data.length) return;
+    if (!data.length) { showToast('Nothing to export in this view', 'error'); return; }
 
     const ws = XLSX.utils.json_to_sheet(data);
     ws['!cols'] = Object.keys(data[0]).map(k => ({ wch: k.length + 10 }));
@@ -2340,6 +2629,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Export");
     XLSX.writeFile(wb, `Export_${currentView}.xlsx`);
+    showToast(`Exported ${fmtNum.format(data.length)} rows`, 'success');
 });
 
 document.getElementById('btn-template-prices').addEventListener('click', () => {
@@ -2350,6 +2640,7 @@ document.getElementById('btn-template-prices').addEventListener('click', () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pricing_Template");
     XLSX.writeFile(wb, 'Pricing_Template.xlsx');
+    showToast('Pricing template downloaded', 'success');
 });
 
 document.getElementById('btn-template-regions').addEventListener('click', () => {
@@ -2360,6 +2651,7 @@ document.getElementById('btn-template-regions').addEventListener('click', () => 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Routing_Template");
     XLSX.writeFile(wb, 'Routing_Template.xlsx');
+    showToast('Routing template downloaded', 'success');
 });
 
 ['file-prices', 'file-regions'].forEach(id => {
@@ -2369,16 +2661,22 @@ document.getElementById('btn-template-regions').addEventListener('click', () => 
             header: true,
             skipEmptyLines: true,
             complete: res => {
+                if (!res.data.length) {
+                    showToast('The uploaded CSV had no rows', 'error');
+                    e.target.value = '';
+                    return;
+                }
+                let applied = 0;
                 res.data.forEach(r => {
                     if (id === 'file-prices') {
                         const i = r['Item Name'] || r['Item'] || r['الصنف'] || r[Object.keys(r)[0]];
                         const u = r['Unit'] || r['الوحدة'] || r[Object.keys(r)[1]] || '';
                         const p = parseFloat(r['Unit Price (EGP)'] || r['Price'] || r['السعر'] || r[Object.keys(r)[2]]) || 0;
-                        if (i) state.prices[`${i.trim()}|${u.trim()}`] = p;
+                        if (i) { state.prices[`${i.trim()}|${u.trim()}`] = p; applied++; }
                     } else {
                         const p = r['Endpoint Name'] || r['Pharmacy'] || r['الصيدلية'] || r[Object.keys(r)[0]];
                         const reg = r['Region Route'] || r['Region'] || r['المنطقة'] || r[Object.keys(r)[1]] || '';
-                        if (p) state.pharmacies[p.trim()] = reg.trim();
+                        if (p) { state.pharmacies[p.trim()] = reg.trim(); applied++; }
                     }
                 });
 
@@ -2401,6 +2699,12 @@ document.getElementById('btn-template-regions').addEventListener('click', () => 
                 updatePharmacyDropdown();
                 syncFromOmnibox();
                 e.target.value = '';
+                showToast(
+                    applied
+                        ? `${id === 'file-prices' ? 'Prices' : 'Routing map'} updated — ${fmtNum.format(applied)} rows applied`
+                        : 'No matching columns found in CSV',
+                    applied ? 'success' : 'error'
+                );
             }
         });
     });
