@@ -1,13 +1,24 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<title>LX parser</title>
+<script>
+(function() {
+    var pref = localStorage.getItem('uni_theme') || 'system';
+    var sysDark = matchMedia('(prefers-color-scheme: dark)').matches;
+    var resolved = (pref === 'system') ? (sysDark ? 'dark' : 'light') : pref;
+    var r = document.documentElement;
+    r.dataset.theme = resolved;
+    r.dataset.themePref = pref;
+    r.style.colorScheme = resolved;
+})();
+</script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23D65A96'/%3E%3Cstop offset='100%25' stop-color='%236551A6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cg transform='translate(14,13)' fill='none' stroke='%23FFFFFF' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/%3E%3Cpolyline points='3.27 6.96 12 12.01 20.73 6.96'/%3E%3Cline x1='12' y1='22.08' x2='12' y2='12'/%3E%3C/g%3E%3C/svg%3E">
+<title>LX Parser</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.5.4/papaparse.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 :root {
     --bg: #EBE8EF;
@@ -53,6 +64,12 @@
     --mark-text: inherit;
     --noise-alpha: 0.03;
     --aurora-opacity: 0.16;
+    --badge-teal: #1F8A7A;
+    --badge-teal-bg: rgba(31,138,122,0.12);
+    --badge-teal-border: rgba(31,138,122,0.30);
+    --badge-indigo: #4457C7;
+    --badge-indigo-bg: rgba(68,87,199,0.11);
+    --badge-indigo-border: rgba(68,87,199,0.28);
 }
 
 [data-theme="dark"] {
@@ -95,6 +112,12 @@
     --mark-text: #FFF;
     --noise-alpha: 0.042;
     --aurora-opacity: 0.32;
+    --badge-teal: #4FC9B8;
+    --badge-teal-bg: rgba(79,201,184,0.14);
+    --badge-teal-border: rgba(79,201,184,0.32);
+    --badge-indigo: #8B9AF0;
+    --badge-indigo-bg: rgba(139,154,240,0.16);
+    --badge-indigo-border: rgba(139,154,240,0.34);
 }
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1135,8 +1158,6 @@ tr.selected-row td { background: var(--row-active); }
 mark { background: var(--mark-bg); color: var(--mark-text); border-radius: 3px; padding: 0 2px; }
 
 .badge { padding: 5px 13px; border-radius: 10px; font-size: 12px; font-weight: 700; background: var(--badge-bg); border: 1px solid var(--border); display: inline-block; white-space: nowrap; letter-spacing: 0.1px; }
-.badge.workforce { color: var(--accent-blue); background: var(--accent-blue-strong-bg); border-color: var(--accent-blue-strong-border); font-weight: 700; }
-.badge.student { color: var(--accent-pink); background: var(--accent-pink-strong-bg); border-color: var(--accent-pink-strong-border); font-weight: 700; }
 
 .editable { background: transparent; border: none; color: var(--text-primary); font-size: 14px; font-weight: 600; width: 100%; outline: none; border-bottom: 1.5px solid var(--border); padding-bottom: 4px; transition: border-color 0.2s, color 0.2s; font-family: inherit; letter-spacing: -0.1px; }
 .editable:focus { border-bottom-width: 2px; border-bottom-color: var(--accent-blue); color: var(--accent-blue); }
@@ -1166,11 +1187,6 @@ mark { background: var(--mark-bg); color: var(--mark-text); border-radius: 3px; 
 [data-theme="dark"] .spinner::after { border-bottom-color: var(--accent-blue); }
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
-
-.error-card { background: var(--surface); border: 1px solid rgba(194,63,63,0.22); border-radius: 24px; padding: 36px; text-align: center; color: var(--text-primary); max-width: 440px; display: none; flex-direction: column; gap: 16px; align-items: center; box-shadow: var(--shadow-lg), 0 0 56px rgba(194,63,63,0.12); }
-.error-card svg { color: var(--danger); filter: drop-shadow(0 4px 12px rgba(194,63,63,0.32)); }
-.error-title { font-weight: 700; font-size: 20px; letter-spacing: -0.5px; }
-.error-msg { font-size: 14.5px; color: var(--text-secondary); line-height: 1.65; }
 
 input[type="file"] { display: none; }
 .highlight { font-family: var(--font-mono); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -1263,6 +1279,89 @@ tr.empty-row td { border-bottom: none; }
     .severity-summary { gap: 8px; }
     .severity-chip { padding: 7px 11px; font-size: 11.5px; }
 }
+.data-cluster { position: relative; display: flex; align-items: center; }
+.theme-switch { display: flex; align-items: center; background: var(--surface); padding: 3px; border-radius: 13px; border: 1px solid var(--border); box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); gap: 1px; }
+[data-theme="dark"] .theme-switch { box-shadow: inset 0 1px 4px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.02); }
+.theme-switch-btn { background: transparent; border: none; color: var(--text-tertiary); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; transition: all 0.18s var(--ease-out); flex-shrink: 0; }
+.theme-switch-btn:hover { color: var(--text-primary); }
+.theme-switch-btn.active { background: var(--surface-2); color: var(--text-primary); box-shadow: 0 1px 4px rgba(0,0,0,0.09), 0 0 0 1px var(--border); }
+[data-theme="dark"] .theme-switch-btn.active { background: var(--surface-hover); box-shadow: 0 2px 8px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06); }
+.theme-switch-btn svg { width: 16px; height: 16px; }
+.badge-p0 { color: var(--accent-blue); background: var(--accent-blue-strong-bg); border-color: var(--accent-blue-strong-border); }
+.badge-p1 { color: var(--accent-pink); background: var(--accent-pink-strong-bg); border-color: var(--accent-pink-strong-border); }
+.badge-p2 { color: var(--badge-teal); background: var(--badge-teal-bg); border-color: var(--badge-teal-border); }
+.badge-p3 { color: var(--warning); background: var(--warning-bg); border-color: rgba(184,128,31,0.30); }
+.badge-p4 { color: var(--badge-indigo); background: var(--badge-indigo-bg); border-color: var(--badge-indigo-border); }
+.badge-p5 { color: var(--success); background: var(--success-bg); border-color: rgba(47,133,102,0.30); }
+.status-filled { background: var(--accent-blue); box-shadow: 0 0 0 3px var(--accent-blue-muted); }
+[data-theme="dark"] .status-filled { background: var(--accent-pink); box-shadow: 0 0 0 3px var(--accent-pink-muted); }
+.source-remove { background: transparent; border: none; color: var(--text-tertiary); cursor: pointer; padding: 4px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: auto; transition: all 0.15s ease; }
+.source-remove:hover { color: var(--danger); background: var(--danger-bg); }
+.sync-health-panel .upload-box { padding: 22px 16px; border-radius: 14px; box-shadow: none; max-width: none; margin-top: 4px; }
+.sync-health-panel .upload-box svg { width: 30px; height: 30px; margin-bottom: 2px; }
+.sync-health-panel .upload-title { font-size: 13.5px; }
+.sync-health-panel .upload-msg { font-size: 11.5px; }
+.sync-health-divider { height: 1px; background: var(--border); margin: 8px 4px; }
+.fill-config-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 10px 2px; }
+.fill-config-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); width: 100%; padding: 6px 0 0; }
+.nav-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; margin-left: 6px; border-radius: 8px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 800; vertical-align: 2px; }
+.slicer-header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.slicer-header-row .slicer-row { margin-bottom: 0; }
+.hidden { display: none; }
+tfoot td { position: sticky; bottom: 0; background: var(--surface-2); font-weight: 800; border-top: 2px solid var(--border); border-bottom: none; }
+tr.grand-total-row { cursor: default; }
+tr.grand-total-row:hover td { background: var(--surface-2); }
+
+.upload-box { background: var(--surface); border: 2px dashed var(--accent-blue); border-radius: 24px; padding: 60px; text-align: center; color: var(--text-primary); max-width: 500px; box-shadow: var(--shadow-lg), 0 0 56px rgba(101,81,166,0.12); cursor: pointer; transition: background 0.2s; display:flex; flex-direction:column; align-items:center; gap: 16px; }
+[data-theme="dark"] .upload-box { border-color: var(--accent-pink); box-shadow: var(--shadow-lg), 0 0 56px rgba(214,90,150,0.12); }
+.upload-box:hover { background: var(--surface-hover); }
+.upload-box svg { color: var(--accent-blue); width: 64px; height: 64px; margin-bottom: 10px; }
+[data-theme="dark"] .upload-box svg { color: var(--accent-pink); }
+.upload-title { font-weight: 700; font-size: 24px; letter-spacing: -0.5px; }
+.upload-msg { font-size: 15px; color: var(--text-secondary); line-height: 1.5; }
+
+.report-header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid var(--border); }
+.report-title { font-size: 24px; font-weight: 700; color: var(--text-primary); font-family: 'IBM Plex Sans Arabic', sans-serif; direction: rtl; margin-bottom: 10px;}
+.report-meta { font-size: 14px; color: var(--text-secondary); }
+.report-table th { background: var(--surface-2); font-size: 12px; }
+.report-table td { font-size: 14px; }
+
+.import-modal-content { max-width: 880px; max-height: 86vh; display: flex; flex-direction: column; }
+.import-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 22px 26px 4px; flex-shrink: 0; }
+.import-title { font-weight: 700; font-size: 17px; letter-spacing: -0.35px; word-break: break-all; }
+.import-subtitle { font-size: 12.5px; color: var(--text-secondary); font-weight: 600; margin-top: 4px; }
+.import-sheet-tabs { display: flex; gap: 4px; padding: 14px 26px 0; flex-wrap: wrap; flex-shrink: 0; }
+.import-body { overflow-y: auto; padding: 18px 26px 8px; flex: 1; }
+.import-section { margin-bottom: 24px; }
+.import-section-title { font-weight: 700; font-size: 13.5px; letter-spacing: -0.1px; margin-bottom: 4px; }
+.import-section-desc { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; margin-bottom: 12px; line-height: 1.5; }
+.import-preview-wrapper { border: 1px solid var(--border); border-radius: 14px; overflow: auto; max-height: 240px; background: var(--surface-hover); }
+.import-preview-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.import-preview-table th { position: sticky; top: 0; background: var(--surface-2); color: var(--text-secondary); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; padding: 9px 12px; text-align: left; white-space: nowrap; z-index: 1; }
+.import-preview-table td { padding: 8px 12px; border-top: 1px solid var(--border-soft); white-space: nowrap; color: var(--text-primary); font-weight: 500; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.import-row-picker { cursor: pointer; transition: background 0.12s ease; }
+.import-row-picker:hover td { background: var(--surface); }
+.import-row-picker .import-row-num { font-family: var(--font-mono); color: var(--text-tertiary); font-weight: 700; }
+.import-row-picker.is-skipped td { opacity: 0.4; text-decoration: line-through; }
+.import-row-picker.is-header td { background: var(--accent-blue-muted); color: var(--accent-blue); font-weight: 700; }
+[data-theme="dark"] .import-row-picker.is-header td { background: var(--accent-pink-muted); color: var(--accent-pink); }
+.import-row-picker.is-header:hover td { background: var(--accent-blue-muted); }
+[data-theme="dark"] .import-row-picker.is-header:hover td { background: var(--accent-pink-muted); }
+.import-column-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.import-col-card { border: 1px solid var(--border); border-radius: 14px; padding: 12px; background: var(--surface); display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow-xs); }
+.import-col-header { font-size: 12px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: right; }
+.import-col-map { width: 100%; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; font-weight: 700; color: var(--text-primary); outline: none; font-family: inherit; cursor: pointer; }
+.import-col-map:focus { border-color: var(--accent-blue); }
+[data-theme="dark"] .import-col-map:focus { border-color: var(--accent-pink); }
+.import-col-fill { display: flex; gap: 3px; background: var(--surface-hover); border-radius: 9px; padding: 3px; }
+.import-col-fill.hidden { display: none; }
+.fill-mini-btn { flex: 1; background: transparent; border: none; color: var(--text-tertiary); font-size: 10.5px; font-weight: 700; padding: 6px 4px; border-radius: 7px; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
+.fill-mini-btn:hover { color: var(--text-primary); }
+.fill-mini-btn.active { background: var(--surface); color: var(--accent-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+[data-theme="dark"] .fill-mini-btn.active { color: var(--accent-pink); }
+.import-preview-summary { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); margin-top: 10px; text-align: right; }
+.import-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
 </style>
 </head>
 <body>
@@ -1277,13 +1376,7 @@ tr.empty-row td { border-bottom: none; }
 
 <div id="sync-overlay" class="sync-overlay" role="status" aria-live="polite">
     <div id="sync-spinner" class="spinner"></div>
-    <div id="sync-text" class="sync-text">Syncing Database...</div>
-    <div id="sync-error" class="error-card">
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-        <div class="error-title">Database Sync Failed</div>
-        <div id="error-message" class="error-msg"></div>
-        <button class="btn btn-primary retry-btn" onclick="location.reload()">Retry Connection</button>
-    </div>
+    <div id="sync-text" class="sync-text">Loading Database...</div>
 </div>
 
 <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
@@ -1316,10 +1409,50 @@ tr.empty-row td { border-bottom: none; }
     </div>
 </div>
 
+<div id="import-modal" class="cmd-modal">
+    <div class="cmd-modal-content import-modal-content" role="dialog" aria-modal="true" aria-label="Import workbook">
+        <div class="import-header">
+            <div>
+                <div class="import-title" id="import-filename">file.xlsx</div>
+                <div class="import-subtitle">Choose a header row, map your columns, then import</div>
+            </div>
+            <button class="modal-close-btn" id="btn-import-close" aria-label="Close">
+                <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="import-sheet-tabs" id="import-sheet-tabs"></div>
+        <div class="import-body">
+            <div class="import-section">
+                <div class="import-section-title">1 &middot; Header row</div>
+                <div class="import-section-desc">Click the row with your column titles. Rows above it are skipped.</div>
+                <div class="import-preview-wrapper">
+                    <table class="import-preview-table" id="import-header-table"></table>
+                </div>
+            </div>
+            <div class="import-section">
+                <div class="import-section-title">2 &middot; Map columns</div>
+                <div class="import-section-desc">Item, Pharmacy, Unit and Quantity are required. For repeated group labels left blank below the first row, use Fill Down (or Fill Up if the label sits at the bottom of the group).</div>
+                <div class="import-column-grid" id="import-column-grid"></div>
+            </div>
+            <div class="import-section">
+                <div class="import-section-title">3 &middot; Preview</div>
+                <div class="import-preview-wrapper">
+                    <table class="import-preview-table" id="import-final-preview"></table>
+                </div>
+                <div class="import-preview-summary" id="import-preview-summary"></div>
+            </div>
+        </div>
+        <div class="import-footer">
+            <button class="btn" id="btn-import-cancel">Cancel</button>
+            <button class="btn btn-primary" id="btn-import-confirm">Import</button>
+        </div>
+    </div>
+</div>
+
 <nav>
     <div class="logo">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-        LX parser
+        LX Parser
     </div>
     <div class="nav-links">
         <button class="nav-btn active" data-target="view-overview">Overview</button>
@@ -1336,20 +1469,33 @@ tr.empty-row td { border-bottom: none; }
                 <span class="last-sync" id="last-sync-label"></span>
             </button>
             <div class="sync-health-panel" id="sync-health-panel"></div>
-            <button class="auto-toggle" id="btn-autosync" aria-pressed="false" title="Auto-sync every 10 minutes">
+            <button class="auto-toggle" id="btn-autosync" aria-pressed="false" title="Auto-sync remote sources every 10 minutes">
                 <span class="auto-toggle-dot"></span>Auto
             </button>
-            <button class="btn btn-icon btn-sync" id="btn-sync" aria-label="Sync latest data">
+            <button class="btn btn-icon btn-sync" id="btn-sync" aria-label="Sync remote sources" title="Sync remote sources">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
             </button>
+        </div>
+        <div class="data-cluster">
+            <button class="sync-health-trigger" id="data-panel-trigger" aria-label="Local files and data settings" title="Local files and data settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+            </button>
+            <div class="sync-health-panel" id="data-panel"></div>
         </div>
         <button class="btn btn-icon" id="btn-shortcuts" aria-label="Keyboard shortcuts" title="Keyboard shortcuts">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </button>
-        <button class="btn btn-icon" id="btn-theme" aria-label="Toggle color theme">
-            <svg id="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            <svg id="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="icon-hidden"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-        </button>
+        <div class="theme-switch" id="theme-switch" role="radiogroup" aria-label="Color theme">
+            <button class="theme-switch-btn" type="button" data-theme-choice="system" aria-label="Match system theme" title="Match system">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            </button>
+            <button class="theme-switch-btn" type="button" data-theme-choice="light" aria-label="Light theme" title="Light">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </button>
+            <button class="theme-switch-btn" type="button" data-theme-choice="dark" aria-label="Dark theme" title="Dark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+        </div>
         <button class="btn btn-primary" id="btn-export">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
             Export View
@@ -1369,7 +1515,7 @@ tr.empty-row td { border-bottom: none; }
             <div class="dropdowns-row">
                 <div class="dropdown-group">
                     <span class="dropdown-label">Class</span>
-                    <select id="sel-cat"><option value="ALL">All</option><option value="workforce">Workforce</option><option value="student">Student</option></select>
+                    <select id="sel-cat"><option value="ALL">All</option></select>
                     <button class="clear-btn" data-target="sel-cat"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group">
@@ -1378,9 +1524,14 @@ tr.empty-row td { border-bottom: none; }
                     <button class="clear-btn" data-target="sel-reg"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group">
+                    <span class="dropdown-label">Branch</span>
+                    <select id="sel-branch"><option value="ALL">All</option></select>
+                    <button class="clear-btn" data-target="sel-branch"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="dropdown-group">
                     <span class="dropdown-label">Pharmacy</span>
-                    <select id="sel-end"><option value="ALL">All</option></select>
-                    <button class="clear-btn" data-target="sel-end"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                    <select id="sel-pharm"><option value="ALL">All</option></select>
+                    <button class="clear-btn" data-target="sel-pharm"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
                 <div class="dropdown-group">
                     <span class="dropdown-label">Unit</span>
@@ -1409,7 +1560,7 @@ tr.empty-row td { border-bottom: none; }
     <div id="view-overview" class="view active">
         <div class="stale-banner" id="stale-banner">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span>Data hasn't synced in over 24 hours.</span>
+            <span id="stale-banner-msg">Remote data hasn't synced in over 24 hours.</span>
             <button class="stale-banner-action" id="stale-banner-sync">Sync now</button>
         </div>
         <div class="kpi-grid">
@@ -1433,6 +1584,7 @@ tr.empty-row td { border-bottom: none; }
             <div class="section-label">Group By</div>
             <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="t">Class</button>
             <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="reg">Region</button>
+            <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="branch">Branch</button>
             <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="p">Pharmacy</button>
         </div>
         <div class="slicer-row last">
@@ -1448,6 +1600,7 @@ tr.empty-row td { border-bottom: none; }
                         <tr>
                             <th id="th-ov-t" data-sort="t">Class <span class="sort-icon"></span></th>
                             <th id="th-ov-reg" data-sort="reg">Region <span class="sort-icon"></span></th>
+                            <th id="th-ov-branch" data-sort="branch">Branch <span class="sort-icon"></span></th>
                             <th id="th-ov-p" data-sort="p">Pharmacy <span class="sort-icon"></span></th>
                             <th data-sort="i">Item <span class="sort-icon"></span></th>
                             <th id="th-ov-u" data-sort="u">Unit <span class="sort-icon"></span></th>
@@ -1464,19 +1617,51 @@ tr.empty-row td { border-bottom: none; }
     </div>
 
     <div id="view-breakdown" class="view">
-        <div class="slicer-row">
-            <button class="slicer-btn active" data-slice="r">Group by Region</button>
-            <button class="slicer-btn" data-slice="e">Group by Pharmacy</button>
-            <button class="slicer-btn" data-slice="c">Group by Class</button>
+        <div class="slicer-header-row">
+            <div class="slicer-row">
+                <button class="slicer-btn active" data-slice="r">Group by Region</button>
+                <button class="slicer-btn" data-slice="b">Group by Branch</button>
+                <button class="slicer-btn" data-slice="e">Group by Pharmacy</button>
+                <button class="slicer-btn" data-slice="c">Group by Class</button>
+            </div>
+            <div class="slicer-row">
+                <button class="slicer-btn active" data-viewmode="cards">Cards</button>
+                <button class="slicer-btn" data-viewmode="table">Table</button>
+            </div>
         </div>
         <div class="bento-grid" id="bento-container"></div>
+        <div class="table-card hidden" id="breakdown-table-card">
+            <div class="table-wrapper">
+                <table data-view="view-breakdown">
+                    <thead>
+                        <tr>
+                            <th data-sort="key" id="th-bd-key"><span id="th-bd-key-label">Group</span> <span class="sort-icon"></span></th>
+                            <th data-sort="sub" id="th-bd-sub"><span id="th-bd-sub-label">Region</span> <span class="sort-icon"></span></th>
+                            <th data-sort="ui">Items <span class="sort-icon"></span></th>
+                            <th data-sort="q">Qty <span class="sort-icon"></span></th>
+                            <th data-sort="tot" class="sort-active" data-dir="desc">Value <span class="sort-icon"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb-breakdown"></tbody>
+                    <tfoot>
+                        <tr class="grand-total-row">
+                            <td colspan="2">Grand Total</td>
+                            <td class="num" id="bd-grand-items">0</td>
+                            <td class="num" id="bd-grand-qty">0</td>
+                            <td id="bd-grand-tot">0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="cap-notice" id="cap-breakdown"></div>
+        </div>
     </div>
 
     <div id="view-pricing" class="view">
         <div class="card action-row">
             <div>
                 <div class="metric-title">Unpriced Items</div>
-                <div class="metric-value" id="kpi-unpriced" class="metric-value-danger">0</div>
+                <div class="metric-value metric-value-danger" id="kpi-unpriced">0</div>
             </div>
             <div class="action-group">
                 <button class="btn" id="btn-template-prices">Download Template</button>
@@ -1503,8 +1688,8 @@ tr.empty-row td { border-bottom: none; }
 
     <div id="view-pharmacies" class="view">
         <div class="kpi-grid">
-            <div class="card"><div class="metric-title">Unmapped Pharmacies</div><div class="metric-value" id="kpi-unmapped" class="metric-value-danger">0</div></div>
-            <div class="card"><div class="metric-title">Inactive Pharmacies</div><div class="metric-value" id="kpi-inactive" class="metric-value-warning">0</div></div>
+            <div class="card"><div class="metric-title">Unmapped Pharmacies</div><div class="metric-value metric-value-danger" id="kpi-unmapped">0</div></div>
+            <div class="card"><div class="metric-title">Inactive Pharmacies</div><div class="metric-value metric-value-warning" id="kpi-inactive">0</div></div>
         </div>
         <div class="card action-row">
             <div class="section-title">Routing Actions</div>
@@ -1536,7 +1721,7 @@ tr.empty-row td { border-bottom: none; }
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 Missing Pharmacies
             </div>
-            <div class="section-desc">Pharmacies recognized in the routing map but absent or reporting 0 records in current imported data.</div>
+            <div class="section-desc">Pharmacies recognized in the routing map but absent or reporting 0 records in current data.</div>
         </div>
         <div class="table-card">
             <div class="table-wrapper">
@@ -1555,35 +1740,80 @@ tr.empty-row td { border-bottom: none; }
     </div>
 
     <div id="view-anomalies" class="view">
-        <div class="card action-row" style="flex-direction: column; align-items: stretch; gap: 4px;">
-            <div class="section-title-row">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                Data Anomalies Detected
-            </div>
-            <div class="section-desc">Values the parser couldn't take at face value. Formula errors and unparseable entries are zeroed; values with a recoverable number embedded are auto-corrected and kept.</div>
-            <div class="severity-summary" id="severity-summary"></div>
+        <div class="slicer-row last">
+            <button class="slicer-btn active" data-subtab="issues">Parse Issues</button>
+            <button class="slicer-btn" data-subtab="duplicates">Duplicates<span class="nav-badge hidden" id="nav-badge-dup">0</span></button>
         </div>
-        <div class="table-card">
-            <div class="table-wrapper">
-                <table data-view="view-anomalies">
-                    <thead>
-                        <tr>
-                            <th data-sort="sheet">Source <span class="sort-icon"></span></th>
-                            <th data-sort="row">Row Index <span class="sort-icon"></span></th>
-                            <th data-sort="i">Item <span class="sort-icon"></span></th>
-                            <th data-sort="p">Pharmacy <span class="sort-icon"></span></th>
-                            <th data-sort="val">Invalid Value <span class="sort-icon"></span></th>
-                            <th data-sort="act">Action <span class="sort-icon"></span></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tb-anomalies"></tbody>
-                </table>
+
+        <div id="anomalies-subtab-issues" class="anomalies-subtab">
+            <div class="card action-row" style="flex-direction: column; align-items: stretch; gap: 4px;">
+                <div class="section-title-row">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Data Anomalies Detected
+                </div>
+                <div class="section-desc">Values the parser couldn't take at face value, plus any cells recovered by Fill Down/Up. Formula errors and unparseable entries are zeroed; recoverable values are auto-corrected and kept.</div>
+                <div class="severity-summary" id="severity-summary"></div>
             </div>
-            <div class="cap-notice" id="cap-anomalies"></div>
+            <div class="table-card">
+                <div class="table-wrapper">
+                    <table data-view="view-anomalies">
+                        <thead>
+                            <tr>
+                                <th data-sort="sheet">Source <span class="sort-icon"></span></th>
+                                <th data-sort="row">Row Index <span class="sort-icon"></span></th>
+                                <th data-sort="i">Item <span class="sort-icon"></span></th>
+                                <th data-sort="p">Pharmacy <span class="sort-icon"></span></th>
+                                <th data-sort="val">Value <span class="sort-icon"></span></th>
+                                <th data-sort="act">Action <span class="sort-icon"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-anomalies"></tbody>
+                    </table>
+                </div>
+                <div class="cap-notice" id="cap-anomalies"></div>
+            </div>
+        </div>
+
+        <div id="anomalies-subtab-duplicates" class="anomalies-subtab hidden">
+            <div class="kpi-grid">
+                <div class="card"><div class="metric-title">Duplicate Groups</div><div class="metric-value" id="kpi-dup-groups">0</div></div>
+                <div class="card"><div class="metric-title">Affected Rows</div><div class="metric-value metric-value-warning" id="kpi-dup-rows">0</div></div>
+            </div>
+            <div class="card action-row" style="flex-direction: column; align-items: stretch; gap: 4px;">
+                <div class="section-title-row">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.5"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M4 16V4a2 2 0 0 1 2-2h12"></path></svg>
+                    Duplicate Rows Detected
+                </div>
+                <div class="section-desc">Rows sharing the same class, branch, pharmacy, item and unit. If this is expected (e.g. multiple deliveries), leave on Keep All — quantities are already summed in every view. If it's accidental repetition from the source file, switch to Keep First or Keep Last to drop the extras.</div>
+            </div>
+            <div class="slicer-row">
+                <div class="section-label">Resolution</div>
+                <button class="slicer-btn active" data-dupmode="none">Keep All (Sum)</button>
+                <button class="slicer-btn" data-dupmode="first">Keep First</button>
+                <button class="slicer-btn" data-dupmode="last">Keep Last</button>
+            </div>
+            <div class="table-card">
+                <div class="table-wrapper">
+                    <table data-view="view-duplicates">
+                        <thead>
+                            <tr>
+                                <th data-sort="t">Class <span class="sort-icon"></span></th>
+                                <th data-sort="branch">Branch <span class="sort-icon"></span></th>
+                                <th data-sort="p">Pharmacy <span class="sort-icon"></span></th>
+                                <th data-sort="i">Item <span class="sort-icon"></span></th>
+                                <th data-sort="u">Unit <span class="sort-icon"></span></th>
+                                <th data-sort="n" class="sort-active" data-dir="desc">Occurrences <span class="sort-icon"></span></th>
+                                <th data-sort="q">Combined Qty <span class="sort-icon"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-duplicates"></tbody>
+                    </table>
+                </div>
+                <div class="cap-notice" id="cap-duplicates"></div>
+            </div>
         </div>
     </div>
 </div>
-
 <script>
 const DEFAULT_PHARMACIES = {
     "ابو المطامير ق.ع": "الاولى", "ادكو ق.ع": "الاولى", "البيضا ق.ع": "الاولى", "النوبارية": "الاولى", "رشيد ق.ع": "الاولى", "سكر (كفر الدوار)": "الاولى", "كفر الدوار ق.ع": "الاولى",
@@ -1627,52 +1857,68 @@ function isIntentionalEmpty(v) {
     if (/^ـ+$/.test(collapsed)) return true;
     return EMPTY_TOKENS.has(normAr(collapsed));
 }
-
-let state = {
-    prices: JSON.parse(localStorage.getItem('uni_prices') || '{}'),
-    pharmacies: JSON.parse(localStorage.getItem('uni_pharmacies') || JSON.stringify(DEFAULT_PHARMACIES))
-};
-
-let db = [], filteredDB = [], overviewData = [], breakdownData = [], priceData = [], pharmData = [], missingData = [], anomaliesData = [], activePharms = new Set();
-let currentView = 'view-overview', currentSlicer = 'r';
-let lastEdit = null;
-
-let sourceStatus = {};
-try { sourceStatus = JSON.parse(localStorage.getItem('uni_source_status') || '{}'); } catch (e) { sourceStatus = {}; }
-
-let syncHistory = [];
-try { syncHistory = JSON.parse(localStorage.getItem('uni_sync_history') || '[]'); } catch (e) { syncHistory = []; }
-
-let savedViews = [];
-try { savedViews = JSON.parse(localStorage.getItem('uni_saved_views') || '[]'); } catch (e) { savedViews = []; }
-
-let viewDirty = { 'view-overview': true, 'view-breakdown': true, 'view-pricing': true, 'view-pharmacies': true, 'view-missing': true };
-let filteredDBDirty = true;
-
-function markAllDirty() {
-    Object.keys(viewDirty).forEach(k => viewDirty[k] = true);
-    filteredDBDirty = true;
+function normAr(str) {
+    return !str ? '' : str.toLowerCase()
+        .replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+        .replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/[\u064B-\u065F]/g, '');
 }
 
-let groupConfig = { 'view-overview': { t: true, reg: true, p: true } };
-let colVisible = { u: true, q: true, price: true };
+function subseqMatch(token, str) {
+    if (token.length > str.length) return false;
+    let i = 0, j = 0;
+    while (i < token.length && j < str.length) {
+        if (token[i] === str[j]) i++;
+        j++;
+    }
+    return i === token.length;
+}
 
-try { groupConfig['view-overview'] = { ...groupConfig['view-overview'], ...JSON.parse(localStorage.getItem('uni_group_config') || '{}') }; } catch (e) {}
-try { colVisible = { ...colVisible, ...JSON.parse(localStorage.getItem('uni_col_visible') || '{}') }; } catch (e) {}
+function lev(a, b) {
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    let r = new Uint8Array(b.length + 1);
+    for (let j = 0; j <= b.length; j++) r[j] = j;
+    for (let i = 1; i <= a.length; i++) {
+        let prev = i;
+        for (let j = 1; j <= b.length; j++) {
+            let val = a[i - 1] === b[j - 1] ? r[j - 1] : Math.min(r[j - 1] + 1, prev + 1, r[j] + 1);
+            r[j - 1] = prev;
+            prev = val;
+        }
+        r[b.length] = prev;
+    }
+    return r[b.length];
+}
 
-let sortRules = {
-    'view-overview':   [{ k: 'tot',  d: -1 }],
-    'view-pricing':    [{ k: 'stat', d: -1 }],
-    'view-pharmacies': [{ k: 'stat', d: -1 }],
-    'view-missing':    [{ k: 'k',    d:  1 }],
-    'view-anomalies':  [{ k: 'row',  d:  1 }]
-};
+function fuzzyMatch(token, str, words) {
+    if (str.includes(token)) return true;
+    if (token.length <= 2) return false;
+    const md = Math.min(3, Math.max(1, Math.ceil(token.length / 2.5)));
+    const targetWords = words || str.split(' ');
+    for (let i = 0; i < targetWords.length; i++) {
+        const w = targetWords[i];
+        if (w.length && Math.abs(token.length - w.length) <= md && lev(token, w) <= md) return true;
+    }
+    return false;
+}
 
-let renderLimits = {
-    'view-overview': 100, 'view-pricing': 100,
-    'view-pharmacies': 100, 'view-missing': 100, 'view-anomalies': 100
-};
+function isMatch(tokens, normStr, isExact, words) {
+    if (!tokens.length) return true;
+    return tokens.every(t => {
+        if (isExact || /\d/.test(t)) return normStr.includes(t);
+        return subseqMatch(t, normStr) || fuzzyMatch(t, normStr, words || normStr.split(' '));
+    });
+}
 
+function highlightText(text, tokens) {
+    if (!tokens || !tokens.length || !text) return escapeHTML(text);
+    const words = String(text).split(' ');
+    return words.map(w => {
+        const nw = normAr(w);
+        const isMatch = tokens.some(t => nw.includes(t) || lev(t, nw) <= Math.max(1, Math.floor(t.length / 3)));
+        return isMatch ? `<mark>${escapeHTML(w)}</mark>` : escapeHTML(w);
+    }).join(' ');
+}
 let activeRowIndex = -1, searchTimeout;
 const fmtEGP = new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP' });
 const fmtNum = new Intl.NumberFormat('en-US');
@@ -1707,6 +1953,1427 @@ function animateKpi(el, target, formatter, round) {
 const ARROW_SVG = `<svg class="custom-select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
 const CHECK_SVG = `<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
+function makeKey(...parts) {
+    return JSON.stringify(parts.map(p => (p == null ? '' : String(p))));
+}
+
+function migratePriceKeys(prices) {
+    let changed = false;
+    const migrated = {};
+    Object.keys(prices).forEach(k => {
+        if (k.charAt(0) === '[') { migrated[k] = prices[k]; return; }
+        migrated[makeKey(...k.split('|'))] = prices[k];
+        changed = true;
+    });
+    return { migrated, changed };
+}
+
+function badgeClass(text) {
+    const s = String(text || '');
+    let hash = 0;
+    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+    return `badge-p${hash % 6}`;
+}
+
+const arCollator = new Intl.Collator('ar', { numeric: true, sensitivity: 'base' });
+
+function compareValues(va, vb) {
+    if (typeof va === 'number' && typeof vb === 'number') return va - vb;
+    return arCollator.compare(va == null ? '' : String(va), vb == null ? '' : String(vb));
+}
+
+function sortArabic(arr) {
+    return arr.sort((a, b) => arCollator.compare(a, b));
+}
+const rawPriceStore = JSON.parse(localStorage.getItem('uni_prices') || '{}');
+const priceMigration = migratePriceKeys(rawPriceStore);
+if (priceMigration.changed) localStorage.setItem('uni_prices', JSON.stringify(priceMigration.migrated));
+
+let state = {
+    prices: priceMigration.migrated,
+    pharmacies: JSON.parse(localStorage.getItem('uni_pharmacies') || JSON.stringify(DEFAULT_PHARMACIES)),
+    dupMode: localStorage.getItem('uni_dup_mode') || 'none'
+};
+
+let db = [], filteredDB = [], overviewData = [], breakdownData = [], priceData = [], pharmData = [], missingData = [], anomaliesData = [], duplicatesData = [], duplicateGroups = [], activePharms = new Set();
+let currentView = 'view-overview', currentSlicer = 'r', breakdownViewMode = 'cards';
+let lastEdit = null;
+let rawSources = {};
+let rowIdCounter = 0;
+
+let sourceStatus = {};
+try { sourceStatus = JSON.parse(localStorage.getItem('uni_source_status') || '{}'); } catch (e) { sourceStatus = {}; }
+
+let syncHistory = [];
+try { syncHistory = JSON.parse(localStorage.getItem('uni_sync_history') || '[]'); } catch (e) { syncHistory = []; }
+
+let savedViews = [];
+try { savedViews = JSON.parse(localStorage.getItem('uni_saved_views') || '[]'); } catch (e) { savedViews = []; }
+
+let viewDirty = { 'view-overview': true, 'view-breakdown': true, 'view-pricing': true, 'view-pharmacies': true, 'view-missing': true, 'view-duplicates': true, 'view-anomalies': true };
+let filteredDBDirty = true;
+
+function markAllDirty() {
+    Object.keys(viewDirty).forEach(k => viewDirty[k] = true);
+    filteredDBDirty = true;
+}
+
+let groupConfig = { 'view-overview': { t: true, reg: true, branch: true, p: true } };
+let colVisible = { u: true, q: true, price: true };
+
+try { groupConfig['view-overview'] = { ...groupConfig['view-overview'], ...JSON.parse(localStorage.getItem('uni_group_config') || '{}') }; } catch (e) {}
+try { colVisible = { ...colVisible, ...JSON.parse(localStorage.getItem('uni_col_visible') || '{}') }; } catch (e) {}
+
+let sortRules = {
+    'view-overview':   [{ k: 'tot',  d: -1 }],
+    'view-breakdown':  [{ k: 'tot',  d: -1 }],
+    'view-pricing':    [{ k: 'stat', d: -1 }],
+    'view-pharmacies': [{ k: 'stat', d: -1 }],
+    'view-missing':    [{ k: 'k',    d:  1 }],
+    'view-duplicates': [{ k: 'n',    d: -1 }],
+    'view-anomalies':  [{ k: 'row',  d:  1 }]
+};
+
+let renderLimits = {
+    'view-overview': 100, 'view-breakdown': 100, 'view-pricing': 100,
+    'view-pharmacies': 100, 'view-missing': 100, 'view-duplicates': 100, 'view-anomalies': 100
+};
+
+function applyFillDirection(rows, cols, dir) {
+    if (!cols.length || dir === 'none') return 0;
+    let filledCount = 0;
+    const order = dir === 'up' ? rows.slice().reverse() : rows;
+    const last = {};
+    order.forEach(row => {
+        cols.forEach(col => {
+            const val = row[col];
+            const isBlank = val == null || val === '' || isIntentionalEmpty(String(val));
+            if (isBlank) {
+                if (last[col] != null) {
+                    row[col] = last[col];
+                    row._filled = row._filled || [];
+                    row._filled.push(col);
+                    filledCount++;
+                }
+            } else {
+                last[col] = val;
+            }
+        });
+    });
+    return filledCount;
+}
+
+function processDuplicates(rawData) {
+    const groups = new Map();
+    rawData.forEach((r, idx) => {
+        const key = makeKey(r.t, r.branch || '', r.p, r.i, r.u);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(idx);
+    });
+
+    duplicateGroups = [];
+    groups.forEach(idxs => {
+        if (idxs.length < 2) return;
+        const rows = idxs.map(i => rawData[i]);
+        duplicateGroups.push({
+            t: rows[0].t, branch: rows[0].branch || '', p: rows[0].p, i: rows[0].i, u: rows[0].u,
+            n: rows.length, q: rows.reduce((s, r) => s + r.q, 0)
+        });
+    });
+
+    if (state.dupMode === 'none') return rawData;
+
+    const keepSet = new Set();
+    groups.forEach(idxs => {
+        keepSet.add(state.dupMode === 'last' ? idxs[idxs.length - 1] : idxs[0]);
+    });
+    return rawData.filter((r, idx) => {
+        const idxs = groups.get(makeKey(r.t, r.branch || '', r.p, r.i, r.u));
+        return idxs.length < 2 || keepSet.has(idx);
+    });
+}
+
+function precalcDuplicates(tokens, isExact) {
+    duplicatesData = duplicateGroups.filter(g => isMatch(tokens, normAr(`${g.t} ${g.branch} ${g.p} ${g.i} ${g.u}`), isExact));
+}
+async function fetchWithRetry(url, opts) {
+    const timeoutMs = (opts && opts.timeoutMs) || 12000;
+    const retries = (opts && opts.retries != null) ? opts.retries : 2;
+    let lastErr;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+        try {
+            const res = await fetch(url, { signal: ctrl.signal });
+            clearTimeout(timer);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const text = await res.text();
+            if (/^\s*<(!doctype|html)/i.test(text)) throw new Error('Received an HTML page instead of CSV data.');
+            return text;
+        } catch (e) {
+            clearTimeout(timer);
+            lastErr = e;
+            if (attempt < retries) await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+        }
+    }
+    throw lastErr;
+}
+
+async function parseRemoteSource(source) {
+    const text = await fetchWithRetry(source.url);
+    const parsed = Papa.parse(text, { skipEmptyLines: true }).data;
+    if (!parsed.length) throw new Error(`${source.label}: sheet is completely empty.`);
+
+    let headerIdx = -1;
+    for (let i = 0; i < Math.min(parsed.length, 30); i++) {
+        if (parsed[i].some(cell => cell && normAr(String(cell).trim()).includes('الصنف'))) { headerIdx = i; break; }
+    }
+    if (headerIdx === -1) throw new Error(`${source.label}: could not locate an item column (الصنف) in the first 30 rows.`);
+
+    const headers = parsed[headerIdx].map(h => h == null ? '' : String(h).trim());
+    const itemIdx = headers.findIndex(h => normAr(h).includes('الصنف'));
+    const unitIdx = headers.findIndex(h => normAr(h).includes('الوحده'));
+
+    let rawData = [], anomalies = [];
+
+    for (let i = headerIdx + 1; i < parsed.length; i++) {
+        const row = parsed[i];
+        if (!row || !row.length) continue;
+        const iName = row[itemIdx] != null ? String(row[itemIdx]).trim() : '';
+        if (!iName) {
+            if (row.some(c => c != null && String(c).trim() !== '')) {
+                anomalies.push({ sheet: source.type, sourceId: source.id, row: i + 1, i: '-', p: '-', val: '(blank)', act: 'Blank Item — Row Skipped', sev: 'unparseable' });
+            }
+            continue;
+        }
+        const uName = (unitIdx !== -1 && row[unitIdx] != null) ? String(row[unitIdx]).trim() : '';
+
+        for (let j = 0; j < headers.length; j++) {
+            if (j === itemIdx || j === unitIdx) continue;
+            const pName = headers[j];
+            if (!pName || pName.startsWith('_') || isTotalsColumn(pName)) continue;
+
+            const rawVal = row[j];
+            if (rawVal == null || String(rawVal).trim() === '') continue;
+
+            const raw = String(rawVal).trim();
+            const norm = normalizeDigits(raw).replace(/\u066B/g, '.').replace(/\u066C/g, '');
+
+            if (isIntentionalEmpty(norm)) continue;
+
+            if (ERROR_STRING_RE.test(norm)) {
+                anomalies.push({ sheet: source.type, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Formula Error', sev: 'error' });
+                continue;
+            }
+
+            const hasLettersOrSymbols = /[^\d.,\s-]/.test(norm);
+            let q = parseFloat(norm.replace(/[^\d.-]/g, ''));
+
+            if (!hasLettersOrSymbols && !isNaN(q)) {
+                if (q > 0) rawData.push({ i: iName, u: uName, p: pName, branch: '', q, price: 0, t: source.type, srcId: source.id });
+                continue;
+            }
+
+            const extracted = norm.match(/-?\d+(?:\.\d+)?/);
+            const recovered = extracted ? parseFloat(extracted[0]) : NaN;
+            if (extracted && !isNaN(recovered) && recovered > 0) {
+                anomalies.push({ sheet: source.type, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Auto-Corrected', sev: 'corrected' });
+                rawData.push({ i: iName, u: uName, p: pName, branch: '', q: recovered, price: 0, t: source.type, srcId: source.id });
+                continue;
+            }
+
+            anomalies.push({ sheet: source.type, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Unparseable', sev: 'unparseable' });
+        }
+    }
+
+    return { rawData, anomalies, rowCount: rawData.length };
+}
+
+function getSourceCache(id) {
+    try {
+        const raw = localStorage.getItem(`uni_cache_${id}`);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function setSourceCache(id, data) {
+    try {
+        localStorage.setItem(`uni_cache_${id}`, JSON.stringify({ ...data, ts: Date.now() }));
+    } catch (e) {}
+}
+
+function checkDrift(source, newCount) {
+    const cached = getSourceCache(source.id);
+    if (cached && cached.rowCount > 5 && newCount < cached.rowCount * 0.6) {
+        return `${source.label}: row count dropped from ${fmtNum.format(cached.rowCount)} to ${fmtNum.format(newCount)} — check the source sheet.`;
+    }
+    return null;
+}
+function setSyncBarActive(active) {
+    document.getElementById('sync-progress').classList.toggle('active', active);
+}
+
+function initSignalStrip() {
+    const container = document.getElementById('signal-strip');
+    container.innerHTML = SOURCES.map(s => `<span class="signal-node" data-id="${s.id}" title="${escapeHTML(s.label)}"><span class="signal-dot"></span></span>`).join('');
+}
+
+function updateSignalStrip() {
+    document.querySelectorAll('.signal-node').forEach(node => {
+        const id = node.dataset.id;
+        const st = sourceStatus[id];
+        node.classList.remove('sig-live', 'sig-cached', 'sig-error', 'sig-idle');
+        if (!st) { node.classList.add('sig-idle'); return; }
+        node.classList.add(st.status === 'live' ? 'sig-live' : st.status === 'cached' ? 'sig-cached' : 'sig-error');
+    });
+}
+
+function setSignalPulsing(active) {
+    document.querySelectorAll('.signal-node').forEach(node => node.classList.toggle('sig-pulsing', active));
+}
+
+function renderSyncHealthPanel() {
+    const panel = document.getElementById('sync-health-panel');
+    panel.innerHTML = `<div class="sync-health-title">Remote Sources</div>` + SOURCES.map(s => {
+        const st = sourceStatus[s.id] || { status: 'idle' };
+        const dotClass = st.status === 'live' ? 'status-ok' : st.status === 'cached' ? 'status-inactive' : st.status === 'error' ? 'status-missing' : 'status-inactive';
+        const label = st.status === 'live' ? 'Live' : st.status === 'cached' ? 'Cached fallback' : st.status === 'error' ? 'Failed' : 'Not synced yet';
+        const timeStr = st.ts ? formatRelativeTime(st.ts) : '—';
+        const meta = `${label} · ${timeStr}${st.rows ? ' · ' + fmtNum.format(st.rows) + ' rows' : ''}`;
+        return `<div class="sync-health-row">
+            <div class="status-dot ${dotClass}"></div>
+            <div class="sync-health-info">
+                <div class="sync-health-label">${escapeHTML(s.label)}</div>
+                <div class="sync-health-meta">${escapeHTML(meta)}</div>
+                ${st.error ? `<div class="sync-health-warn">${escapeHTML(st.error)}</div>` : ''}
+                ${st.warning ? `<div class="sync-health-warn">${escapeHTML(st.warning)}</div>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+const syncHealthTrigger = document.getElementById('sync-health-trigger');
+const syncHealthPanel = document.getElementById('sync-health-panel');
+
+syncHealthTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    dataPanel.classList.remove('open');
+    const open = syncHealthPanel.classList.toggle('open');
+    if (open) renderSyncHealthPanel();
+});
+
+const dataPanelTrigger = document.getElementById('data-panel-trigger');
+const dataPanel = document.getElementById('data-panel');
+
+dataPanelTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    syncHealthPanel.classList.remove('open');
+    const open = dataPanel.classList.toggle('open');
+    if (open) renderDataPanel();
+});
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('#sync-health-panel') && !e.target.closest('#sync-health-trigger')) {
+        syncHealthPanel.classList.remove('open');
+    }
+    if (!e.target.closest('#data-panel') && !e.target.closest('#data-panel-trigger')) {
+        dataPanel.classList.remove('open');
+    }
+});
+
+async function fetchAllSourcesResilient() {
+    setSignalPulsing(true);
+    try {
+        const settled = await Promise.allSettled(SOURCES.map(s => parseRemoteSource(s)));
+        let statusMap = {}, warnings = [];
+        settled.forEach((res, idx) => {
+            const s = SOURCES[idx];
+            if (res.status === 'fulfilled') {
+                const rd = res.value.rawData, an = res.value.anomalies, rowCount = res.value.rowCount;
+                const drift = checkDrift(s, rowCount);
+                if (drift) warnings.push(drift);
+                setSourceCache(s.id, { rawData: rd, anomalies: an, rowCount });
+                rawSources[s.id] = { kind: 'remote', label: s.label, rawData: rd, anomalies: an, status: 'live', ts: Date.now(), rows: rowCount, warning: drift || null, error: null };
+                statusMap[s.id] = { label: s.label, status: 'live', ts: Date.now(), rows: rowCount, warning: drift || null };
+            } else {
+                const cached = getSourceCache(s.id);
+                const errMsg = (res.reason && res.reason.message) || 'Fetch failed';
+                if (cached) {
+                    rawSources[s.id] = { kind: 'remote', label: s.label, rawData: cached.rawData, anomalies: cached.anomalies, status: 'cached', ts: cached.ts, rows: cached.rawData.length, error: errMsg, warning: null };
+                    statusMap[s.id] = { label: s.label, status: 'cached', ts: cached.ts, rows: cached.rawData.length, error: errMsg };
+                } else {
+                    rawSources[s.id] = { kind: 'remote', label: s.label, rawData: [], anomalies: [], status: 'error', ts: null, rows: 0, error: errMsg, warning: null };
+                    statusMap[s.id] = { label: s.label, status: 'error', ts: null, rows: 0, error: errMsg };
+                }
+            }
+        });
+        return { statusMap, warnings };
+    } finally {
+        setSignalPulsing(false);
+    }
+}
+
+function rebuildFromSources() {
+    const allRawData = [], allAnomalies = [];
+    Object.values(rawSources).forEach(s => {
+        allRawData.push(...s.rawData);
+        allAnomalies.push(...s.anomalies);
+    });
+    buildDatabase(allRawData, allAnomalies);
+}
+
+async function fetchAndBuildDatabase() {
+    setSyncBarActive(true);
+    try {
+        const result = await fetchAllSourcesResilient();
+        sourceStatus = result.statusMap;
+        localStorage.setItem('uni_source_status', JSON.stringify(result.statusMap));
+        updateSignalStrip();
+        if (syncHealthPanel.classList.contains('open')) renderSyncHealthPanel();
+        if (dataPanel.classList.contains('open')) renderDataPanel();
+
+        rebuildFromSources();
+        const anyLive = Object.values(result.statusMap).some(s => s.status === 'live');
+        if (anyLive) localStorage.setItem('uni_last_sync', Date.now().toString());
+        pushSyncHistory();
+        updateLastSyncLabel();
+        updateStaleBanner();
+        return { statusMap: result.statusMap, warnings: result.warnings };
+    } finally {
+        setSyncBarActive(false);
+    }
+}
+
+function getActiveTbody() {
+    if (currentView === 'view-anomalies') {
+        const dupHidden = document.getElementById('anomalies-subtab-duplicates').classList.contains('hidden');
+        return document.getElementById(dupHidden ? 'tb-anomalies' : 'tb-duplicates');
+    }
+    return document.querySelector(`#${currentView} tbody`);
+}
+
+function showSkeleton() {
+    const tbody = getActiveTbody();
+    if (!tbody) return;
+    const table = tbody.closest('table');
+    const cols = table ? table.querySelectorAll('thead th').length : 6;
+    const widths = ['w-60', '', 'w-40', '', 'w-60', ''];
+    tbody.innerHTML = Array.from({ length: 6 }).map(() =>
+        `<tr class="skeleton-row">${Array.from({ length: cols }).map((_, i) => `<td><div class="skeleton-bar ${widths[i % widths.length]}"></div></td>`).join('')}</tr>`
+    ).join('');
+}
+
+async function boot() {
+    const overlay = document.getElementById('sync-overlay');
+    overlay.style.opacity = '1';
+    showSkeleton();
+    try {
+        const { statusMap } = await fetchAndBuildDatabase();
+        const values = Object.values(statusMap);
+        const allFailed = values.every(s => s.status === 'error');
+        const degraded = values.some(s => s.status !== 'live');
+        if (allFailed) {
+            showToast('Could not reach any remote source — add a local file below, or retry', 'error', { label: 'Retry', fn: () => runManualSync(false) });
+        } else if (degraded) {
+            showToast('Some sources loaded from cache — open Sync Health for details', 'warning');
+        }
+    } catch (e) {
+        showToast(`Startup error: ${e.message || 'something went wrong loading the database'}`, 'error', { label: 'Retry', fn: () => runManualSync(false) });
+    }
+    overlay.style.opacity = '0';
+    updateLastSyncLabel();
+    updateStaleBanner();
+}
+
+function showToast(message, type, action) {
+    type = type || 'success';
+    const stack = document.getElementById('toast-stack');
+    const icon = type === 'success'
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>'
+        : type === 'warning'
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.innerHTML = `${icon}<span>${escapeHTML(message)}</span>${action ? `<button type="button" class="toast-action">${escapeHTML(action.label)}</button>` : ''}`;
+    stack.appendChild(el);
+    if (action) {
+        el.querySelector('.toast-action').addEventListener('click', () => {
+            action.fn();
+            el.classList.remove('visible');
+            setTimeout(() => el.remove(), 300);
+        });
+    }
+    requestAnimationFrame(() => el.classList.add('visible'));
+    const life = action ? 5200 : 3200;
+    setTimeout(() => {
+        el.classList.remove('visible');
+        setTimeout(() => el.remove(), 350);
+    }, life);
+    return el;
+}
+
+function formatRelativeTime(ts) {
+    const diff = Math.max(0, Date.now() - ts);
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Synced just now';
+    if (mins < 60) return `Synced ${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `Synced ${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `Synced ${days}d ago`;
+}
+
+function updateLastSyncLabel() {
+    const label = document.getElementById('last-sync-label');
+    const ts = parseInt(localStorage.getItem('uni_last_sync'), 10);
+    if (!ts) { label.textContent = ''; return; }
+    label.textContent = formatRelativeTime(ts);
+    label.classList.toggle('stale', Date.now() - ts > 3600000);
+}
+
+function updateStaleBanner() {
+    const banner = document.getElementById('stale-banner');
+    const ts = parseInt(localStorage.getItem('uni_last_sync'), 10);
+    const isStale = !ts || Date.now() - ts > 86400000;
+    banner.classList.toggle('visible', isStale);
+    if (isStale) {
+        document.getElementById('stale-banner-msg').textContent = ts
+            ? 'Remote data hasn\'t synced in over 24 hours.'
+            : 'Remote data hasn\'t synced yet — showing local files only, if any are added.';
+    }
+}
+
+async function runManualSync(silent) {
+    const btn = document.getElementById('btn-sync');
+    if (btn.classList.contains('syncing')) return;
+    btn.classList.remove('sync-success', 'sync-error');
+    btn.classList.add('syncing');
+    if (!silent) showSkeleton();
+    try {
+        const { statusMap, warnings } = await fetchAndBuildDatabase();
+        btn.classList.remove('syncing');
+        const values = Object.values(statusMap);
+        const liveCount = values.filter(s => s.status === 'live').length;
+        const cachedCount = values.filter(s => s.status === 'cached').length;
+        const errorCount = values.filter(s => s.status === 'error').length;
+        if (errorCount === values.length) {
+            btn.classList.add('sync-error');
+            showToast('All sources failed to sync', 'error');
+        } else if (cachedCount > 0 || errorCount > 0) {
+            btn.classList.add('sync-error');
+            showToast(`Synced with fallbacks — ${liveCount} live, ${cachedCount} cached${errorCount ? ', ' + errorCount + ' failed' : ''}`, 'warning');
+        } else {
+            btn.classList.add('sync-success');
+            showToast('All sources synced live', 'success');
+        }
+        warnings.forEach(w => showToast(w, 'warning'));
+    } catch (e) {
+        btn.classList.remove('syncing');
+        btn.classList.add('sync-error');
+        showToast(e.message || 'Sync failed', 'error');
+    } finally {
+        setTimeout(() => btn.classList.remove('sync-success', 'sync-error'), 1600);
+    }
+}
+
+function initAutoSync() {
+    const btn = document.getElementById('btn-autosync');
+    let intervalId = null;
+
+    const setEnabled = enabled => {
+        btn.classList.toggle('active', enabled);
+        btn.setAttribute('aria-pressed', String(enabled));
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+        if (enabled) intervalId = setInterval(() => runManualSync(true), 10 * 60 * 1000);
+    };
+
+    setEnabled(localStorage.getItem('uni_autosync') === '1');
+
+    btn.addEventListener('click', () => {
+        const next = !btn.classList.contains('active');
+        localStorage.setItem('uni_autosync', next ? '1' : '0');
+        setEnabled(next);
+        showToast(next ? 'Auto-sync enabled — every 10 minutes' : 'Auto-sync disabled', 'success');
+    });
+}
+
+document.getElementById('btn-sync').addEventListener('click', () => runManualSync(false));
+document.getElementById('stale-banner-sync').addEventListener('click', () => runManualSync(false));
+function updateDuplicatesBadge() {
+    const badge = document.getElementById('nav-badge-dup');
+    const n = duplicateGroups.length;
+    badge.textContent = n > 99 ? '99+' : String(n);
+    badge.classList.toggle('hidden', n === 0);
+}
+
+function buildDatabase(rawData, anomalies) {
+    anomaliesData = anomalies || [];
+    rawData = processDuplicates(rawData);
+
+    const cats = new Set(), regs = new Set(), branches = new Set(), pharms = new Set(), units = new Set();
+    activePharms.clear();
+
+    const pharmacyIndex = new Map(Object.keys(state.pharmacies).map(k => [normAr(k), k]));
+
+    rawData.forEach(r => {
+        const pk = makeKey(r.i, r.u);
+        if (r.price > 0 && !(pk in state.prices)) state.prices[pk] = r.price;
+        else if (!(pk in state.prices)) state.prices[pk] = 0;
+    });
+
+    db = rawData.map(r => {
+        const pk = makeKey(r.i, r.u);
+        const price = state.prices[pk] || 0;
+
+        let pharmKey = r.p;
+        if (!(pharmKey in state.pharmacies)) {
+            const match = pharmacyIndex.get(normAr(r.p));
+            if (match) pharmKey = match;
+            else state.pharmacies[r.p] = '';
+        }
+
+        const region = REGION_MAP[state.pharmacies[pharmKey]] || state.pharmacies[pharmKey] || 'Unmapped';
+        const branch = r.branch || '';
+        const tot = r.q * price;
+
+        cats.add(r.t); regs.add(region); branches.add(branch); pharms.add(pharmKey); units.add(r.u);
+        activePharms.add(pharmKey);
+
+        const norm = normAr(`${r.i} ${r.u} ${pharmKey} ${region} ${branch} ${r.t}`);
+        return {
+            i: r.i, u: r.u, q: r.q, t: r.t, p: pharmKey, branch,
+            price, region, tot,
+            t_low: r.t.toLowerCase(), r_low: region.toLowerCase(), b_low: branch.toLowerCase(), p_low: pharmKey.toLowerCase(), u_low: r.u.toLowerCase(),
+            _norm: norm, _words: norm.split(' ')
+        };
+    });
+
+    localStorage.setItem('uni_prices', JSON.stringify(state.prices));
+    localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
+
+    const popSelect = (id, set, def) => {
+        const sel = document.getElementById(id);
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="ALL">All</option>';
+        sortArabic(Array.from(set)).forEach(val => sel.add(new Option(val || def, val)));
+        sel.value = set.has(currentVal) ? currentVal : 'ALL';
+        sel._refreshDropdown?.();
+    };
+
+    popSelect('sel-cat', cats, '(No Class)');
+    popSelect('sel-reg', regs, '(No Region)');
+    popSelect('sel-branch', branches, '(No Branch)');
+    popSelect('sel-unit', units, '(No Unit)');
+
+    updatePharmacyDropdown();
+    updateDuplicatesBadge();
+    applyURLState();
+    updateStickyColumn();
+    markAllDirty();
+    syncFromOmnibox();
+}
+
+function updatePharmacyDropdown() {
+    const fR = document.getElementById('sel-reg').value.toLowerCase();
+    const fB = document.getElementById('sel-branch').value.toLowerCase();
+    const selPharm = document.getElementById('sel-pharm');
+    const currentVal = selPharm.value;
+
+    selPharm.innerHTML = '<option value="ALL">All</option>';
+    const validPharms = new Set();
+    db.forEach(r => {
+        if ((fR === 'all' || r.r_low === fR) && (fB === 'all' || r.b_low === fB)) validPharms.add(r.p);
+    });
+
+    sortArabic(Array.from(validPharms)).forEach(val => selPharm.add(new Option(val || '(Empty)', val)));
+    selPharm.value = validPharms.has(currentVal) ? currentVal : 'ALL';
+    selPharm._refreshDropdown?.();
+}
+
+document.getElementById('sel-reg').addEventListener('change', () => { updatePharmacyDropdown(); syncFromOmnibox(); });
+document.getElementById('sel-branch').addEventListener('change', () => { updatePharmacyDropdown(); syncFromOmnibox(); });
+
+const omni = document.getElementById('omnibox');
+const btnClearOmni = document.getElementById('btn-clear-omni');
+
+function syncOmniClearVisibility() {
+    btnClearOmni.classList.toggle('visible', omni.value.length > 0);
+}
+
+omni.addEventListener('input', () => {
+    syncOmniClearVisibility();
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(syncFromOmnibox, 80);
+});
+
+btnClearOmni.addEventListener('click', () => {
+    omni.value = '';
+    syncOmniClearVisibility();
+    omni.focus();
+    syncFromOmnibox();
+});
+
+['sel-cat', 'sel-pharm', 'sel-unit', 'toggle-exact'].forEach(id => document.getElementById(id).addEventListener('change', syncFromOmnibox));
+
+document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        document.getElementById('btn-export').click();
+    }
+});
+
+function syncURLState() {
+    const params = new URLSearchParams();
+    params.set('view', currentView);
+    if (omni.value) params.set('q', omni.value);
+    const fC = document.getElementById('sel-cat').value;
+    const fR = document.getElementById('sel-reg').value;
+    const fB = document.getElementById('sel-branch').value;
+    const fP = document.getElementById('sel-pharm').value;
+    const fU = document.getElementById('sel-unit').value;
+    if (fC && fC !== 'ALL') params.set('cat', fC);
+    if (fR && fR !== 'ALL') params.set('reg', fR);
+    if (fB && fB !== 'ALL') params.set('branch', fB);
+    if (fP && fP !== 'ALL') params.set('pharm', fP);
+    if (fU && fU !== 'ALL') params.set('unit', fU);
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+}
+
+function applyURLState() {
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    if (view && document.getElementById(view)) switchView(view);
+    const q = params.get('q');
+    if (q) { omni.value = q; syncOmniClearVisibility(); }
+    const setIfPresent = (selId, paramKey) => {
+        const val = params.get(paramKey);
+        const sel = document.getElementById(selId);
+        sel.value = (val && Array.from(sel.options).some(o => o.value === val)) ? val : 'ALL';
+    };
+    setIfPresent('sel-cat', 'cat');
+    setIfPresent('sel-reg', 'reg');
+    setIfPresent('sel-branch', 'branch');
+    setIfPresent('sel-unit', 'unit');
+    if (document.getElementById('sel-reg').value !== 'ALL' || document.getElementById('sel-branch').value !== 'ALL') updatePharmacyDropdown();
+    setIfPresent('sel-pharm', 'pharm');
+}
+
+function precalcOverview() {
+    const map = new Map();
+    const gc = groupConfig['view-overview'];
+    filteredDB.forEach(r => {
+        let kArr = [r.i, r.u];
+        if (gc.t) kArr.push(r.t);
+        if (gc.reg) kArr.push(r.region);
+        if (gc.branch) kArr.push(r.branch);
+        if (gc.p) kArr.push(r.p);
+        const k = makeKey(...kArr);
+        if (!map.has(k)) map.set(k, { t: gc.t ? r.t : '-', reg: gc.reg ? r.region : '-', branch: gc.branch ? r.branch : '-', p: gc.p ? r.p : '-', i: r.i, u: r.u, q: 0, price: r.price });
+        map.get(k).q += r.q;
+    });
+    overviewData = Array.from(map.values()).map(g => ({ ...g, tot: g.q * g.price }));
+}
+
+function precalcBreakdown() {
+    const map = new Map();
+    db.forEach(r => {
+        let k1, k2;
+        if (currentSlicer === 'r')      { k1 = r.region; k2 = '-'; }
+        else if (currentSlicer === 'b') { k1 = r.branch || '(No Branch)'; k2 = '-'; }
+        else if (currentSlicer === 'e') { k1 = r.p;      k2 = r.region; }
+        else                             { k1 = r.t;      k2 = '-'; }
+        const key = makeKey(k1, k2);
+        if (!map.has(key)) map.set(key, { key: k1, sub: k2, items: new Set(), q: 0, tot: 0 });
+        const g = map.get(key);
+        g.items.add(makeKey(r.i, r.u));
+        g.q += r.q;
+        g.tot += r.tot;
+    });
+    breakdownData = Array.from(map.values()).map(g => ({ ...g, ui: g.items.size })).sort((a, b) => b.tot - a.tot);
+}
+
+function precalcPricing(tokens, isExact) {
+    priceData = Object.keys(state.prices).reduce((acc, k) => {
+        let i, u;
+        try { [i, u] = JSON.parse(k); } catch (e) { return acc; }
+        if (isMatch(tokens, normAr(`${i} ${u}`), isExact)) acc.push({ id: k, i, u, p: state.prices[k], stat: state.prices[k] === 0 ? 0 : 1 });
+        return acc;
+    }, []);
+}
+
+function precalcPharmacies(tokens, isExact) {
+    pharmData = Object.keys(state.pharmacies).reduce((acc, k) => {
+        const reg = state.pharmacies[k];
+        if (isMatch(tokens, normAr(`${k} ${reg}`), isExact)) {
+            const stat = reg === '' ? 0 : !activePharms.has(k) ? 2 : 1;
+            acc.push({ k, reg, stat });
+        }
+        return acc;
+    }, []);
+}
+
+function precalcMissing(tokens, isExact, fR) {
+    const fRLower = fR.toLowerCase();
+    missingData = Object.keys(state.pharmacies).reduce((acc, k) => {
+        if (activePharms.has(k)) return acc;
+        const rawReg = state.pharmacies[k] || 'Unmapped';
+        const reg = REGION_MAP[rawReg] || rawReg;
+        if (fRLower !== 'all' && reg.toLowerCase() !== fRLower) return acc;
+        if (isMatch(tokens, normAr(`${k} ${reg}`), isExact)) acc.push({ k, reg });
+        return acc;
+    }, []);
+}
+
+window.loadMore = (key) => {
+    const k = key || currentView;
+    if (renderLimits[k] != null) {
+        renderLimits[k] += 200;
+        renderActiveView();
+    }
+};
+
+function updateCapNotice(viewPrefix, dataLength, limitKey) {
+    const key = limitKey || currentView;
+    const limit = renderLimits[key];
+    const el = document.getElementById(`cap-${viewPrefix}`);
+    if (!el) return;
+    el.innerHTML = dataLength > limit
+        ? `Showing ${fmtNum.format(limit)} of ${fmtNum.format(dataLength)} <button class="btn btn-primary load-more-btn" onclick="loadMore('${key}')">Load More</button>`
+        : `Showing all ${fmtNum.format(dataLength)} records`;
+}
+function renderActiveView() {
+    activeRowIndex = -1;
+
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+    const fC = document.getElementById('sel-cat').value;
+    const fR = document.getElementById('sel-reg').value;
+    const fB = document.getElementById('sel-branch').value;
+    const fP = document.getElementById('sel-pharm').value;
+    const fU = document.getElementById('sel-unit').value;
+
+    const needsFilteredDB = currentView === 'view-overview';
+    if (needsFilteredDB && filteredDBDirty) {
+        const fCLower = fC.toLowerCase(), fRLower = fR.toLowerCase(), fBLower = fB.toLowerCase(), fPLower = fP.toLowerCase(), fULower = fU.toLowerCase();
+        filteredDB = db.filter(r => {
+            if (fC !== 'ALL' && r.t_low !== fCLower) return false;
+            if (fR !== 'ALL' && r.r_low !== fRLower) return false;
+            if (fB !== 'ALL' && r.b_low !== fBLower) return false;
+            if (fP !== 'ALL' && r.p_low !== fPLower) return false;
+            if (fU !== 'ALL' && r.u_low !== fULower) return false;
+            return isMatch(tokens, r._norm, isExact, r._words);
+        });
+        filteredDBDirty = false;
+    }
+
+    if (viewDirty[currentView]) {
+        switch (currentView) {
+            case 'view-overview':   precalcOverview(); break;
+            case 'view-breakdown':  precalcBreakdown(); break;
+            case 'view-pricing':    precalcPricing(tokens, isExact); break;
+            case 'view-pharmacies': precalcPharmacies(tokens, isExact); break;
+            case 'view-missing':    precalcMissing(tokens, isExact, fR); break;
+            case 'view-anomalies':  precalcDuplicates(tokens, isExact); break;
+        }
+        viewDirty[currentView] = false;
+    }
+
+    const renderMap = {
+        'view-overview':   renderOverview,
+        'view-breakdown':  renderBreakdown,
+        'view-pricing':    renderPricing,
+        'view-pharmacies': renderPharmacies,
+        'view-missing':    renderMissing,
+        'view-anomalies':  () => { renderAnomalies(); renderDuplicates(); }
+    };
+    renderMap[currentView]?.();
+}
+
+let lastOverviewRendered = [];
+
+function renderOverview() {
+    const finalData = applySort(overviewData, 'view-overview');
+    lastOverviewRendered = finalData;
+    const limit = renderLimits['view-overview'];
+    const gc = groupConfig['view-overview'];
+    let tvl = 0, qty = 0;
+    const parts = [];
+
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    const firstVis = updateStickyColumn();
+
+    for (let idx = 0; idx < finalData.length; idx++) {
+        const d = finalData[idx];
+        tvl += d.tot;
+        qty += d.q;
+        if (idx >= limit) continue;
+
+        const tdClass = gc.t ? `<td class="${firstVis==='t'?'sticky-col':''}"><span class="badge ${badgeClass(d.t)}">${highlightText(d.t, tokens)}</span></td>` : '';
+        const tdReg = gc.reg ? `<td class="${firstVis==='reg'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td>` : '';
+        const tdBranch = gc.branch ? `<td class="${firstVis==='branch'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.branch, tokens)}</span></td>` : '';
+        const tdPharm = gc.p ? `<td class="${firstVis==='p'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.p, tokens)}</span></td>` : '';
+        const tdItem = `<td class="${firstVis==='i'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.i, tokens)}</span></td>`;
+        const tdUnit = colVisible.u ? `<td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td>` : '';
+        const tdQty = colVisible.q ? `<td class="num">${fmtNum.format(d.q)}</td>` : '';
+        const tdPrice = colVisible.price ? `<td class="num">${fmtEGP.format(d.price)}</td>` : '';
+
+        parts.push(`<tr data-idx="${idx}" data-view="overview">${tdClass}${tdReg}${tdBranch}${tdPharm}${tdItem}${tdUnit}${tdQty}${tdPrice}<td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
+    }
+
+    const emptyMsg = db.length === 0
+        ? 'No data loaded yet — sync a remote source or add a local file from the Data panel'
+        : 'No records match your filters';
+    document.getElementById('tb-overview').innerHTML = parts.length ? parts.join('') : emptyRowHTML(emptyMsg);
+    animateKpi(document.getElementById('kpi-tvl'), tvl, v => fmtEGP.format(v));
+    animateKpi(document.getElementById('kpi-qty'), qty, v => fmtNum.format(v), true);
+    animateKpi(document.getElementById('kpi-assets'), finalData.length, v => fmtNum.format(v), true);
+    updateCapNotice('overview', finalData.length);
+}
+
+function renderBreakdown() {
+    const bentoContainer = document.getElementById('bento-container');
+    const tableCard = document.getElementById('breakdown-table-card');
+
+    if (breakdownViewMode === 'table') {
+        bentoContainer.classList.add('hidden');
+        tableCard.classList.remove('hidden');
+
+        const nameCol = currentSlicer === 'r' ? 'Region' : currentSlicer === 'b' ? 'Branch' : currentSlicer === 'e' ? 'Pharmacy' : 'Class';
+        document.getElementById('th-bd-key-label').textContent = nameCol;
+        document.getElementById('th-bd-sub').classList.toggle('hidden', currentSlicer !== 'e');
+
+        const finalData = applySort(breakdownData, 'view-breakdown');
+        const limit = renderLimits['view-breakdown'];
+        const rows = finalData.slice(0, limit).map(g => `
+            <tr>
+                <td>${escapeHTML(g.key || '(Empty)')}</td>
+                <td class="${currentSlicer !== 'e' ? 'hidden' : ''}"><span class="arabic-text">${escapeHTML(g.sub === '-' ? '' : g.sub)}</span></td>
+                <td class="num">${fmtNum.format(g.ui)}</td>
+                <td class="num">${fmtNum.format(g.q)}</td>
+                <td>${fmtEGP.format(g.tot)}</td>
+            </tr>`).join('');
+        document.getElementById('tb-breakdown').innerHTML = rows || emptyRowHTML('No data available for this grouping');
+
+        const grandItems = breakdownData.reduce((s, g) => s + g.ui, 0);
+        const grandQty = breakdownData.reduce((s, g) => s + g.q, 0);
+        const grandTot = breakdownData.reduce((s, g) => s + g.tot, 0);
+        document.getElementById('bd-grand-items').textContent = fmtNum.format(grandItems);
+        document.getElementById('bd-grand-qty').textContent = fmtNum.format(grandQty);
+        document.getElementById('bd-grand-tot').textContent = fmtEGP.format(grandTot);
+        updateCapNotice('breakdown', breakdownData.length);
+    } else {
+        tableCard.classList.add('hidden');
+        bentoContainer.classList.remove('hidden');
+        bentoContainer.innerHTML = breakdownData.length ? breakdownData.map(d => `
+            <div class="bento-card">
+                <div class="bento-header">
+                    <div class="bento-title">${escapeHTML(d.key || '(Empty)')}</div>
+                    <div class="bento-subtitle">${d.sub === '-' ? '' : escapeHTML(d.sub)}</div>
+                </div>
+                <div class="bento-metric">${fmtEGP.format(d.tot)}</div>
+                <div class="bento-submetric">
+                    <span>Items: <span class="mono-strong">${fmtNum.format(d.ui)}</span></span>
+                    <span>Qty: <span class="mono-strong">${fmtNum.format(d.q)}</span></span>
+                </div>
+            </div>`).join('') : `<div class="empty-state empty-state-full">${EMPTY_ICON}<span>No data available for this grouping</span></div>`;
+    }
+}
+
+document.querySelectorAll('.slicer-btn[data-slice]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.slicer-btn[data-slice]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentSlicer = btn.dataset.slice;
+        viewDirty['view-breakdown'] = true;
+        renderActiveView();
+    });
+});
+
+document.querySelectorAll('.slicer-btn[data-viewmode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.slicer-btn[data-viewmode]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        breakdownViewMode = btn.dataset.viewmode;
+        renderActiveView();
+    });
+});
+
+document.querySelectorAll('.slicer-btn[data-subtab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.slicer-btn[data-subtab]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const subtab = btn.dataset.subtab;
+        document.getElementById('anomalies-subtab-issues').classList.toggle('hidden', subtab !== 'issues');
+        document.getElementById('anomalies-subtab-duplicates').classList.toggle('hidden', subtab !== 'duplicates');
+        activeRowIndex = -1;
+    });
+});
+
+function handleRowClick(e) {
+    const tr = e.target.closest('tr');
+    if (!tr || tr.classList.contains('empty-row') || tr.classList.contains('drill-down-row') || e.target.closest('.editable')) return;
+
+    const existing = tr.nextElementSibling;
+    const hasDrillOpen = existing && existing.classList.contains('drill-down-row');
+
+    document.querySelectorAll('.drill-down-row').forEach(r => r.remove());
+
+    if (hasDrillOpen) return;
+
+    const idxAttr = tr.dataset.idx;
+    if (idxAttr == null) return;
+    const d = lastOverviewRendered[parseInt(idxAttr, 10)];
+    if (!d) return;
+
+    const gc = groupConfig['view-overview'];
+    let matches = filteredDB.filter(r => r.i === d.i && r.u === d.u);
+    if (gc.t) matches = matches.filter(r => r.t === d.t);
+    if (gc.reg) matches = matches.filter(r => r.region === d.reg);
+    if (gc.branch) matches = matches.filter(r => r.branch === d.branch);
+    if (gc.p) matches = matches.filter(r => r.p === d.p);
+
+    if (!matches.length) return;
+
+    matches = matches.sort((a, b) => b.tot - a.tot).slice(0, 5);
+
+    const drillTr = document.createElement('tr');
+    drillTr.className = 'drill-down-row';
+    drillTr.innerHTML = `<td colspan="${tr.children.length}"><div class="drill-content">${matches.map(m => `
+        <div class="drill-item">
+            <span class="drill-name">
+                <span class="arabic-text">${escapeHTML(m.p)}</span>
+                <span class="drill-context">${escapeHTML(m.t)} &bull; ${escapeHTML(m.region)}${m.branch ? ' &bull; ' + escapeHTML(m.branch) : ''}</span>
+            </span>
+            <span class="drill-stats">
+                <span class="drill-qty">${fmtNum.format(m.q)} units</span>
+                <span class="val">${fmtEGP.format(m.tot)}</span>
+            </span>
+        </div>
+    `).join('')}</div></td>`;
+    tr.after(drillTr);
+}
+
+document.getElementById('tb-overview').addEventListener('click', handleRowClick);
+
+function undoLastEdit() {
+    if (!lastEdit) return;
+    if (lastEdit.type === 'price') {
+        state.prices[lastEdit.key] = lastEdit.prevVal;
+        localStorage.setItem('uni_prices', JSON.stringify(state.prices));
+        db.forEach(r => { if (makeKey(r.i, r.u) === lastEdit.key) { r.price = lastEdit.prevVal; r.tot = r.q * r.price; } });
+    } else if (lastEdit.type === 'region') {
+        state.pharmacies[lastEdit.key] = lastEdit.prevVal;
+        localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
+        db.forEach(r => {
+            if (r.p !== lastEdit.key) return;
+            const mapped = state.pharmacies[r.p] || 'Unmapped';
+            r.region = REGION_MAP[mapped] || mapped;
+            r.r_low = r.region.toLowerCase();
+            r._norm = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.branch} ${r.t}`);
+            r._words = r._norm.split(' ');
+        });
+    }
+    markAllDirty();
+    syncFromOmnibox();
+    lastEdit = null;
+}
+
+function updatePrice(k, v) {
+    const prevVal = state.prices[k];
+    state.prices[k] = parseFloat(v) || 0;
+    localStorage.setItem('uni_prices', JSON.stringify(state.prices));
+    db.forEach(r => { if (makeKey(r.i, r.u) === k) { r.price = state.prices[k]; r.tot = r.q * r.price; } });
+    markAllDirty();
+    const activeEl = document.activeElement;
+    const wasFocused = activeEl && activeEl.classList.contains('editable');
+    const focusedId = wasFocused ? activeEl.dataset.id : null;
+    if (wasFocused) activeEl.blur();
+    syncFromOmnibox();
+    if (focusedId) {
+        const el = document.querySelector(`.editable[data-id="${CSS.escape(focusedId)}"]`);
+        if (el) { el.focus(); el.classList.add('input-saved'); setTimeout(() => el.classList.remove('input-saved'), 600); }
+    }
+    if (prevVal !== state.prices[k]) {
+        lastEdit = { type: 'price', key: k, prevVal };
+        showToast('Price updated', 'success', { label: 'Undo', fn: undoLastEdit });
+    }
+}
+
+function renderPricing() {
+    const finalData = applySort(priceData, 'view-pricing');
+    const limit = renderLimits['view-pricing'];
+    let unpriced = 0;
+    const parts = [];
+
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    const pricedItems = finalData.filter(d => d.p > 0).map(d => d.p).sort((a, b) => a - b);
+    const median = pricedItems.length ? pricedItems[Math.floor(pricedItems.length / 2)] : 0;
+
+    for (let idx = 0; idx < finalData.length; idx++) {
+        const d = finalData[idx];
+        if (d.stat === 0) unpriced++;
+        if (idx >= limit) continue;
+        const statLabel = d.stat === 0 ? 'Missing price' : 'Priced';
+        let anomalyClass = '';
+        let anomalyDot = '';
+
+        if (d.p > 0 && median > 0 && (d.p > median * 3 || d.p < median * 0.3)) {
+            anomalyClass = 'anomaly-warn';
+            anomalyDot = `<div class="status-dot status-anomaly" title="Potential pricing anomaly (Deviation > 3x median)"></div>`;
+        }
+
+        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td class="cell-flex">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}"></td></tr>`);
+    }
+
+    document.getElementById('tb-pricing').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No items match your filters');
+    animateKpi(document.getElementById('kpi-unpriced'), unpriced, v => fmtNum.format(v), true);
+    updateCapNotice('pricing', finalData.length);
+}
+
+document.getElementById('tb-pricing').addEventListener('change', e => {
+    if (e.target.classList.contains('editable')) updatePrice(e.target.dataset.id, e.target.value);
+});
+
+function updateRegion(p, v) {
+    const prevVal = state.pharmacies[p];
+    state.pharmacies[p] = v.trim();
+    localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
+    db.forEach(r => {
+        if (r.p !== p) return;
+        const mapped = state.pharmacies[p] || 'Unmapped';
+        r.region = REGION_MAP[mapped] || mapped;
+        r.r_low = r.region.toLowerCase();
+        r._norm = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.branch} ${r.t}`);
+        r._words = r._norm.split(' ');
+    });
+    markAllDirty();
+    const activeEl = document.activeElement;
+    const wasFocused = activeEl && activeEl.classList.contains('editable');
+    const focusedId = wasFocused ? activeEl.dataset.id : null;
+    if (wasFocused) activeEl.blur();
+    syncFromOmnibox();
+    if (focusedId) {
+        const el = document.querySelector(`.editable[data-id="${CSS.escape(focusedId)}"]`);
+        if (el) { el.focus(); el.classList.add('input-saved'); setTimeout(() => el.classList.remove('input-saved'), 600); }
+    }
+    if (prevVal !== state.pharmacies[p]) {
+        lastEdit = { type: 'region', key: p, prevVal: prevVal || '' };
+        showToast('Region updated', 'success', { label: 'Undo', fn: undoLastEdit });
+    }
+}
+
+function renderPharmacies() {
+    const finalData = applySort(pharmData, 'view-pharmacies');
+    const limit = renderLimits['view-pharmacies'];
+    let unm = 0, inact = 0;
+    const parts = [];
+
+    const isExact = document.getElementById('toggle-exact').checked;
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    for (let idx = 0; idx < finalData.length; idx++) {
+        const d = finalData[idx];
+        if (d.stat === 0) unm++; else if (d.stat === 2) inact++;
+        if (idx >= limit) continue;
+        const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
+        const statLabel = d.stat === 0 ? 'Unrouted — no region assigned' : d.stat === 2 ? 'Inactive — no records this period' : 'Active';
+        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}"></td></tr>`);
+    }
+
+    document.getElementById('tb-pharmacies').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No pharmacies match your filters');
+    animateKpi(document.getElementById('kpi-unmapped'), unm, v => fmtNum.format(v), true);
+    animateKpi(document.getElementById('kpi-inactive'), inact, v => fmtNum.format(v), true);
+    updateCapNotice('pharmacies', finalData.length);
+}
+
+document.getElementById('tb-pharmacies').addEventListener('change', e => {
+    if (e.target.classList.contains('editable')) updateRegion(e.target.dataset.id, e.target.value);
+});
+
+function renderMissing() {
+    const finalData = applySort(missingData, 'view-missing');
+    const limit = renderLimits['view-missing'];
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+    const rows = finalData.slice(0, limit).map(d =>
+        `<tr><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td></tr>`
+    ).join('');
+    document.getElementById('tb-missing').innerHTML = rows || emptyRowHTML('No missing pharmacies — all mapped routes are reporting');
+    updateCapNotice('missing', finalData.length);
+}
+
+function renderDuplicates() {
+    const finalData = applySort(duplicatesData, 'view-duplicates');
+    const limit = renderLimits['view-duplicates'];
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    const rows = finalData.slice(0, limit).map(d => `
+        <tr>
+            <td><span class="badge ${badgeClass(d.t)}">${highlightText(d.t, tokens)}</span></td>
+            <td><span class="arabic-text">${highlightText(d.branch || '—', tokens)}</span></td>
+            <td><span class="arabic-text">${highlightText(d.p, tokens)}</span></td>
+            <td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td>
+            <td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td>
+            <td><span class="badge sev-warn">&times;${fmtNum.format(d.n)}</span></td>
+            <td class="num">${fmtNum.format(d.q)}</td>
+        </tr>`).join('');
+    document.getElementById('tb-duplicates').innerHTML = rows || emptyRowHTML('No duplicate rows detected');
+    animateKpi(document.getElementById('kpi-dup-groups'), duplicateGroups.length, v => fmtNum.format(v), true);
+    animateKpi(document.getElementById('kpi-dup-rows'), duplicateGroups.reduce((s, g) => s + g.n, 0), v => fmtNum.format(v), true);
+    updateCapNotice('duplicates', finalData.length, 'view-duplicates');
+}
+
+document.querySelectorAll('.slicer-btn[data-dupmode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.slicer-btn[data-dupmode]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.dupMode = btn.dataset.dupmode;
+        localStorage.setItem('uni_dup_mode', state.dupMode);
+        rebuildFromSources();
+        showToast(`Duplicate resolution set to ${btn.textContent.trim()}`, 'success');
+    });
+});
+
+function renderAnomalies() {
+    const finalData = applySort(anomaliesData, 'view-anomalies');
+    const limit = renderLimits['view-anomalies'];
+    const q = normAr(omni.value.trim());
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    const counts = { error: 0, unparseable: 0, corrected: 0, filled: 0 };
+    finalData.forEach(d => { if (counts[d.sev] != null) counts[d.sev]++; });
+    document.getElementById('severity-summary').innerHTML = `
+        <div class="severity-chip"><span class="dot" style="background:var(--danger)"></span>Formula Errors: ${fmtNum.format(counts.error)}</div>
+        <div class="severity-chip"><span class="dot" style="background:var(--warning)"></span>Unparseable: ${fmtNum.format(counts.unparseable)}</div>
+        <div class="severity-chip"><span class="dot" style="background:var(--accent-blue)"></span>Auto-Corrected: ${fmtNum.format(counts.corrected)}</div>
+        <div class="severity-chip"><span class="dot" style="background:var(--badge-teal)"></span>Filled Down/Up: ${fmtNum.format(counts.filled)}</div>
+    `;
+
+    const rows = finalData.slice(0, limit).map(d => {
+        const sevClass = d.sev === 'error' ? 'sev-error' : (d.sev === 'corrected' || d.sev === 'filled') ? 'sev-info' : 'sev-warn';
+        return `<tr><td><span class="badge ${badgeClass(d.sheet)}">${escapeHTML(d.sheet)}</span></td><td><span class="mono-bold">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.p, tokens)}</span></td><td class="highlight value-danger">${escapeHTML(d.val)}</td><td><span class="badge ${sevClass}">${escapeHTML(d.act)}</span></td></tr>`;
+    }).join('');
+
+    document.getElementById('tb-anomalies').innerHTML = rows || emptyRowHTML('No anomalies detected in the current import');
+    updateCapNotice('anomalies', finalData.length, 'view-anomalies');
+}
+function renderSparkline(svgId, values) {
+    const svg = document.getElementById(svgId);
+    if (!svg) return;
+    if (!values || values.length < 2) { svg.innerHTML = ''; return; }
+    const w = 100, h = 30;
+    const min = Math.min(...values), max = Math.max(...values);
+    const range = (max - min) || 1;
+    const step = w / (values.length - 1);
+    const pts = values.map((v, i) => [i * step, h - ((v - min) / range) * (h - 4) - 2]);
+    const linePath = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    const fillPath = linePath + ` L${w},${h} L0,${h} Z`;
+    svg.innerHTML = `<path class="spark-fill" d="${fillPath}"></path><path class="spark-line" d="${linePath}"></path>`;
+}
+
+function computeDelta(elId, current, previous) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (previous == null || previous === 0) { el.textContent = ''; el.className = 'metric-delta flat'; return; }
+    const pct = ((current - previous) / previous) * 100;
+    if (Math.abs(pct) < 0.05) { el.textContent = '—'; el.className = 'metric-delta flat'; return; }
+    const up = pct > 0;
+    el.className = 'metric-delta ' + (up ? 'up' : 'down');
+    el.textContent = (up ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(1) + '%';
+}
+
+function updateKpiTrends() {
+    if (!syncHistory.length) return;
+    const last12 = syncHistory.slice(-12);
+    renderSparkline('spark-tvl', last12.map(h => h.tvl));
+    renderSparkline('spark-qty', last12.map(h => h.qty));
+    renderSparkline('spark-assets', last12.map(h => h.assets));
+    const prev = syncHistory.length > 1 ? syncHistory[syncHistory.length - 2] : null;
+    const curr = syncHistory[syncHistory.length - 1];
+    computeDelta('delta-tvl', curr.tvl, prev ? prev.tvl : null);
+    computeDelta('delta-qty', curr.qty, prev ? prev.qty : null);
+    computeDelta('delta-assets', curr.assets, prev ? prev.assets : null);
+}
+
+function pushSyncHistory() {
+    let history = [];
+    try { history = JSON.parse(localStorage.getItem('uni_sync_history') || '[]'); } catch (e) { history = []; }
+    const tvl = db.reduce((s, r) => s + r.tot, 0);
+    const qty = db.reduce((s, r) => s + r.q, 0);
+    const assets = new Set(db.map(r => makeKey(r.i, r.u))).size;
+    history.push({ ts: Date.now(), tvl, qty, assets });
+    if (history.length > 30) history = history.slice(-30);
+    localStorage.setItem('uni_sync_history', JSON.stringify(history));
+    syncHistory = history;
+    updateKpiTrends();
+}
+
+function applySort(dataArray, viewId) {
+    if (!sortRules[viewId] || !sortRules[viewId].length) return dataArray;
+    return [...dataArray].sort((a, b) => {
+        for (const rule of sortRules[viewId]) {
+            const cmp = compareValues(a[rule.k], b[rule.k]);
+            if (cmp !== 0) return cmp * rule.d;
+        }
+        return 0;
+    });
+}
+
+document.getElementById('btn-export').addEventListener('click', () => {
+    const exportMap = {
+        'view-overview': () => {
+            const gc = groupConfig['view-overview'];
+            return applySort(overviewData, currentView).map(g => {
+                let row = {};
+                if (gc.t) row.Class = g.t;
+                if (gc.reg) row.Region = g.reg;
+                if (gc.branch) row.Branch = g.branch;
+                if (gc.p) row.Pharmacy = g.p;
+                row.Item = g.i; row.Unit = g.u; row.Qty = g.q; row.Price = g.price; row.Value = g.tot;
+                return row;
+            });
+        },
+        'view-breakdown': () => {
+            const n = currentSlicer === 'r' ? 'Region' : currentSlicer === 'b' ? 'Branch' : currentSlicer === 'e' ? 'Pharmacy' : 'Class';
+            return breakdownData.map(g => ({ [n]: g.key, Context: g.sub === '-' ? '' : g.sub, 'Unique Items': g.ui, Qty: g.q, Value: g.tot }));
+        },
+        'view-pricing':    () => applySort(priceData, currentView).map(d => ({ Item: d.i, Unit: d.u, Price: d.p })),
+        'view-pharmacies': () => applySort(pharmData, currentView).map(d => ({ Pharmacy: d.k, Region: d.reg, Status: d.stat === 0 ? 'Unmapped' : d.stat === 2 ? 'Inactive' : 'Active' })),
+        'view-missing':    () => applySort(missingData, currentView).map(d => ({ Pharmacy: d.k, 'Expected Region': d.reg })),
+        'view-anomalies':  () => {
+            const onDuplicates = !document.getElementById('anomalies-subtab-duplicates').classList.contains('hidden');
+            return onDuplicates
+                ? applySort(duplicatesData, 'view-duplicates').map(d => ({ Class: d.t, Branch: d.branch, Pharmacy: d.p, Item: d.i, Unit: d.u, Occurrences: d.n, 'Combined Qty': d.q }))
+                : applySort(anomaliesData, 'view-anomalies').map(d => ({ Source: d.sheet, Row: d.row, Item: d.i, Pharmacy: d.p, 'Invalid Value': d.val, Action: d.act }));
+        }
+    };
+
+    const data = exportMap[currentView]?.() ?? [];
+    if (!data.length) { showToast('Nothing to export in this view', 'error'); return; }
+
+    let exportName = currentView;
+    if (currentView === 'view-anomalies' && !document.getElementById('anomalies-subtab-duplicates').classList.contains('hidden')) {
+        exportName = 'view-duplicates';
+    }
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = Object.keys(data[0]).map(k => ({ wch: k.length + 10 }));
+    ws['!views'] = [{ RTL: true }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Export");
+    XLSX.writeFile(wb, `Export_${exportName}.xlsx`);
+    showToast(`Exported ${fmtNum.format(data.length)} rows`, 'success');
+});
+
+document.getElementById('btn-template-prices').addEventListener('click', () => {
+    const data = priceData.map(d => ({ Item: d.i, Unit: d.u, Price: d.p }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }];
+    ws['!views'] = [{ RTL: true }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pricing_Template");
+    XLSX.writeFile(wb, 'Pricing_Template.xlsx');
+    showToast('Pricing template downloaded', 'success');
+});
+
+document.getElementById('btn-template-regions').addEventListener('click', () => {
+    const data = pharmData.map(d => ({ Pharmacy: d.k, Region: d.reg }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [{ wch: 30 }, { wch: 20 }];
+    ws['!views'] = [{ RTL: true }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Routing_Template");
+    XLSX.writeFile(wb, 'Routing_Template.xlsx');
+    showToast('Routing template downloaded', 'success');
+});
+
+function processImportFile(file, kind) {
+    if (!file) return;
+    Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: res => {
+            if (!res.data.length) {
+                showToast('The uploaded CSV had no rows', 'error');
+                return;
+            }
+            let applied = 0;
+            res.data.forEach(r => {
+                if (kind === 'prices') {
+                    const i = r['Item Name'] || r['Item'] || r['الصنف'] || r[Object.keys(r)[0]];
+                    const u = r['Unit'] || r['الوحدة'] || r[Object.keys(r)[1]] || '';
+                    const p = parseFloat(r['Unit Price (EGP)'] || r['Price'] || r['السعر'] || r[Object.keys(r)[2]]) || 0;
+                    if (i) { state.prices[makeKey(i.trim(), u.trim())] = p; applied++; }
+                } else {
+                    const p = r['Endpoint Name'] || r['Pharmacy'] || r['الصيدلية'] || r[Object.keys(r)[0]];
+                    const reg = r['Region Route'] || r['Region'] || r['المنطقة'] || r[Object.keys(r)[1]] || '';
+                    if (p) { state.pharmacies[p.trim()] = reg.trim(); applied++; }
+                }
+            });
+
+            localStorage.setItem(kind === 'prices' ? 'uni_prices' : 'uni_pharmacies', JSON.stringify(kind === 'prices' ? state.prices : state.pharmacies));
+
+            db.forEach(r => {
+                if (kind === 'prices') {
+                    r.price = state.prices[makeKey(r.i, r.u)] || 0;
+                    r.tot   = r.q * r.price;
+                } else if (r.p in state.pharmacies) {
+                    const mapped = state.pharmacies[r.p] || 'Unmapped';
+                    r.region = REGION_MAP[mapped] || mapped;
+                    r.r_low  = r.region.toLowerCase();
+                    r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.branch} ${r.t}`);
+                    r._words = r._norm.split(' ');
+                }
+            });
+
+            markAllDirty();
+            updatePharmacyDropdown();
+            syncFromOmnibox();
+            showToast(
+                applied
+                    ? `${kind === 'prices' ? 'Prices' : 'Routing map'} updated — ${fmtNum.format(applied)} rows applied`
+                    : 'No matching columns found in CSV',
+                applied ? 'success' : 'error'
+            );
+        }
+    });
+}
+
+document.getElementById('file-prices').addEventListener('change', e => {
+    processImportFile(e.target.files[0], 'prices');
+    e.target.value = '';
+});
+
+document.getElementById('file-regions').addEventListener('change', e => {
+    processImportFile(e.target.files[0], 'regions');
+    e.target.value = '';
+});
+
+function initDragDrop() {
+    [['view-pricing', 'prices'], ['view-pharmacies', 'regions']].forEach(pair => {
+        const viewId = pair[0], kind = pair[1];
+        const zone = document.querySelector(`#${viewId} .action-row`);
+        if (!zone) return;
+        ['dragenter', 'dragover'].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.add('drag-active'); }));
+        ['dragleave', 'drop'].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.remove('drag-active'); }));
+        zone.addEventListener('drop', e => {
+            const f = e.dataTransfer.files[0];
+            if (f) processImportFile(f, kind);
+        });
+    });
+}
 function initCustomDropdowns() {
     let activePanel = null;
     let activeGroup = null;
@@ -1747,7 +3414,7 @@ function initCustomDropdowns() {
         panel.style.minWidth = w    + 'px';
     }
 
-    ['sel-cat', 'sel-reg', 'sel-end', 'sel-unit'].forEach(id => {
+    ['sel-cat', 'sel-reg', 'sel-branch', 'sel-pharm', 'sel-unit'].forEach(id => {
         const select = document.getElementById(id);
         const group  = select.closest('.dropdown-group');
         let kbdIndex = -1;
@@ -1872,89 +3539,11 @@ function initCustomDropdowns() {
     window.addEventListener('resize', closeAll);
 }
 
-function initTheme() {
-    const saved = localStorage.getItem('uni_theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', saved);
-    document.getElementById('icon-moon').classList.toggle('icon-hidden', saved !== 'light');
-    document.getElementById('icon-sun').classList.toggle('icon-hidden', saved !== 'dark');
-}
-
-document.getElementById('btn-theme').addEventListener('click', () => {
-    localStorage.setItem('uni_theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-    initTheme();
-});
-initTheme();
-
-function normAr(str) {
-    return !str ? '' : str.toLowerCase()
-        .replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
-        .replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/[\u064B-\u065F]/g, '');
-}
-
-function subseqMatch(token, str) {
-    if (token.length > str.length) return false;
-    let i = 0, j = 0;
-    while (i < token.length && j < str.length) {
-        if (token[i] === str[j]) i++;
-        j++;
-    }
-    return i === token.length;
-}
-
-function lev(a, b) {
-    if (!a.length) return b.length;
-    if (!b.length) return a.length;
-    let r = new Uint8Array(b.length + 1);
-    for (let j = 0; j <= b.length; j++) r[j] = j;
-    for (let i = 1; i <= a.length; i++) {
-        let prev = i;
-        for (let j = 1; j <= b.length; j++) {
-            let val = a[i - 1] === b[j - 1] ? r[j - 1] : Math.min(r[j - 1] + 1, prev + 1, r[j] + 1);
-            r[j - 1] = prev;
-            prev = val;
-        }
-        r[b.length] = prev;
-    }
-    return r[b.length];
-}
-
-function fuzzyMatch(token, str, words) {
-    if (str.includes(token)) return true;
-    if (token.length <= 2) return false;
-    const md = Math.min(3, Math.max(1, Math.ceil(token.length / 2.5)));
-    const targetWords = words || str.split(' ');
-    for (let i = 0; i < targetWords.length; i++) {
-        const w = targetWords[i];
-        if (w.length && Math.abs(token.length - w.length) <= md && lev(token, w) <= md) return true;
-    }
-    return false;
-}
-
-function isMatch(tokens, normStr, isExact, words) {
-    if (!tokens.length) return true;
-    return tokens.every(t => {
-        if (isExact || /\d/.test(t)) return normStr.includes(t);
-        return subseqMatch(t, normStr) || fuzzyMatch(t, normStr, words || normStr.split(' '));
-    });
-}
-
-function highlightText(text, tokens) {
-    if (!tokens || !tokens.length || !text) return escapeHTML(text);
-    const words = String(text).split(' ');
-    return words.map(w => {
-        const nw = normAr(w);
-        const isMatch = tokens.some(t => nw.includes(t) || lev(t, nw) <= Math.max(1, Math.floor(t.length / 3)));
-        return isMatch ? `<mark>${escapeHTML(w)}</mark>` : escapeHTML(w);
-    }).join(' ');
-}
-
 const cmdModal = document.getElementById('cmd-modal');
 const cmdInput = document.getElementById('cmd-modal-input');
 const cmdResults = document.getElementById('cmd-modal-results');
 const shortcutsModal = document.getElementById('shortcuts-modal');
-let cmdActiveIndex = 0;
-let cmdPreviousFocus = null;
-let shortcutsPreviousFocus = null;
+let cmdActiveIndex = 0, cmdPreviousFocus = null, shortcutsPreviousFocus = null;
 
 function openCmdPalette() {
     cmdPreviousFocus = document.activeElement;
@@ -1992,11 +3581,16 @@ function renderCmdResults(query) {
         { title: 'Go to Pricing Config', sub: 'View', action: () => switchView('view-pricing') },
         { title: 'Go to Region Map', sub: 'View', action: () => switchView('view-pharmacies') },
         { title: 'Go to Missing Pharms', sub: 'View', action: () => switchView('view-missing') },
+        { title: 'Go to Duplicates', sub: 'View', action: () => { switchView('view-anomalies'); document.querySelector('.slicer-btn[data-subtab="duplicates"]').click(); } },
         { title: 'Go to Anomalies', sub: 'View', action: () => switchView('view-anomalies') },
-        { title: 'Toggle Dark/Light Theme', sub: 'Action', action: () => document.getElementById('btn-theme').click() },
-        { title: 'Sync Latest Data', sub: 'Action', action: () => document.getElementById('btn-sync').click() },
+        { title: 'Switch to Light Theme', sub: 'Action', action: () => setTheme('light') },
+        { title: 'Switch to Dark Theme', sub: 'Action', action: () => setTheme('dark') },
+        { title: 'Match System Theme', sub: 'Action', action: () => setTheme('system') },
+        { title: 'Sync Remote Sources', sub: 'Action', action: () => document.getElementById('btn-sync').click() },
+        { title: 'Add Local File', sub: 'Action', action: () => document.getElementById('data-panel-trigger').click() },
         { title: 'Export Current View', sub: 'Action', action: () => document.getElementById('btn-export').click() },
         { title: 'View Sync Health', sub: 'Action', action: () => document.getElementById('sync-health-trigger').click() },
+        { title: 'View Local Files & Data Settings', sub: 'Action', action: () => document.getElementById('data-panel-trigger').click() },
         { title: 'Show Keyboard Shortcuts', sub: 'Action', action: () => openShortcutsModal() },
         { title: 'Clear Search', sub: 'Action', action: () => {
             omni.value = '';
@@ -2089,7 +3683,7 @@ document.addEventListener('keydown', e => {
         return;
     }
 
-    const tbody = document.querySelector(`#${currentView} tbody`);
+    const tbody = getActiveTbody();
     if (!tbody) return;
     const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row):not(.drill-down-row)'));
     if (!rows.length) return;
@@ -2135,19 +3729,9 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.target));
 });
 
-document.querySelectorAll('.slicer-btn:not(.toggle-group):not(.toggle-col)').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.slicer-btn:not(.toggle-group):not(.toggle-col)').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentSlicer = btn.dataset.slice;
-        viewDirty['view-breakdown'] = true;
-        renderActiveView();
-    });
-});
-
 function updateStickyColumn() {
     const gc = groupConfig['view-overview'];
-    const cols = ['t', 'reg', 'p', 'i'];
+    const cols = ['t', 'reg', 'branch', 'p', 'i'];
     let firstVis = cols.find(c => ['i'].includes(c) || gc[c]);
     document.querySelectorAll('#view-overview th').forEach(th => th.classList.remove('sticky-col'));
     const th = document.getElementById(`th-ov-${firstVis}`) || document.querySelector(`th[data-sort="${firstVis}"]`);
@@ -2183,7 +3767,7 @@ document.querySelectorAll('.toggle-col').forEach(btn => {
 });
 
 function initTablePrefs() {
-    ['t', 'reg', 'p'].forEach(col => {
+    ['t', 'reg', 'branch', 'p'].forEach(col => {
         const btn = document.querySelector(`.toggle-group[data-col="${col}"]`);
         const th = document.getElementById(`th-ov-${col}`);
         const visible = groupConfig['view-overview'][col];
@@ -2200,572 +3784,13 @@ function initTablePrefs() {
     updateStickyColumn();
 }
 
-document.querySelectorAll('.clear-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const sel = document.getElementById(btn.dataset.target);
-        sel.value = 'ALL';
-        sel._refreshDropdown?.();
-        if (btn.dataset.target === 'sel-reg') updatePharmacyDropdown();
-        syncFromOmnibox();
-    });
-});
-
-document.querySelectorAll('th').forEach(th => {
-    th.addEventListener('click', e => {
-        const key = th.dataset.sort;
-        if (!key) return;
-        const viewId = th.closest('table').dataset.view;
-        if (!sortRules[viewId]) return;
-        const viewRules = sortRules[viewId];
-        const existing = viewRules.find(r => r.k === key);
-
-        if (e.shiftKey && existing) existing.d *= -1;
-        else if (e.shiftKey) viewRules.push({ k: key, d: 1 });
-        else if (existing) viewRules.unshift({ k: key, d: existing.d * -1 });
-        else viewRules.unshift({ k: key, d: 1 });
-
-        sortRules[viewId] = viewRules.slice(0, 3);
-        th.closest('tr').querySelectorAll('th').forEach(el => {
-            el.classList.remove('sort-active');
-            el.removeAttribute('data-dir');
-        });
-        th.classList.add('sort-active');
-        th.setAttribute('data-dir', sortRules[viewId][0].d === 1 ? 'asc' : 'desc');
-        renderActiveView();
-    });
-});
-
-function applySort(dataArray, viewId) {
-    if (!sortRules[viewId]) return dataArray;
-    return [...dataArray].sort((a, b) => {
-        for (let r of sortRules[viewId]) {
-            let va = a[r.k], vb = b[r.k];
-            if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
-            if (va < vb) return -1 * r.d;
-            if (va > vb) return  1 * r.d;
-        }
-        return 0;
-    });
-}
-
-function triggerFatalError(msg) {
-    document.getElementById('sync-spinner').style.display = 'none';
-    document.getElementById('sync-text').style.display = 'none';
-    const errCard = document.getElementById('sync-error');
-    errCard.style.display = 'flex';
-    document.getElementById('error-message').textContent = msg;
-    document.getElementById('sync-overlay').style.pointerEvents = 'auto';
-}
-
-async function fetchWithRetry(url, opts) {
-    const timeoutMs = (opts && opts.timeoutMs) || 12000;
-    const retries = (opts && opts.retries != null) ? opts.retries : 2;
-    let lastErr;
-    for (let attempt = 0; attempt <= retries; attempt++) {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-        try {
-            const res = await fetch(url, { signal: ctrl.signal });
-            clearTimeout(timer);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const text = await res.text();
-            if (/^\s*<(!doctype|html)/i.test(text)) throw new Error('Received an HTML page instead of CSV data.');
-            return text;
-        } catch (e) {
-            clearTimeout(timer);
-            lastErr = e;
-            if (attempt < retries) await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
-        }
-    }
-    throw lastErr;
-}
-
-async function parseSource(source) {
-    const text = await fetchWithRetry(source.url);
-    const parsed = Papa.parse(text, { skipEmptyLines: true }).data;
-    if (!parsed.length) throw new Error(`${source.label}: sheet is completely empty.`);
-
-    let headerIdx = -1;
-    for (let i = 0; i < Math.min(parsed.length, 30); i++) {
-        if (parsed[i].some(cell => cell && normAr(String(cell).trim()).includes('الصنف'))) { headerIdx = i; break; }
-    }
-    if (headerIdx === -1) throw new Error(`${source.label}: could not locate an item column (الصنف) in the first 30 rows.`);
-
-    const headers = parsed[headerIdx].map(h => h == null ? '' : String(h).trim());
-    const itemIdx = headers.findIndex(h => normAr(h).includes('الصنف'));
-    const unitIdx = headers.findIndex(h => normAr(h).includes('الوحده'));
-
-    let rawData = [], anomalies = [];
-
-    for (let i = headerIdx + 1; i < parsed.length; i++) {
-        const row = parsed[i];
-        if (!row || !row.length) continue;
-        const iName = row[itemIdx] != null ? String(row[itemIdx]).trim() : '';
-        if (!iName) continue;
-        const uName = (unitIdx !== -1 && row[unitIdx] != null) ? String(row[unitIdx]).trim() : '';
-
-        for (let j = 0; j < headers.length; j++) {
-            if (j === itemIdx || j === unitIdx) continue;
-            const pName = headers[j];
-            if (!pName || pName.startsWith('_') || isTotalsColumn(pName)) continue;
-
-            const rawVal = row[j];
-            if (rawVal == null || String(rawVal).trim() === '') continue;
-
-            const raw = String(rawVal).trim();
-            const norm = normalizeDigits(raw).replace(/\u066B/g, '.').replace(/\u066C/g, '');
-
-            if (isIntentionalEmpty(norm)) continue;
-
-            if (ERROR_STRING_RE.test(norm)) {
-                anomalies.push({ sheet: source.type, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Formula Error', sev: 'error' });
-                continue;
-            }
-
-            const hasLettersOrSymbols = /[^\d.,\s-]/.test(norm);
-            let q = parseFloat(norm.replace(/[^\d.-]/g, ''));
-
-            if (!hasLettersOrSymbols && !isNaN(q)) {
-                if (q > 0) rawData.push({ i: iName, u: uName, p: pName, q, t: source.type });
-                continue;
-            }
-
-            const extracted = norm.match(/-?\d+(?:\.\d+)?/);
-            const recovered = extracted ? parseFloat(extracted[0]) : NaN;
-            if (extracted && !isNaN(recovered) && recovered > 0) {
-                anomalies.push({ sheet: source.type, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Auto-Corrected', sev: 'corrected' });
-                rawData.push({ i: iName, u: uName, p: pName, q: recovered, t: source.type });
-                continue;
-            }
-
-            anomalies.push({ sheet: source.type, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Unparseable', sev: 'unparseable' });
-        }
-    }
-
-    return { rawData, anomalies, rowCount: rawData.length };
-}
-
-function getSourceCache(id) {
-    try {
-        const raw = localStorage.getItem(`uni_cache_${id}`);
-        return raw ? JSON.parse(raw) : null;
-    } catch (e) {
-        return null;
-    }
-}
-
-function setSourceCache(id, data) {
-    try {
-        localStorage.setItem(`uni_cache_${id}`, JSON.stringify({ ...data, ts: Date.now() }));
-    } catch (e) {
-        console.warn('Cache skipped, storage full', e);
-    }
-}
-
-function checkDrift(source, newCount) {
-    const cached = getSourceCache(source.id);
-    if (cached && cached.rowCount > 5 && newCount < cached.rowCount * 0.6) {
-        return `${source.label}: row count dropped from ${fmtNum.format(cached.rowCount)} to ${fmtNum.format(newCount)} — check the source sheet.`;
-    }
-    return null;
-}
-
-function setSyncBarActive(active) {
-    document.getElementById('sync-progress').classList.toggle('active', active);
-}
-
-function initSignalStrip() {
-    const container = document.getElementById('signal-strip');
-    container.innerHTML = SOURCES.map(s => `<span class="signal-node" data-id="${s.id}" title="${escapeHTML(s.label)}"><span class="signal-dot"></span></span>`).join('');
-}
-
-function updateSignalStrip() {
-    document.querySelectorAll('.signal-node').forEach(node => {
-        const id = node.dataset.id;
-        const st = sourceStatus[id];
-        node.classList.remove('sig-live', 'sig-cached', 'sig-error', 'sig-idle');
-        if (!st) { node.classList.add('sig-idle'); return; }
-        node.classList.add(st.status === 'live' ? 'sig-live' : st.status === 'cached' ? 'sig-cached' : 'sig-error');
-    });
-}
-
-function setSignalPulsing(active) {
-    document.querySelectorAll('.signal-node').forEach(node => node.classList.toggle('sig-pulsing', active));
-}
-
-function renderSyncHealthPanel() {
-    const panel = document.getElementById('sync-health-panel');
-    panel.innerHTML = `<div class="sync-health-title">Data Sources</div>` + SOURCES.map(s => {
-        const st = sourceStatus[s.id] || { status: 'idle' };
-        const dotClass = st.status === 'live' ? 'status-ok' : st.status === 'cached' ? 'status-inactive' : st.status === 'error' ? 'status-missing' : 'status-inactive';
-        const label = st.status === 'live' ? 'Live' : st.status === 'cached' ? 'Cached fallback' : st.status === 'error' ? 'Failed' : 'Not synced yet';
-        const timeStr = st.ts ? formatRelativeTime(st.ts) : '—';
-        const meta = `${label} · ${timeStr}${st.rows ? ' · ' + fmtNum.format(st.rows) + ' rows' : ''}`;
-        return `<div class="sync-health-row">
-            <div class="status-dot ${dotClass}"></div>
-            <div class="sync-health-info">
-                <div class="sync-health-label">${escapeHTML(s.label)}</div>
-                <div class="sync-health-meta">${escapeHTML(meta)}</div>
-                ${st.error ? `<div class="sync-health-warn">${escapeHTML(st.error)}</div>` : ''}
-                ${st.warning ? `<div class="sync-health-warn">${escapeHTML(st.warning)}</div>` : ''}
-            </div>
-        </div>`;
-    }).join('');
-}
-
-const syncHealthTrigger = document.getElementById('sync-health-trigger');
-const syncHealthPanel = document.getElementById('sync-health-panel');
-
-syncHealthTrigger.addEventListener('click', e => {
-    e.stopPropagation();
-    const open = syncHealthPanel.classList.toggle('open');
-    if (open) renderSyncHealthPanel();
-});
-
-document.addEventListener('click', e => {
-    if (!e.target.closest('#sync-health-panel') && !e.target.closest('#sync-health-trigger')) {
-        syncHealthPanel.classList.remove('open');
-    }
-});
-
-async function fetchAllSourcesResilient() {
-    setSignalPulsing(true);
-    try {
-        const settled = await Promise.allSettled(SOURCES.map(s => parseSource(s)));
-        let rawData = [], anomalies = [], statusMap = {}, warnings = [];
-        settled.forEach((res, idx) => {
-            const s = SOURCES[idx];
-            if (res.status === 'fulfilled') {
-                const rd = res.value.rawData, an = res.value.anomalies, rowCount = res.value.rowCount;
-                const drift = checkDrift(s, rowCount);
-                if (drift) warnings.push(drift);
-                rawData.push(...rd);
-                anomalies.push(...an);
-                setSourceCache(s.id, { rawData: rd, anomalies: an, rowCount });
-                statusMap[s.id] = { label: s.label, status: 'live', ts: Date.now(), rows: rowCount, warning: drift || null };
-            } else {
-                const cached = getSourceCache(s.id);
-                const errMsg = (res.reason && res.reason.message) || 'Fetch failed';
-                if (cached) {
-                    rawData.push(...cached.rawData);
-                    anomalies.push(...cached.anomalies);
-                    statusMap[s.id] = { label: s.label, status: 'cached', ts: cached.ts, rows: cached.rawData.length, error: errMsg };
-                } else {
-                    statusMap[s.id] = { label: s.label, status: 'error', ts: null, rows: 0, error: errMsg };
-                }
-            }
-        });
-        return { rawData, anomalies, statusMap, warnings };
-    } finally {
-        setSignalPulsing(false);
-    }
-}
-
-async function fetchAndBuildDatabase() {
-    setSyncBarActive(true);
-    try {
-        const result = await fetchAllSourcesResilient();
-        anomaliesData = result.anomalies;
-        sourceStatus = result.statusMap;
-        localStorage.setItem('uni_source_status', JSON.stringify(result.statusMap));
-        updateSignalStrip();
-        if (syncHealthPanel.classList.contains('open')) renderSyncHealthPanel();
-
-        const allFailed = Object.values(result.statusMap).every(s => s.status === 'error');
-        if (allFailed) throw new Error('All data sources failed and no cached data is available for any of them.');
-
-        buildDatabase(result.rawData);
-        const anyLive = Object.values(result.statusMap).some(s => s.status === 'live');
-        if (anyLive) localStorage.setItem('uni_last_sync', Date.now().toString());
-        pushSyncHistory();
-        updateLastSyncLabel();
-        updateStaleBanner();
-        return { statusMap: result.statusMap, warnings: result.warnings };
-    } finally {
-        setSyncBarActive(false);
-    }
-}
-
-function showSkeleton() {
-    const tbody = document.querySelector(`#${currentView} tbody`);
-    if (!tbody) return;
-    const table = tbody.closest('table');
-    const cols = table ? table.querySelectorAll('thead th').length : 6;
-    const widths = ['w-60', '', 'w-40', '', 'w-60', ''];
-    tbody.innerHTML = Array.from({ length: 6 }).map(() =>
-        `<tr class="skeleton-row">${Array.from({ length: cols }).map((_, i) => `<td><div class="skeleton-bar ${widths[i % widths.length]}"></div></td>`).join('')}</tr>`
-    ).join('');
-}
-
-async function boot() {
-    const overlay = document.getElementById('sync-overlay');
-    overlay.style.opacity = '1';
-    showSkeleton();
-    try {
-        const { statusMap } = await fetchAndBuildDatabase();
-        overlay.style.opacity = '0';
-        const degraded = Object.values(statusMap).some(s => s.status !== 'live');
-        if (degraded) showToast('Some sources loaded from cache — open Sync Health for details', 'warning');
-    } catch (e) {
-        triggerFatalError(e.message);
-    }
-    updateLastSyncLabel();
-    updateStaleBanner();
-    setInterval(updateLastSyncLabel, 30000);
-    setInterval(updateStaleBanner, 30000);
-    initAutoSync();
-}
-
-function showToast(message, type, action) {
-    type = type || 'success';
-    const stack = document.getElementById('toast-stack');
-    const icon = type === 'success'
-        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>'
-        : type === 'warning'
-        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
-        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
-    const el = document.createElement('div');
-    el.className = `toast toast-${type}`;
-    el.innerHTML = `${icon}<span>${escapeHTML(message)}</span>${action ? `<button type="button" class="toast-action">${escapeHTML(action.label)}</button>` : ''}`;
-    stack.appendChild(el);
-    if (action) {
-        el.querySelector('.toast-action').addEventListener('click', () => {
-            action.fn();
-            el.classList.remove('visible');
-            setTimeout(() => el.remove(), 300);
-        });
-    }
-    requestAnimationFrame(() => el.classList.add('visible'));
-    const life = action ? 5200 : 3200;
-    setTimeout(() => {
-        el.classList.remove('visible');
-        setTimeout(() => el.remove(), 350);
-    }, life);
-    return el;
-}
-
-function formatRelativeTime(ts) {
-    const diff = Math.max(0, Date.now() - ts);
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'Synced just now';
-    if (mins < 60) return `Synced ${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `Synced ${hrs}h ago`;
-    const days = Math.floor(hrs / 24);
-    return `Synced ${days}d ago`;
-}
-
-function updateLastSyncLabel() {
-    const label = document.getElementById('last-sync-label');
-    const ts = parseInt(localStorage.getItem('uni_last_sync'), 10);
-    if (!ts) { label.textContent = ''; return; }
-    label.textContent = formatRelativeTime(ts);
-    label.classList.toggle('stale', Date.now() - ts > 3600000);
-}
-
-function updateStaleBanner() {
-    const banner = document.getElementById('stale-banner');
-    const ts = parseInt(localStorage.getItem('uni_last_sync'), 10);
-    banner.classList.toggle('visible', !ts || Date.now() - ts > 86400000);
-}
-
-async function runManualSync(silent) {
-    const btn = document.getElementById('btn-sync');
-    if (btn.classList.contains('syncing')) return;
-    btn.classList.remove('sync-success', 'sync-error');
-    btn.classList.add('syncing');
-    if (!silent) showSkeleton();
-    try {
-        const { statusMap, warnings } = await fetchAndBuildDatabase();
-        btn.classList.remove('syncing');
-        const values = Object.values(statusMap);
-        const liveCount = values.filter(s => s.status === 'live').length;
-        const cachedCount = values.filter(s => s.status === 'cached').length;
-        const errorCount = values.filter(s => s.status === 'error').length;
-        if (errorCount === values.length) {
-            btn.classList.add('sync-error');
-            showToast('All sources failed to sync', 'error');
-        } else if (cachedCount > 0 || errorCount > 0) {
-            btn.classList.add('sync-error');
-            showToast(`Synced with fallbacks — ${liveCount} live, ${cachedCount} cached${errorCount ? ', ' + errorCount + ' failed' : ''}`, 'warning');
-        } else {
-            btn.classList.add('sync-success');
-            showToast('All sources synced live', 'success');
-        }
-        warnings.forEach(w => showToast(w, 'warning'));
-    } catch (e) {
-        btn.classList.remove('syncing');
-        btn.classList.add('sync-error');
-        showToast(e.message || 'Sync failed', 'error');
-    } finally {
-        setTimeout(() => btn.classList.remove('sync-success', 'sync-error'), 1600);
-    }
-}
-
-function initAutoSync() {
-    const btn = document.getElementById('btn-autosync');
-    let intervalId = null;
-
-    const setEnabled = enabled => {
-        btn.classList.toggle('active', enabled);
-        btn.setAttribute('aria-pressed', String(enabled));
-        if (intervalId) { clearInterval(intervalId); intervalId = null; }
-        if (enabled) intervalId = setInterval(() => runManualSync(true), 10 * 60 * 1000);
-    };
-
-    setEnabled(localStorage.getItem('uni_autosync') === '1');
-
-    btn.addEventListener('click', () => {
-        const next = !btn.classList.contains('active');
-        localStorage.setItem('uni_autosync', next ? '1' : '0');
-        setEnabled(next);
-        showToast(next ? 'Auto-sync enabled — every 10 minutes' : 'Auto-sync disabled', 'success');
-    });
-}
-
-document.getElementById('btn-sync').addEventListener('click', () => runManualSync(false));
-document.getElementById('stale-banner-sync').addEventListener('click', () => runManualSync(false));
-
-function buildDatabase(rawData) {
-    const regs = new Set();
-    const units = new Set();
-    activePharms.clear();
-
-    const pharmacyIndex = new Map(Object.keys(state.pharmacies).map(k => [normAr(k), k]));
-
-    db = rawData.map(r => {
-        const pk = `${r.i}|${r.u}`;
-        if (!(pk in state.prices)) state.prices[pk] = 0;
-
-        let pharmKey = r.p;
-        if (!(pharmKey in state.pharmacies)) {
-            const match = pharmacyIndex.get(normAr(r.p));
-            if (match) pharmKey = match;
-            else state.pharmacies[r.p] = '';
-        }
-
-        const price = state.prices[pk];
-        const region = REGION_MAP[state.pharmacies[pharmKey]] || state.pharmacies[pharmKey] || 'Unmapped';
-        const tot = r.q * price;
-
-        regs.add(region);
-        units.add(r.u);
-        activePharms.add(pharmKey);
-
-        const norm = normAr(`${r.i} ${r.u} ${pharmKey} ${region} ${r.t}`);
-        return {
-            i: r.i, u: r.u, q: r.q, t: r.t, p: pharmKey,
-            price, region, tot,
-            t_low: r.t.toLowerCase(), r_low: region.toLowerCase(), p_low: pharmKey.toLowerCase(), u_low: r.u.toLowerCase(),
-            _norm: norm, _words: norm.split(' ')
-        };
-    });
-
-    localStorage.setItem('uni_prices', JSON.stringify(state.prices));
-    localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
-
-    const selReg = document.getElementById('sel-reg');
-    selReg.innerHTML = '<option value="ALL">All</option>';
-    Array.from(regs).sort().forEach(val => selReg.add(new Option(val || '(Empty)', val)));
-    selReg._refreshDropdown?.();
-
-    const selUnit = document.getElementById('sel-unit');
-    selUnit.innerHTML = '<option value="ALL">All</option>';
-    Array.from(units).sort().forEach(val => selUnit.add(new Option(val || '(No Unit)', val)));
-    selUnit._refreshDropdown?.();
-
-    updatePharmacyDropdown();
-    applyURLState();
-    updateStickyColumn();
-    syncFromOmnibox();
-}
-
-function updatePharmacyDropdown() {
-    const fR = document.getElementById('sel-reg').value;
-    const selEnd = document.getElementById('sel-end');
-    const currentVal = selEnd.value;
-
-    selEnd.innerHTML = '<option value="ALL">All</option>';
-    const validEnds = new Set();
-    db.forEach(r => { if (fR === 'ALL' || r.r_low === fR) validEnds.add(r.p); });
-
-    Array.from(validEnds).sort().forEach(val => selEnd.add(new Option(val || '(Empty)', val)));
-    selEnd.value = Array.from(validEnds).some(v => v.toLowerCase() === currentVal) ? currentVal : 'ALL';
-    selEnd._refreshDropdown?.();
-}
-
-document.getElementById('sel-reg').addEventListener('change', () => { updatePharmacyDropdown(); syncFromOmnibox(); });
-
-const omni = document.getElementById('omnibox');
-const btnClearOmni = document.getElementById('btn-clear-omni');
-
-function syncOmniClearVisibility() {
-    btnClearOmni.classList.toggle('visible', omni.value.length > 0);
-}
-
-omni.addEventListener('input', () => {
-    syncOmniClearVisibility();
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(syncFromOmnibox, 80);
-});
-
-btnClearOmni.addEventListener('click', () => {
-    omni.value = '';
-    syncOmniClearVisibility();
-    omni.focus();
-    syncFromOmnibox();
-});
-
-['sel-cat', 'sel-end', 'sel-unit', 'toggle-exact'].forEach(id => document.getElementById(id).addEventListener('change', syncFromOmnibox));
-
-document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        document.getElementById('btn-export').click();
-    }
-});
-
-function syncURLState() {
-    const params = new URLSearchParams();
-    params.set('view', currentView);
-    if (omni.value) params.set('q', omni.value);
-    const fC = document.getElementById('sel-cat').value;
-    const fR = document.getElementById('sel-reg').value;
-    const fE = document.getElementById('sel-end').value;
-    const fU = document.getElementById('sel-unit').value;
-    if (fC && fC !== 'ALL') params.set('cat', fC);
-    if (fR && fR !== 'ALL') params.set('reg', fR);
-    if (fE && fE !== 'ALL') params.set('end', fE);
-    if (fU && fU !== 'ALL') params.set('unit', fU);
-    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
-}
-
-function applyURLState() {
-    const params = new URLSearchParams(window.location.search);
-    const view = params.get('view');
-    const q = params.get('q');
-    const cat = params.get('cat');
-    const reg = params.get('reg');
-    const end = params.get('end');
-    const unit = params.get('unit');
-
-    if (view && document.querySelector(`.nav-btn[data-target="${view}"]`)) switchView(view);
-    if (q) omni.value = q;
-
-    document.getElementById('sel-cat').value = cat || 'ALL';
-    document.getElementById('sel-reg').value = reg || 'ALL';
-    document.getElementById('sel-end').value = end || 'ALL';
-    document.getElementById('sel-unit').value = unit || 'ALL';
-
-    syncOmniClearVisibility();
-}
-
 function captureCurrentFilterState() {
     return {
         q: omni.value,
         cat: document.getElementById('sel-cat').value,
         reg: document.getElementById('sel-reg').value,
-        end: document.getElementById('sel-end').value,
+        branch: document.getElementById('sel-branch').value,
+        pharm: document.getElementById('sel-pharm').value,
         unit: document.getElementById('sel-unit').value,
         exact: document.getElementById('toggle-exact').checked
     };
@@ -2775,11 +3800,12 @@ function applyFilterState(s) {
     omni.value = s.q || '';
     document.getElementById('sel-cat').value = s.cat || 'ALL';
     document.getElementById('sel-reg').value = s.reg || 'ALL';
+    document.getElementById('sel-branch').value = s.branch || 'ALL';
     updatePharmacyDropdown();
-    document.getElementById('sel-end').value = s.end || 'ALL';
+    document.getElementById('sel-pharm').value = s.pharm || 'ALL';
     document.getElementById('sel-unit').value = s.unit || 'ALL';
     document.getElementById('toggle-exact').checked = !!s.exact;
-    ['sel-cat', 'sel-reg', 'sel-end', 'sel-unit'].forEach(id => document.getElementById(id)._refreshDropdown?.());
+    ['sel-cat', 'sel-reg', 'sel-branch', 'sel-pharm', 'sel-unit'].forEach(id => document.getElementById(id)._refreshDropdown?.());
     syncOmniClearVisibility();
     syncFromOmnibox();
 }
@@ -2845,592 +3871,471 @@ function syncFromOmnibox() {
     syncURLState();
 }
 
-function precalcOverview() {
-    const map = new Map();
-    const gc = groupConfig['view-overview'];
-    filteredDB.forEach(r => {
-        let kArr = [r.i, r.u];
-        if (gc.t) kArr.push(r.t);
-        if (gc.reg) kArr.push(r.region);
-        if (gc.p) kArr.push(r.p);
-        const k = kArr.join('|');
-        if (!map.has(k)) map.set(k, { t: gc.t ? r.t : '-', reg: gc.reg ? r.region : '-', p: gc.p ? r.p : '-', i: r.i, u: r.u, q: 0, price: r.price });
-        map.get(k).q += r.q;
+document.querySelectorAll('.clear-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const sel = document.getElementById(btn.dataset.target);
+        sel.value = 'ALL';
+        sel._refreshDropdown?.();
+        sel.dispatchEvent(new Event('change'));
     });
-    overviewData = Array.from(map.values()).map(g => ({ ...g, tot: g.q * g.price }));
-}
-
-function precalcBreakdown() {
-    const map = new Map();
-    db.forEach(r => {
-        let k1, k2;
-        if (currentSlicer === 'r')      { k1 = r.region; k2 = '-'; }
-        else if (currentSlicer === 'e') { k1 = r.p;      k2 = r.region; }
-        else                            { k1 = r.t;      k2 = '-'; }
-        const key = `${k1}|${k2}`;
-        if (!map.has(key)) map.set(key, { key: k1, sub: k2, items: new Set(), q: 0, tot: 0 });
-        const g = map.get(key);
-        g.items.add(`${r.i}|${r.u}`);
-        g.q += r.q;
-        g.tot += r.tot;
+});
+function setTheme(pref) {
+    localStorage.setItem('uni_theme', pref);
+    const sysDark = matchMedia('(prefers-color-scheme: dark)').matches;
+    const resolved = pref === 'system' ? (sysDark ? 'dark' : 'light') : pref;
+    document.documentElement.dataset.theme = resolved;
+    document.documentElement.dataset.themePref = pref;
+    document.documentElement.style.colorScheme = resolved;
+    document.querySelectorAll('.theme-switch-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.themeChoice === pref);
     });
-    breakdownData = Array.from(map.values()).map(g => ({ ...g, ui: g.items.size })).sort((a, b) => b.tot - a.tot);
 }
 
-function precalcPricing(tokens, isExact) {
-    priceData = Object.keys(state.prices).reduce((acc, k) => {
-        const [i, u] = k.split('|');
-        if (isMatch(tokens, normAr(`${i} ${u}`), isExact)) acc.push({ id: k, i, u, p: state.prices[k], stat: state.prices[k] === 0 ? 0 : 1 });
-        return acc;
-    }, []);
+function initTheme() {
+    const pref = document.documentElement.dataset.themePref || localStorage.getItem('uni_theme') || 'system';
+    setTheme(pref);
+    document.querySelectorAll('.theme-switch-btn').forEach(btn => {
+        btn.addEventListener('click', () => setTheme(btn.dataset.themeChoice));
+    });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if ((localStorage.getItem('uni_theme') || 'system') === 'system') setTheme('system');
+    });
 }
 
-function precalcPharmacies(tokens, isExact) {
-    pharmData = Object.keys(state.pharmacies).reduce((acc, k) => {
-        const reg = state.pharmacies[k];
-        if (isMatch(tokens, normAr(`${k} ${reg}`), isExact)) {
-            const stat = reg === '' ? 0 : !activePharms.has(k) ? 2 : 1;
-            acc.push({ k, reg, stat });
+let importState = null;
+
+function currentSheetRows(sheetName) {
+    const ws = importState.workbook.Sheets[sheetName || importState.sheetName];
+    return XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+}
+
+function guessColumnMapping(headerRow) {
+    const fieldPatterns = [['i', 'الصنف'], ['p', 'العياده'], ['branch', 'الفرع'], ['q', 'الكميه'], ['price', 'سعر'], ['u', 'الوحده']];
+    const map = {}, fill = {};
+    headerRow.forEach((cell, idx) => { map[idx] = 'ignore'; fill[idx] = 'none'; });
+
+    const claimed = new Set();
+    fieldPatterns.forEach(([field, pattern]) => {
+        for (let idx = 0; idx < headerRow.length; idx++) {
+            if (claimed.has(idx)) continue;
+            const norm = normAr(String(headerRow[idx] || ''));
+            if (norm.includes(pattern)) {
+                map[idx] = field;
+                claimed.add(idx);
+                break;
+            }
         }
-        return acc;
-    }, []);
+    });
+    return { map, fill };
 }
 
-function precalcMissing(tokens, isExact, fR) {
-    missingData = Object.keys(state.pharmacies).reduce((acc, k) => {
-        if (activePharms.has(k)) return acc;
-        const rawReg = state.pharmacies[k] || 'Unmapped';
-        const reg = REGION_MAP[rawReg] || rawReg;
-        if (fR !== 'ALL' && reg.toLowerCase() !== fR) return acc;
-        if (isMatch(tokens, normAr(`${k} ${reg}`), isExact)) acc.push({ k, reg });
-        return acc;
-    }, []);
-}
-
-window.loadMore = () => {
-    if (renderLimits[currentView]) {
-        renderLimits[currentView] += 200;
-        renderActiveView();
+function guessHeaderRowIdx(sheetName) {
+    const rows = currentSheetRows(sheetName);
+    for (let i = 0; i < Math.min(rows.length, 30); i++) {
+        if (rows[i] && rows[i].some(cell => cell && normAr(String(cell).trim()).includes('الصنف'))) return i;
     }
-};
-
-function updateCapNotice(viewPrefix, dataLength) {
-    const limit = renderLimits[currentView];
-    const el = document.getElementById(`cap-${viewPrefix}`);
-    if (!el) return;
-    el.innerHTML = dataLength > limit
-        ? `Showing ${fmtNum.format(limit)} of ${fmtNum.format(dataLength)} <button class="btn btn-primary load-more-btn" onclick="loadMore()">Load More</button>`
-        : `Showing all ${fmtNum.format(dataLength)} records`;
+    return 0;
 }
 
-function renderActiveView() {
-    activeRowIndex = -1;
-
-    const isExact = document.getElementById('toggle-exact').checked;
-    const q = normAr(omni.value.trim());
-    const tokens = q.split(/\s+/).filter(Boolean);
-    const fC = document.getElementById('sel-cat').value;
-    const fR = document.getElementById('sel-reg').value;
-    const fE = document.getElementById('sel-end').value;
-    const fU = document.getElementById('sel-unit').value;
-
-    const needsFilteredDB = currentView === 'view-overview';
-    if (needsFilteredDB && filteredDBDirty) {
-        filteredDB = db.filter(r => {
-            if (fC !== 'ALL' && r.t_low !== fC) return false;
-            if (fR !== 'ALL' && r.r_low !== fR) return false;
-            if (fE !== 'ALL' && r.p_low !== fE) return false;
-            if (fU !== 'ALL' && r.u_low !== fU) return false;
-            return isMatch(tokens, r._norm, isExact, r._words);
-        });
-        filteredDBDirty = false;
+function ensureSheetConfig(sheetName) {
+    if (!importState.sheetConfigs[sheetName]) {
+        const headerRowIdx = guessHeaderRowIdx(sheetName);
+        const rows = currentSheetRows(sheetName);
+        const { map, fill } = guessColumnMapping(rows[headerRowIdx] || []);
+        importState.sheetConfigs[sheetName] = { headerRowIdx, columnMap: map, fillDir: fill };
     }
+    return importState.sheetConfigs[sheetName];
+}
 
-    if (viewDirty[currentView]) {
-        switch (currentView) {
-            case 'view-overview':   precalcOverview(); break;
-            case 'view-breakdown':  precalcBreakdown(); break;
-            case 'view-pricing':    precalcPricing(tokens, isExact); break;
-            case 'view-pharmacies': precalcPharmacies(tokens, isExact); break;
-            case 'view-missing':    precalcMissing(tokens, isExact, fR); break;
+function currentConfig() {
+    return ensureSheetConfig(importState.sheetName);
+}
+
+function applyFillDirections(rows, fillMap) {
+    let filledCount = 0;
+    const entries = Object.entries(fillMap).filter(([, dir]) => dir && dir !== 'none');
+    if (!entries.length) return 0;
+    const downCols = entries.filter(([, d]) => d === 'down').map(([f]) => f);
+    const upCols = entries.filter(([, d]) => d === 'up').map(([f]) => f);
+    if (downCols.length) filledCount += applyFillDirection(rows, downCols, 'down');
+    if (upCols.length) filledCount += applyFillDirection(rows, upCols, 'up');
+    return filledCount;
+}
+
+function configColIdx(cfg, field) {
+    const e = Object.entries(cfg.columnMap).find(([, v]) => v === field);
+    return e ? parseInt(e[0], 10) : -1;
+}
+
+function computeSheetResult(sheetName) {
+    const cfg = ensureSheetConfig(sheetName);
+    const rows = currentSheetRows(sheetName);
+    const dataRows = rows.slice(cfg.headerRowIdx + 1);
+    const itemIdx = configColIdx(cfg, 'i'), branchIdx = configColIdx(cfg, 'branch'), pharmIdx = configColIdx(cfg, 'p'),
+          unitIdx = configColIdx(cfg, 'u'), qtyIdx = configColIdx(cfg, 'q'), priceIdx = configColIdx(cfg, 'price');
+
+    const missing = [];
+    if (itemIdx === -1) missing.push('Item');
+    if (pharmIdx === -1) missing.push('Pharmacy');
+    if (unitIdx === -1) missing.push('Unit');
+    if (qtyIdx === -1) missing.push('Quantity');
+    if (missing.length) return { rawData: [], anomalies: [], filledCount: 0, missing };
+
+    const sheetRows = dataRows.map((row, i) => ({
+        srcRow: cfg.headerRowIdx + 2 + i,
+        i: itemIdx !== -1 ? String(row[itemIdx] ?? '').trim() : '',
+        branch: branchIdx !== -1 ? String(row[branchIdx] ?? '').trim() : '',
+        p: pharmIdx !== -1 ? String(row[pharmIdx] ?? '').trim() : '',
+        u: unitIdx !== -1 ? String(row[unitIdx] ?? '').trim() : '',
+        rawQty: qtyIdx !== -1 ? String(row[qtyIdx] ?? '').trim() : '',
+        rawPrice: priceIdx !== -1 ? String(row[priceIdx] ?? '').trim() : ''
+    }));
+
+    const fillMap = {};
+    [['i', itemIdx], ['branch', branchIdx], ['p', pharmIdx], ['u', unitIdx]].forEach(([field, idx]) => {
+        if (idx !== -1 && cfg.fillDir[idx] && cfg.fillDir[idx] !== 'none') fillMap[field] = cfg.fillDir[idx];
+    });
+    const filledCount = applyFillDirections(sheetRows, fillMap);
+
+    const rawData = [], anomalies = [];
+    const labelNames = { i: 'Item', branch: 'Branch', p: 'Pharmacy', u: 'Unit' };
+
+    sheetRows.forEach(sr => {
+        if (isTotalsColumn(sr.i)) return;
+        if (!sr.i) {
+            anomalies.push({ sheet: sheetName, row: sr.srcRow, i: '-', p: sr.p || '-', val: '(blank)', act: 'Blank Item — Row Skipped', sev: 'unparseable' });
+            return;
         }
-        viewDirty[currentView] = false;
-    }
+        if (sr._filled && sr._filled.length) {
+            anomalies.push({ sheet: sheetName, row: sr.srcRow, i: sr.i, p: sr.p || '-', val: '(blank)', act: `Filled (${sr._filled.map(f => labelNames[f] || f).join(', ')})`, sev: 'filled' });
+        }
 
-    const renderMap = {
-        'view-overview':   renderOverview,
-        'view-breakdown':  renderBreakdown,
-        'view-pricing':    renderPricing,
-        'view-pharmacies': renderPharmacies,
-        'view-missing':    renderMissing,
-        'view-anomalies':  renderAnomalies
+        if (!sr.rawQty || isIntentionalEmpty(sr.rawQty)) return;
+        const normQ = normalizeDigits(sr.rawQty).replace(/\u066B/g, '.').replace(/\u066C/g, '');
+        if (ERROR_STRING_RE.test(normQ)) {
+            anomalies.push({ sheet: sheetName, row: sr.srcRow, i: sr.i, p: sr.p, val: sr.rawQty, act: 'Formula Error (Qty)', sev: 'error' });
+            return;
+        }
+        const extQ = normQ.match(/-?\d+(?:\.\d+)?/);
+        const q = extQ ? parseFloat(extQ[0]) : NaN;
+        if (isNaN(q)) {
+            anomalies.push({ sheet: sheetName, row: sr.srcRow, i: sr.i, p: sr.p, val: sr.rawQty, act: 'Unparseable (Qty)', sev: 'unparseable' });
+            return;
+        }
+        if (q <= 0) return;
+
+        let priceVal = 0;
+        if (priceIdx !== -1 && sr.rawPrice && !isIntentionalEmpty(sr.rawPrice)) {
+            const normP = normalizeDigits(sr.rawPrice).replace(/\u066B/g, '.').replace(/\u066C/g, '');
+            if (ERROR_STRING_RE.test(normP)) {
+                anomalies.push({ sheet: sheetName, row: sr.srcRow, i: sr.i, p: sr.p, val: sr.rawPrice, act: 'Formula Error (Price)', sev: 'error' });
+            } else {
+                const extP = normP.match(/-?\d+(?:\.\d+)?/);
+                if (extP) priceVal = parseFloat(extP[0]);
+            }
+        }
+
+        rawData.push({ t: sheetName, branch: sr.branch, p: sr.p, i: sr.i, u: sr.u, q, price: priceVal });
+    });
+
+    return { rawData, anomalies, filledCount, missing: [] };
+}
+
+function computeAllSheetsResult() {
+    const rawData = [], anomalies = [];
+    let filledCount = 0;
+    const sheetsIncluded = [], sheetsSkipped = [];
+    importState.workbook.SheetNames.forEach(name => {
+        const result = computeSheetResult(name);
+        if (result.missing.length) { sheetsSkipped.push(name); return; }
+        sheetsIncluded.push(name);
+        rawData.push(...result.rawData);
+        anomalies.push(...result.anomalies);
+        filledCount += result.filledCount;
+    });
+    return { rawData, anomalies, filledCount, sheetsIncluded, sheetsSkipped };
+}
+
+const importModal = document.getElementById('import-modal');
+
+function openImportWizardFromFile(file, existingSrcId) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            importState = { file, workbook, sheetName: workbook.SheetNames[0], sheetConfigs: {}, srcId: existingSrcId || null };
+            ensureSheetConfig(importState.sheetName);
+            renderImportWizard();
+            importModal.classList.add('open');
+        } catch (err) {
+            showToast(`Could not read ${file.name}: ${err.message}`, 'error');
+        }
     };
-    renderMap[currentView]?.();
+    reader.onerror = () => showToast(`Could not read ${file.name}`, 'error');
+    reader.readAsArrayBuffer(file);
 }
 
-function renderOverview() {
-    const finalData = applySort(overviewData, 'view-overview');
-    const limit = renderLimits['view-overview'];
-    const gc = groupConfig['view-overview'];
-    let tvl = 0, qty = 0;
-    const parts = [];
-
-    const isExact = document.getElementById('toggle-exact').checked;
-    const q = normAr(omni.value.trim());
-    const tokens = q.split(/\s+/).filter(Boolean);
-
-    const firstVis = updateStickyColumn();
-
-    for (let idx = 0; idx < finalData.length; idx++) {
-        const d = finalData[idx];
-        tvl += d.tot;
-        qty += d.q;
-        if (idx >= limit) continue;
-
-        const tdClass = gc.t ? `<td class="${firstVis==='t'?'sticky-col':''}"><span class="badge ${escapeHTML(d.t.toLowerCase())}">${highlightText(d.t, tokens)}</span></td>` : '';
-        const tdReg = gc.reg ? `<td class="${firstVis==='reg'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td>` : '';
-        const tdPharm = gc.p ? `<td class="${firstVis==='p'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.p, tokens)}</span></td>` : '';
-        const tdItem = `<td class="${firstVis==='i'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.i, tokens)}</span></td>`;
-        const tdUnit = colVisible.u ? `<td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td>` : '';
-        const tdQty = colVisible.q ? `<td class="num">${fmtNum.format(d.q)}</td>` : '';
-        const tdPrice = colVisible.price ? `<td class="num">${fmtEGP.format(d.price)}</td>` : '';
-
-        const keyArr = [d.i, d.u];
-        if (gc.t) keyArr.push(d.t);
-        if (gc.reg) keyArr.push(d.reg);
-        if (gc.p) keyArr.push(d.p);
-        const dataKey = escapeHTML(keyArr.join('|'));
-
-        parts.push(`<tr data-key="${dataKey}" data-view="overview">${tdClass}${tdReg}${tdPharm}${tdItem}${tdUnit}${tdQty}${tdPrice}<td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
-    }
-
-    document.getElementById('tb-overview').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No records match your filters');
-    animateKpi(document.getElementById('kpi-tvl'), tvl, v => fmtEGP.format(v));
-    animateKpi(document.getElementById('kpi-qty'), qty, v => fmtNum.format(v), true);
-    animateKpi(document.getElementById('kpi-assets'), finalData.length, v => fmtNum.format(v), true);
-    updateCapNotice('overview', finalData.length);
-}
-
-function renderBreakdown() {
-    document.getElementById('bento-container').innerHTML = breakdownData.length ? breakdownData.map(d => `
-        <div class="bento-card">
-            <div class="bento-header">
-                <div class="bento-title">${escapeHTML(d.key)}</div>
-                <div class="bento-subtitle">${escapeHTML(d.sub)}</div>
-            </div>
-            <div class="bento-metric">${fmtEGP.format(d.tot)}</div>
-            <div class="bento-submetric">
-                <span>Items: <span class="mono-strong">${fmtNum.format(d.ui)}</span></span>
-                <span>Qty: <span class="mono-strong">${fmtNum.format(d.q)}</span></span>
-            </div>
-        </div>`).join('') : `<div class="empty-state empty-state-full">${EMPTY_ICON}<span>No data available for this grouping</span></div>`;
-}
-
-function handleRowClick(e) {
-    const tr = e.target.closest('tr');
-    if (!tr || tr.classList.contains('empty-row') || tr.classList.contains('drill-down-row') || e.target.closest('.editable')) return;
-
-    const existing = tr.nextElementSibling;
-    const hasDrillOpen = existing && existing.classList.contains('drill-down-row');
-
-    document.querySelectorAll('.drill-down-row').forEach(r => r.remove());
-
-    if (hasDrillOpen) return;
-
-    const key = tr.dataset.key;
-    const view = tr.dataset.view;
-    if (!key) return;
-
-    const parts = key.split('|');
-    const i = parts[0], u = parts[1];
-
-    let matches = [];
-    if (view === 'overview') {
-        matches = filteredDB.filter(r => r.i === i && r.u === u);
-        const gc = groupConfig['view-overview'];
-        let partIdx = 2;
-        if (gc.t) { const t = parts[partIdx++]; matches = matches.filter(r => r.t === t); }
-        if (gc.reg) { const reg = parts[partIdx++]; matches = matches.filter(r => r.region === reg); }
-        if (gc.p) { const p = parts[partIdx++]; matches = matches.filter(r => r.p === p); }
-    }
-
-    if (!matches.length) return;
-
-    matches.sort((a, b) => b.tot - a.tot).slice(0, 5);
-
-    const drillTr = document.createElement('tr');
-    drillTr.className = 'drill-down-row';
-    drillTr.innerHTML = `<td colspan="${tr.children.length}"><div class="drill-content">${matches.map(m => `
-        <div class="drill-item">
-            <span class="drill-name">
-                <span class="arabic-text">${escapeHTML(m.p)}</span>
-                <span class="drill-context">${escapeHTML(m.t)} &bull; ${escapeHTML(m.region)}</span>
-            </span>
-            <span class="drill-stats">
-                <span class="drill-qty">${fmtNum.format(m.q)} units</span>
-                <span class="val">${fmtEGP.format(m.tot)}</span>
-            </span>
-        </div>
-    `).join('')}</div></td>`;
-    tr.after(drillTr);
-}
-
-document.getElementById('tb-overview').addEventListener('click', handleRowClick);
-
-function undoLastEdit() {
-    if (!lastEdit) return;
-    if (lastEdit.type === 'price') {
-        state.prices[lastEdit.key] = lastEdit.prevVal;
-        localStorage.setItem('uni_prices', JSON.stringify(state.prices));
-        db.forEach(r => { if (`${r.i}|${r.u}` === lastEdit.key) { r.price = lastEdit.prevVal; r.tot = r.q * r.price; } });
-    } else if (lastEdit.type === 'region') {
-        state.pharmacies[lastEdit.key] = lastEdit.prevVal;
-        localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
-        db.forEach(r => {
-            if (r.p !== lastEdit.key) return;
-            const mapped = state.pharmacies[r.p] || 'Unmapped';
-            r.region = REGION_MAP[mapped] || mapped;
-            r.r_low = r.region.toLowerCase();
-            r._norm = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`);
-            r._words = r._norm.split(' ');
-        });
-    }
-    markAllDirty();
-    syncFromOmnibox();
-    lastEdit = null;
-}
-
-window.updatePrice = (k, v) => {
-    const prevVal = state.prices[k];
-    state.prices[k] = parseFloat(v) || 0;
-    localStorage.setItem('uni_prices', JSON.stringify(state.prices));
-    db.forEach(r => { if (`${r.i}|${r.u}` === k) { r.price = state.prices[k]; r.tot = r.q * r.price; } });
-    markAllDirty();
-    const focusedId = (document.activeElement && document.activeElement.classList.contains('editable')) ? document.activeElement.dataset.id : null;
-    syncFromOmnibox();
-    if (focusedId) {
-        const el = document.querySelector(`.editable[data-id="${focusedId}"]`);
-        if (el) { el.focus(); el.classList.add('input-saved'); setTimeout(() => el.classList.remove('input-saved'), 600); }
-    }
-    if (prevVal !== state.prices[k]) {
-        lastEdit = { type: 'price', key: k, prevVal };
-        showToast('Price updated', 'success', { label: 'Undo', fn: undoLastEdit });
-    }
-};
-
-function renderPricing() {
-    const finalData = applySort(priceData, 'view-pricing');
-    const limit = renderLimits['view-pricing'];
-    let unpriced = 0;
-    const parts = [];
-
-    const isExact = document.getElementById('toggle-exact').checked;
-    const q = normAr(omni.value.trim());
-    const tokens = q.split(/\s+/).filter(Boolean);
-
-    const pricedItems = finalData.filter(d => d.p > 0).map(d => d.p).sort((a,b) => a-b);
-    const median = pricedItems.length ? pricedItems[Math.floor(pricedItems.length / 2)] : 0;
-
-    for (let idx = 0; idx < finalData.length; idx++) {
-        const d = finalData[idx];
-        if (d.stat === 0) unpriced++;
-        if (idx >= limit) continue;
-        const statLabel = d.stat === 0 ? 'Missing price' : 'Priced';
-        let anomalyClass = '';
-        let anomalyDot = '';
-
-        if (d.p > 0 && median > 0 && (d.p > median * 3 || d.p < median * 0.3)) {
-            anomalyClass = 'anomaly-warn';
-            anomalyDot = `<div class="status-dot status-anomaly" title="Potential pricing anomaly (Deviation > 3x median)"></div>`;
+function reopenImportWizardForSource(srcId) {
+    const entry = rawSources[srcId];
+    if (!entry || !entry.file) { showToast('Original file no longer available — remove and re-add it', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const wc = entry.wizardConfig;
+            importState = {
+                file: entry.file, workbook,
+                sheetName: (wc && workbook.SheetNames.includes(wc.lastSheet)) ? wc.lastSheet : workbook.SheetNames[0],
+                sheetConfigs: wc ? JSON.parse(JSON.stringify(wc.sheetConfigs)) : {},
+                srcId
+            };
+            ensureSheetConfig(importState.sheetName);
+            renderImportWizard();
+            importModal.classList.add('open');
+        } catch (err) {
+            showToast(`Could not read ${entry.file.name}: ${err.message}`, 'error');
         }
-
-        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td class="cell-flex">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}" onchange="updatePrice('${escapeHTML(d.id)}', this.value)"></td></tr>`);
-    }
-
-    document.getElementById('tb-pricing').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No items match your filters');
-    animateKpi(document.getElementById('kpi-unpriced'), unpriced, v => fmtNum.format(v), true);
-    updateCapNotice('pricing', finalData.length);
+    };
+    reader.readAsArrayBuffer(entry.file);
 }
 
-window.updateRegion = (p, v) => {
-    const prevVal = state.pharmacies[p];
-    state.pharmacies[p] = v.trim();
-    localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
-    db.forEach(r => {
-        if (r.p !== p) return;
-        const mapped = state.pharmacies[p] || 'Unmapped';
-        r.region = REGION_MAP[mapped] || mapped;
-        r.r_low  = r.region.toLowerCase();
-        r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`);
-        r._words = r._norm.split(' ');
+function closeImportWizard() {
+    importModal.classList.remove('open');
+    importState = null;
+}
+
+function renderImportWizard() {
+    document.getElementById('import-filename').textContent = importState.file.name;
+
+    const tabs = document.getElementById('import-sheet-tabs');
+    tabs.innerHTML = importState.workbook.SheetNames.map(name => {
+        const ready = importState.sheetConfigs[name] && configColIdx(importState.sheetConfigs[name], 'i') !== -1 &&
+            configColIdx(importState.sheetConfigs[name], 'p') !== -1 && configColIdx(importState.sheetConfigs[name], 'u') !== -1 &&
+            configColIdx(importState.sheetConfigs[name], 'q') !== -1;
+        return `<button type="button" class="slicer-btn ${name === importState.sheetName ? 'active' : ''}" data-sheet="${escapeHTML(name)}">${ready ? '&check; ' : ''}${escapeHTML(name)}</button>`;
+    }).join('');
+    tabs.querySelectorAll('[data-sheet]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            importState.sheetName = btn.dataset.sheet;
+            ensureSheetConfig(importState.sheetName);
+            renderImportWizard();
+        });
     });
-    markAllDirty();
-    const focusedId = (document.activeElement && document.activeElement.classList.contains('editable')) ? document.activeElement.dataset.id : null;
-    syncFromOmnibox();
-    if (focusedId) {
-        const el = document.querySelector(`.editable[data-id="${focusedId}"]`);
-        if (el) { el.focus(); el.classList.add('input-saved'); setTimeout(() => el.classList.remove('input-saved'), 600); }
-    }
-    if (prevVal !== state.pharmacies[p]) {
-        lastEdit = { type: 'region', key: p, prevVal: prevVal || '' };
-        showToast('Region updated', 'success', { label: 'Undo', fn: undoLastEdit });
-    }
-};
 
-function renderPharmacies() {
-    const finalData = applySort(pharmData, 'view-pharmacies');
-    const limit = renderLimits['view-pharmacies'];
-    let unm = 0, inact = 0;
-    const parts = [];
-
-    const isExact = document.getElementById('toggle-exact').checked;
-    const q = normAr(omni.value.trim());
-    const tokens = q.split(/\s+/).filter(Boolean);
-
-    for (let idx = 0; idx < finalData.length; idx++) {
-        const d = finalData[idx];
-        if (d.stat === 0) unm++; else if (d.stat === 2) inact++;
-        if (idx >= limit) continue;
-        const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
-        const statLabel = d.stat === 0 ? 'Unrouted — no region assigned' : d.stat === 2 ? 'Inactive — no records this period' : 'Active';
-        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" onchange="updateRegion('${escapeHTML(d.k)}', this.value)"></td></tr>`);
-    }
-
-    document.getElementById('tb-pharmacies').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No pharmacies match your filters');
-    animateKpi(document.getElementById('kpi-unmapped'), unm, v => fmtNum.format(v), true);
-    animateKpi(document.getElementById('kpi-inactive'), inact, v => fmtNum.format(v), true);
-    updateCapNotice('pharmacies', finalData.length);
+    renderHeaderRowPicker();
+    renderColumnMappingGrid();
+    renderImportPreview();
 }
 
-function renderMissing() {
-    const finalData = applySort(missingData, 'view-missing');
-    const limit = renderLimits['view-missing'];
-    const q = normAr(omni.value.trim());
-    const tokens = q.split(/\s+/).filter(Boolean);
-    const rows = finalData.slice(0, limit).map(d =>
-        `<tr><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td></tr>`
-    ).join('');
-    document.getElementById('tb-missing').innerHTML = rows || emptyRowHTML('No missing pharmacies — all mapped routes are reporting');
-    updateCapNotice('missing', finalData.length);
+function renderHeaderRowPicker() {
+    const cfg = currentConfig();
+    const rows = currentSheetRows().slice(0, 15);
+    const table = document.getElementById('import-header-table');
+    const colCount = Math.min(8, Math.max(...rows.map(r => r.length), 1));
+    table.innerHTML = `<tbody>${rows.map((row, idx) => {
+        const isHeader = idx === cfg.headerRowIdx;
+        const isSkipped = idx < cfg.headerRowIdx;
+        const cells = Array.from({ length: colCount }, (_, c) => row[c]);
+        return `<tr class="import-row-picker ${isHeader ? 'is-header' : ''} ${isSkipped ? 'is-skipped' : ''}" data-rowidx="${idx}">
+            <td class="import-row-num">${idx + 1}</td>
+            ${cells.map(c => `<td>${escapeHTML(String(c ?? '').slice(0, 40))}</td>`).join('')}
+        </tr>`;
+    }).join('')}</tbody>`;
+    table.querySelectorAll('.import-row-picker').forEach(tr => {
+        tr.addEventListener('click', () => {
+            const rowIdx = parseInt(tr.dataset.rowidx, 10);
+            const headerRow = currentSheetRows()[rowIdx] || [];
+            const { map, fill } = guessColumnMapping(headerRow);
+            importState.sheetConfigs[importState.sheetName] = { headerRowIdx: rowIdx, columnMap: map, fillDir: fill };
+            renderImportWizard();
+        });
+    });
 }
 
-function renderAnomalies() {
-    const finalData = applySort(anomaliesData, 'view-anomalies');
-    const limit = renderLimits['view-anomalies'];
-    const q = normAr(omni.value.trim());
-    const tokens = q.split(/\s+/).filter(Boolean);
+function renderColumnMappingGrid() {
+    const cfg = currentConfig();
+    const rows = currentSheetRows();
+    const headerRow = rows[cfg.headerRowIdx] || [];
+    const grid = document.getElementById('import-column-grid');
+    const fieldOptions = [['ignore', 'Ignore'], ['i', 'Item'], ['branch', 'Branch'], ['p', 'Pharmacy'], ['u', 'Unit'], ['q', 'Quantity'], ['price', 'Price']];
+    const labelFields = new Set(['i', 'branch', 'p', 'u']);
 
-    const counts = { error: 0, unparseable: 0, corrected: 0 };
-    finalData.forEach(d => { if (counts[d.sev] != null) counts[d.sev]++; });
-    document.getElementById('severity-summary').innerHTML = `
-        <div class="severity-chip"><span class="dot" style="background:var(--danger)"></span>Formula Errors: ${fmtNum.format(counts.error)}</div>
-        <div class="severity-chip"><span class="dot" style="background:var(--warning)"></span>Unparseable: ${fmtNum.format(counts.unparseable)}</div>
-        <div class="severity-chip"><span class="dot" style="background:var(--accent-blue)"></span>Auto-Corrected: ${fmtNum.format(counts.corrected)}</div>
-    `;
-
-    const rows = finalData.slice(0, limit).map(d => {
-        const sevClass = d.sev === 'error' ? 'sev-error' : d.sev === 'corrected' ? 'sev-info' : 'sev-warn';
-        return `<tr><td><span class="badge ${escapeHTML(d.sheet.toLowerCase())}">${escapeHTML(d.sheet)}</span></td><td><span class="mono-bold">${escapeHTML(d.row)}</span></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.p, tokens)}</span></td><td class="highlight value-danger">${escapeHTML(d.val)}</td><td><span class="badge ${sevClass}">${escapeHTML(d.act)}</span></td></tr>`;
+    grid.innerHTML = headerRow.map((cell, idx) => {
+        const mapped = cfg.columnMap[idx] || 'ignore';
+        const showFill = labelFields.has(mapped);
+        const fillDir = cfg.fillDir[idx] || 'none';
+        const headerText = String(cell ?? '').trim();
+        return `<div class="import-col-card">
+            <div class="import-col-header" title="${escapeHTML(headerText)}">${escapeHTML(headerText || '(blank header)')}</div>
+            <select class="import-col-map" data-colidx="${idx}">
+                ${fieldOptions.map(([val, label]) => `<option value="${val}" ${val === mapped ? 'selected' : ''}>${label}</option>`).join('')}
+            </select>
+            <div class="import-col-fill ${showFill ? '' : 'hidden'}" data-colidx="${idx}">
+                <button type="button" class="fill-mini-btn ${fillDir === 'none' ? 'active' : ''}" data-filldir="none">No fill</button>
+                <button type="button" class="fill-mini-btn ${fillDir === 'down' ? 'active' : ''}" data-filldir="down">&darr; Down</button>
+                <button type="button" class="fill-mini-btn ${fillDir === 'up' ? 'active' : ''}" data-filldir="up">&uarr; Up</button>
+            </div>
+        </div>`;
     }).join('');
 
-    document.getElementById('tb-anomalies').innerHTML = rows || emptyRowHTML('No anomalies detected in the current import');
-    updateCapNotice('anomalies', finalData.length);
-}
-
-function renderSparkline(svgId, values) {
-    const svg = document.getElementById(svgId);
-    if (!svg) return;
-    if (!values || values.length < 2) { svg.innerHTML = ''; return; }
-    const w = 100, h = 30;
-    const min = Math.min(...values), max = Math.max(...values);
-    const range = (max - min) || 1;
-    const step = w / (values.length - 1);
-    const pts = values.map((v, i) => [i * step, h - ((v - min) / range) * (h - 4) - 2]);
-    const linePath = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-    const fillPath = linePath + ` L${w},${h} L0,${h} Z`;
-    svg.innerHTML = `<path class="spark-fill" d="${fillPath}"></path><path class="spark-line" d="${linePath}"></path>`;
-}
-
-function computeDelta(elId, current, previous) {
-    const el = document.getElementById(elId);
-    if (!el) return;
-    if (previous == null || previous === 0) { el.textContent = ''; el.className = 'metric-delta flat'; return; }
-    const pct = ((current - previous) / previous) * 100;
-    if (Math.abs(pct) < 0.05) { el.textContent = '—'; el.className = 'metric-delta flat'; return; }
-    const up = pct > 0;
-    el.className = 'metric-delta ' + (up ? 'up' : 'down');
-    el.textContent = (up ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(1) + '%';
-}
-
-function updateKpiTrends() {
-    if (!syncHistory.length) return;
-    const last12 = syncHistory.slice(-12);
-    renderSparkline('spark-tvl', last12.map(h => h.tvl));
-    renderSparkline('spark-qty', last12.map(h => h.qty));
-    renderSparkline('spark-assets', last12.map(h => h.assets));
-    const prev = syncHistory.length > 1 ? syncHistory[syncHistory.length - 2] : null;
-    const curr = syncHistory[syncHistory.length - 1];
-    computeDelta('delta-tvl', curr.tvl, prev ? prev.tvl : null);
-    computeDelta('delta-qty', curr.qty, prev ? prev.qty : null);
-    computeDelta('delta-assets', curr.assets, prev ? prev.assets : null);
-}
-
-function pushSyncHistory() {
-    let history = [];
-    try { history = JSON.parse(localStorage.getItem('uni_sync_history') || '[]'); } catch (e) { history = []; }
-    const tvl = db.reduce((s, r) => s + r.tot, 0);
-    const qty = db.reduce((s, r) => s + r.q, 0);
-    const assets = new Set(db.map(r => `${r.i}|${r.u}`)).size;
-    history.push({ ts: Date.now(), tvl, qty, assets });
-    if (history.length > 30) history = history.slice(-30);
-    localStorage.setItem('uni_sync_history', JSON.stringify(history));
-    syncHistory = history;
-    updateKpiTrends();
-}
-
-document.getElementById('btn-export').addEventListener('click', () => {
-    const exportMap = {
-        'view-overview': () => {
-            const gc = groupConfig['view-overview'];
-            return applySort(overviewData, currentView).map(g => {
-                let row = {};
-                if (gc.t) row.Class = g.t;
-                if (gc.reg) row.Region = g.reg;
-                if (gc.p) row.Pharmacy = g.p;
-                row.Item = g.i; row.Unit = g.u; row.Qty = g.q; row.Price = g.price; row.Value = g.tot;
-                return row;
-            });
-        },
-        'view-breakdown': () => {
-            const n = currentSlicer === 'r' ? 'Region' : currentSlicer === 'e' ? 'Pharmacy' : 'Class';
-            return breakdownData.map(g => ({ [n]: g.key, Context: g.sub, 'Unique Items': g.ui, Qty: g.q, Value: g.tot }));
-        },
-        'view-pricing':    () => applySort(priceData, currentView).map(d => ({ Item: d.i, Unit: d.u, Price: d.p })),
-        'view-pharmacies': () => applySort(pharmData, currentView).map(d => ({ Pharmacy: d.k, Region: d.reg, Status: d.stat === 0 ? 'Unmapped' : d.stat === 2 ? 'Inactive' : 'Active' })),
-        'view-missing':    () => applySort(missingData, currentView).map(d => ({ Pharmacy: d.k, 'Expected Region': d.reg })),
-        'view-anomalies':  () => applySort(anomaliesData, currentView).map(d => ({ Source: d.sheet, Row: d.row, Item: d.i, Pharmacy: d.p, 'Invalid Value': d.val, Action: d.act }))
-    };
-
-    const data = exportMap[currentView]?.() ?? [];
-    if (!data.length) { showToast('Nothing to export in this view', 'error'); return; }
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    ws['!cols'] = Object.keys(data[0]).map(k => ({ wch: k.length + 10 }));
-    ws['!views'] = [{ RTL: true }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Export");
-    XLSX.writeFile(wb, `Export_${currentView}.xlsx`);
-    showToast(`Exported ${fmtNum.format(data.length)} rows`, 'success');
-});
-
-document.getElementById('btn-template-prices').addEventListener('click', () => {
-    const data = priceData.map(d => ({ Item: d.i, Unit: d.u, Price: d.p }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    ws['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }];
-    ws['!views'] = [{ RTL: true }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pricing_Template");
-    XLSX.writeFile(wb, 'Pricing_Template.xlsx');
-    showToast('Pricing template downloaded', 'success');
-});
-
-document.getElementById('btn-template-regions').addEventListener('click', () => {
-    const data = pharmData.map(d => ({ Pharmacy: d.k, Region: d.reg }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    ws['!cols'] = [{ wch: 30 }, { wch: 20 }];
-    ws['!views'] = [{ RTL: true }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Routing_Template");
-    XLSX.writeFile(wb, 'Routing_Template.xlsx');
-    showToast('Routing template downloaded', 'success');
-});
-
-function processImportFile(file, kind) {
-    if (!file) return;
-    Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: res => {
-            if (!res.data.length) {
-                showToast('The uploaded CSV had no rows', 'error');
-                return;
-            }
-            let applied = 0;
-            res.data.forEach(r => {
-                if (kind === 'prices') {
-                    const i = r['Item Name'] || r['Item'] || r['الصنف'] || r[Object.keys(r)[0]];
-                    const u = r['Unit'] || r['الوحدة'] || r[Object.keys(r)[1]] || '';
-                    const p = parseFloat(r['Unit Price (EGP)'] || r['Price'] || r['السعر'] || r[Object.keys(r)[2]]) || 0;
-                    if (i) { state.prices[`${i.trim()}|${u.trim()}`] = p; applied++; }
-                } else {
-                    const p = r['Endpoint Name'] || r['Pharmacy'] || r['الصيدلية'] || r[Object.keys(r)[0]];
-                    const reg = r['Region Route'] || r['Region'] || r['المنطقة'] || r[Object.keys(r)[1]] || '';
-                    if (p) { state.pharmacies[p.trim()] = reg.trim(); applied++; }
-                }
-            });
-
-            localStorage.setItem(kind === 'prices' ? 'uni_prices' : 'uni_pharmacies', JSON.stringify(kind === 'prices' ? state.prices : state.pharmacies));
-
-            db.forEach(r => {
-                if (kind === 'prices') {
-                    r.price = state.prices[`${r.i}|${r.u}`];
-                    r.tot   = r.q * r.price;
-                } else if (r.p in state.pharmacies) {
-                    const mapped = state.pharmacies[r.p] || 'Unmapped';
-                    r.region = REGION_MAP[mapped] || mapped;
-                    r.r_low  = r.region.toLowerCase();
-                    r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.t}`);
-                    r._words = r._norm.split(' ');
-                }
-            });
-
-            markAllDirty();
-            updatePharmacyDropdown();
-            syncFromOmnibox();
-            showToast(
-                applied
-                    ? `${kind === 'prices' ? 'Prices' : 'Routing map'} updated — ${fmtNum.format(applied)} rows applied`
-                    : 'No matching columns found in CSV',
-                applied ? 'success' : 'error'
-            );
-        }
+    grid.querySelectorAll('.import-col-map').forEach(sel => {
+        sel.addEventListener('change', () => {
+            currentConfig().columnMap[sel.dataset.colidx] = sel.value;
+            renderColumnMappingGrid();
+            renderImportPreview();
+            renderSheetTabsReadyState();
+        });
     });
-}
-
-document.getElementById('file-prices').addEventListener('change', e => {
-    processImportFile(e.target.files[0], 'prices');
-    e.target.value = '';
-});
-
-document.getElementById('file-regions').addEventListener('change', e => {
-    processImportFile(e.target.files[0], 'regions');
-    e.target.value = '';
-});
-
-function initDragDrop() {
-    [['view-pricing', 'prices'], ['view-pharmacies', 'regions']].forEach(pair => {
-        const viewId = pair[0], kind = pair[1];
-        const zone = document.querySelector(`#${viewId} .action-row`);
-        if (!zone) return;
-        ['dragenter', 'dragover'].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.add('drag-active'); }));
-        ['dragleave', 'drop'].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.remove('drag-active'); }));
-        zone.addEventListener('drop', e => {
-            const f = e.dataTransfer.files[0];
-            if (f) processImportFile(f, kind);
+    grid.querySelectorAll('.fill-mini-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = btn.closest('.import-col-fill').dataset.colidx;
+            currentConfig().fillDir[idx] = btn.dataset.filldir;
+            renderColumnMappingGrid();
+            renderImportPreview();
         });
     });
 }
 
-window.onload = () => {
-    initCustomDropdowns();
-    initTablePrefs();
-    initSignalStrip();
-    updateSignalStrip();
-    updateKpiTrends();
-    renderSavedViews();
-    initDragDrop();
-    boot();
-};
+function renderSheetTabsReadyState() {
+    document.querySelectorAll('#import-sheet-tabs [data-sheet]').forEach(btn => {
+        const name = btn.dataset.sheet;
+        const cfg = importState.sheetConfigs[name];
+        const ready = cfg && configColIdx(cfg, 'i') !== -1 && configColIdx(cfg, 'p') !== -1 && configColIdx(cfg, 'u') !== -1 && configColIdx(cfg, 'q') !== -1;
+        btn.innerHTML = (ready ? '&check; ' : '') + escapeHTML(name);
+    });
+}
+
+function renderImportPreview() {
+    const result = computeSheetResult(importState.sheetName);
+    const preview = document.getElementById('import-final-preview');
+    const sample = result.rawData.slice(0, 8);
+    const headers = ['Class', 'Branch', 'Pharmacy', 'Item', 'Unit', 'Qty', 'Price'];
+    preview.innerHTML = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${
+        sample.length
+            ? sample.map(r => `<tr><td>${escapeHTML(r.t)}</td><td class="arabic-text">${escapeHTML(r.branch || '—')}</td><td class="arabic-text">${escapeHTML(r.p)}</td><td class="arabic-text">${escapeHTML(r.i)}</td><td class="arabic-text">${escapeHTML(r.u)}</td><td class="num">${fmtNum.format(r.q)}</td><td class="num">${fmtEGP.format(r.price)}</td></tr>`).join('')
+            : `<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);padding:20px;">No valid rows with the current mapping</td></tr>`
+    }</tbody>`;
+
+    const summary = document.getElementById('import-preview-summary');
+    const confirmBtn = document.getElementById('btn-import-confirm');
+    const totalSheets = importState.workbook.SheetNames.length;
+
+    if (result.missing.length) {
+        summary.innerHTML = totalSheets > 1
+            ? `<span class="value-danger">This sheet needs ${result.missing.join(', ')} mapped</span> — it will be skipped on import unless fixed`
+            : `<span class="value-danger">Map a column to ${result.missing.join(', ')} before importing</span>`;
+    } else {
+        summary.textContent = `${fmtNum.format(result.rawData.length)} rows ready on this sheet${result.filledCount ? ` · ${fmtNum.format(result.filledCount)} cells filled` : ''}${result.anomalies.length ? ` · ${fmtNum.format(result.anomalies.length)} flagged` : ''}`;
+    }
+
+    const allResult = computeAllSheetsResult();
+    confirmBtn.disabled = !allResult.rawData.length;
+    confirmBtn.textContent = totalSheets > 1
+        ? `Import ${allResult.sheetsIncluded.length} of ${totalSheets} Sheets`
+        : 'Import';
+}
+
+document.getElementById('btn-import-close').addEventListener('click', closeImportWizard);
+document.getElementById('btn-import-cancel').addEventListener('click', closeImportWizard);
+importModal.addEventListener('click', e => { if (e.target === importModal) closeImportWizard(); });
+
+document.getElementById('btn-import-confirm').addEventListener('click', () => {
+    const result = computeAllSheetsResult();
+    if (!result.rawData.length) return;
+    const srcId = importState.srcId || `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    rawSources[srcId] = {
+        kind: 'local', label: importState.file.name, file: importState.file,
+        rawData: result.rawData, anomalies: result.anomalies,
+        rows: result.rawData.length, filledCount: result.filledCount, status: 'local', ts: Date.now(),
+        wizardConfig: { lastSheet: importState.sheetName, sheetConfigs: JSON.parse(JSON.stringify(importState.sheetConfigs)) }
+    };
+    const fileName = importState.file.name;
+    const skippedNote = result.sheetsSkipped.length ? ` (${result.sheetsSkipped.length} sheet${result.sheetsSkipped.length > 1 ? 's' : ''} skipped — incomplete mapping)` : '';
+    rebuildFromSources();
+    renderDataPanel();
+    closeImportWizard();
+    showToast(`${fileName} imported — ${fmtNum.format(result.rawData.length)} rows${result.filledCount ? `, ${fmtNum.format(result.filledCount)} filled` : ''}${skippedNote}`, 'success');
+});
+
+function removeLocalSource(srcId) {
+    const entry = rawSources[srcId];
+    if (!entry) return;
+    delete rawSources[srcId];
+    rebuildFromSources();
+    renderDataPanel();
+    showToast(`${entry.label} removed`, 'success');
+}
+
+function renderDataPanel() {
+    const panel = document.getElementById('data-panel');
+    const localEntries = Object.entries(rawSources).filter(([, s]) => s.kind === 'local');
+
+    const fileRows = localEntries.length
+        ? localEntries.map(([id, s]) => `
+            <div class="sync-health-row">
+                <div class="status-dot status-ok"></div>
+                <div class="sync-health-info">
+                    <div class="sync-health-label">${escapeHTML(s.label)}</div>
+                    <div class="sync-health-meta">${fmtNum.format(s.rows)} rows${s.filledCount ? ' · ' + fmtNum.format(s.filledCount) + ' filled' : ''}</div>
+                </div>
+                <button type="button" class="source-remove" data-edit-id="${escapeHTML(id)}" title="Edit import settings" aria-label="Edit ${escapeHTML(s.label)}">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </button>
+                <button type="button" class="source-remove" data-remove-id="${escapeHTML(id)}" title="Remove this file" aria-label="Remove ${escapeHTML(s.label)}">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>`).join('')
+        : `<div class="sync-health-row"><div class="sync-health-info"><div class="sync-health-meta">No local files added yet.</div></div></div>`;
+
+    panel.innerHTML = `
+        <div class="sync-health-title">Local Files</div>
+        ${fileRows}
+        <label class="btn btn-primary upload-box" id="local-drop-zone">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span class="upload-title">Add Local File</span>
+            <span class="upload-msg">Click or drop an .xlsx workbook</span>
+            <input type="file" id="local-file-input" accept=".xlsx,.xls">
+        </label>
+    `;
+
+    panel.querySelectorAll('[data-remove-id]').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        removeLocalSource(btn.dataset.removeId);
+    }));
+    panel.querySelectorAll('[data-edit-id]').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        dataPanel.classList.remove('open');
+        reopenImportWizardForSource(btn.dataset.editId);
+    }));
+
+    document.getElementById('local-file-input').addEventListener('change', e => {
+        const f = e.target.files[0];
+        if (f) { dataPanel.classList.remove('open'); openImportWizardFromFile(f); }
+    });
+
+    const dropZone = document.getElementById('local-drop-zone');
+    ['dragenter', 'dragover'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('drag-active'); }));
+    ['dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('drag-active'); }));
+    dropZone.addEventListener('drop', e => {
+        const f = e.dataTransfer.files[0];
+        if (f) { dataPanel.classList.remove('open'); openImportWizardFromFile(f); }
+    });
+}
+
+initCustomDropdowns();
+initSignalStrip();
+initTablePrefs();
+renderSavedViews();
+initDragDrop();
+initTheme();
+updateLastSyncLabel();
+updateStaleBanner();
+setInterval(updateLastSyncLabel, 30000);
+setInterval(updateStaleBanner, 30000);
+initAutoSync();
+boot();
 </script>
 </body>
 </html>
