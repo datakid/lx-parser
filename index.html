@@ -587,6 +587,7 @@ nav::after {
 }
 
 .cmd-wrapper:focus-within::before { opacity: 0.4; }
+.cmd-wrapper.palette-disabled { opacity: 0.45; pointer-events: none; }
 
 .cmd-palette {
     position: relative;
@@ -1308,6 +1309,8 @@ tr.empty-row td { border-bottom: none; }
 .slicer-header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
 .slicer-header-row .slicer-row { margin-bottom: 0; }
 .hidden { display: none; }
+.kpi-trend-note { margin: -10px 0 20px; padding: 0 4px; color: var(--text-tertiary); font-size: 12px; font-weight: 600; }
+.breakdown-scope-note { color: var(--text-tertiary); font-size: 12px; font-weight: 600; }
 tfoot td { position: sticky; bottom: 0; background: var(--surface-2); font-weight: 800; border-top: 2px solid var(--border); border-bottom: none; }
 tr.grand-total-row { cursor: default; }
 tr.grand-total-row:hover td { background: var(--surface-2); }
@@ -1580,6 +1583,7 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
                 <svg class="metric-sparkline" id="spark-qty" viewBox="0 0 100 30" preserveAspectRatio="none"></svg>
             </div>
         </div>
+        <div class="kpi-trend-note" id="kpi-trend-note">Trends reflect all sources, unfiltered — last 12 syncs</div>
         <div class="slicer-row">
             <div class="section-label">Group By</div>
             <button class="slicer-btn toggle-group active" data-view="view-overview" data-col="t">Class</button>
@@ -1628,6 +1632,7 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
                 <button class="slicer-btn active" data-viewmode="cards">Cards</button>
                 <button class="slicer-btn" data-viewmode="table">Table</button>
             </div>
+            <div class="breakdown-scope-note">Computed across all data — filters here don't apply</div>
         </div>
         <div class="bento-grid" id="bento-container"></div>
         <div class="table-card hidden" id="breakdown-table-card">
@@ -1665,7 +1670,7 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
             </div>
             <div class="action-group">
                 <button class="btn" id="btn-template-prices">Download Template</button>
-                <label class="btn btn-primary">Upload CSV <input type="file" id="file-prices" accept=".csv"></label>
+                <label class="btn btn-primary">Upload File <input type="file" id="file-prices" accept=".csv,.xlsx,.xls"></label>
             </div>
         </div>
         <div class="table-card">
@@ -1695,7 +1700,7 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
             <div class="section-title">Routing Actions</div>
             <div class="action-group">
                 <button class="btn" id="btn-template-regions">Download Template</button>
-                <label class="btn btn-primary">Upload CSV <input type="file" id="file-regions" accept=".csv"></label>
+                <label class="btn btn-primary">Upload File <input type="file" id="file-regions" accept=".csv,.xlsx,.xls"></label>
             </div>
         </div>
         <div class="table-card">
@@ -1996,6 +2001,15 @@ let state = {
 };
 
 let db = [], filteredDB = [], overviewData = [], breakdownData = [], priceData = [], pharmData = [], missingData = [], anomaliesData = [], duplicatesData = [], duplicateGroups = [], activePharms = new Set();
+let cachedPriceMedian = null;
+
+function getPriceMedian() {
+    if (cachedPriceMedian === null) {
+        const pricedItems = Object.values(state.prices).filter(p => p > 0).sort((a, b) => a - b);
+        cachedPriceMedian = pricedItems.length ? pricedItems[Math.floor(pricedItems.length / 2)] : 0;
+    }
+    return cachedPriceMedian;
+}
 let currentView = 'view-overview', currentSlicer = 'r', breakdownViewMode = 'cards';
 let lastEdit = null;
 let rawSources = {};
@@ -2012,6 +2026,7 @@ try { savedViews = JSON.parse(localStorage.getItem('uni_saved_views') || '[]'); 
 
 let viewDirty = { 'view-overview': true, 'view-breakdown': true, 'view-pricing': true, 'view-pharmacies': true, 'view-missing': true, 'view-duplicates': true, 'view-anomalies': true };
 let filteredDBDirty = true;
+let urlStateApplied = false;
 
 function markAllDirty() {
     Object.keys(viewDirty).forEach(k => viewDirty[k] = true);
@@ -2511,6 +2526,7 @@ function updateDuplicatesBadge() {
 
 function buildDatabase(rawData, anomalies) {
     anomaliesData = anomalies || [];
+    cachedPriceMedian = null;
     rawData = processDuplicates(rawData);
 
     const cats = new Set(), regs = new Set(), branches = new Set(), pharms = new Set(), units = new Set();
@@ -2570,10 +2586,12 @@ function buildDatabase(rawData, anomalies) {
 
     updatePharmacyDropdown();
     updateDuplicatesBadge();
-    applyURLState();
+    if (!urlStateApplied) {
+        urlStateApplied = true;
+        applyURLState();
+    }
     updateStickyColumn();
-    markAllDirty();
-    syncFromOmnibox();
+    refreshAfterEdit();
 }
 
 function updatePharmacyDropdown() {
@@ -2795,6 +2813,12 @@ function renderActiveView() {
 
 let lastOverviewRendered = [];
 
+function anyFilterActive() {
+    const dropdownIds = ['sel-cat', 'sel-reg', 'sel-branch', 'sel-pharm', 'sel-unit'];
+    if (dropdownIds.some(id => document.getElementById(id).value !== 'ALL')) return true;
+    return omni.value.trim().length > 0;
+}
+
 function renderOverview() {
     const finalData = applySort(overviewData, 'view-overview');
     lastOverviewRendered = finalData;
@@ -2830,10 +2854,16 @@ function renderOverview() {
     const emptyMsg = db.length === 0
         ? 'No data loaded yet — sync a remote source or add a local file from the Data panel'
         : 'No records match your filters';
+    const uniqueItems = new Set(filteredDB.map(r => makeKey(r.i, r.u))).size;
+
     document.getElementById('tb-overview').innerHTML = parts.length ? parts.join('') : emptyRowHTML(emptyMsg);
     animateKpi(document.getElementById('kpi-tvl'), tvl, v => fmtEGP.format(v));
     animateKpi(document.getElementById('kpi-qty'), qty, v => fmtNum.format(v), true);
-    animateKpi(document.getElementById('kpi-assets'), finalData.length, v => fmtNum.format(v), true);
+    animateKpi(document.getElementById('kpi-assets'), uniqueItems, v => fmtNum.format(v), true);
+    const filtered = anyFilterActive();
+    ['delta-tvl', 'delta-assets', 'delta-qty', 'spark-tvl', 'spark-assets', 'spark-qty', 'kpi-trend-note'].forEach(id => {
+        document.getElementById(id).classList.toggle('hidden', filtered);
+    });
     updateCapNotice('overview', finalData.length);
 }
 
@@ -2988,14 +3018,14 @@ function undoLastEdit() {
 function updatePrice(k, v) {
     const prevVal = state.prices[k];
     state.prices[k] = parseFloat(v) || 0;
+    cachedPriceMedian = null;
     localStorage.setItem('uni_prices', JSON.stringify(state.prices));
     db.forEach(r => { if (makeKey(r.i, r.u) === k) { r.price = state.prices[k]; r.tot = r.q * r.price; } });
-    markAllDirty();
     const activeEl = document.activeElement;
     const wasFocused = activeEl && activeEl.classList.contains('editable');
     const focusedId = wasFocused ? activeEl.dataset.id : null;
     if (wasFocused) activeEl.blur();
-    syncFromOmnibox();
+    refreshAfterEdit();
     if (focusedId) {
         const el = document.querySelector(`.editable[data-id="${CSS.escape(focusedId)}"]`);
         if (el) { el.focus(); el.classList.add('input-saved'); setTimeout(() => el.classList.remove('input-saved'), 600); }
@@ -3016,8 +3046,7 @@ function renderPricing() {
     const q = normAr(omni.value.trim());
     const tokens = q.split(/\s+/).filter(Boolean);
 
-    const pricedItems = finalData.filter(d => d.p > 0).map(d => d.p).sort((a, b) => a - b);
-    const median = pricedItems.length ? pricedItems[Math.floor(pricedItems.length / 2)] : 0;
+    const median = getPriceMedian();
 
     for (let idx = 0; idx < finalData.length; idx++) {
         const d = finalData[idx];
@@ -3056,12 +3085,11 @@ function updateRegion(p, v) {
         r._norm = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.branch} ${r.t}`);
         r._words = r._norm.split(' ');
     });
-    markAllDirty();
     const activeEl = document.activeElement;
     const wasFocused = activeEl && activeEl.classList.contains('editable');
     const focusedId = wasFocused ? activeEl.dataset.id : null;
     if (wasFocused) activeEl.blur();
-    syncFromOmnibox();
+    refreshAfterEdit();
     if (focusedId) {
         const el = document.querySelector(`.editable[data-id="${CSS.escape(focusedId)}"]`);
         if (el) { el.focus(); el.classList.add('input-saved'); setTimeout(() => el.classList.remove('input-saved'), 600); }
@@ -3136,6 +3164,7 @@ function renderDuplicates() {
 }
 
 document.querySelectorAll('.slicer-btn[data-dupmode]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.dupmode === state.dupMode);
     btn.addEventListener('click', () => {
         document.querySelectorAll('.slicer-btn[data-dupmode]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -3231,6 +3260,65 @@ function applySort(dataArray, viewId) {
     });
 }
 
+const SORT_RENDER_MAP = {
+    'view-overview':   renderOverview,
+    'view-breakdown':  renderBreakdown,
+    'view-pricing':    renderPricing,
+    'view-pharmacies': renderPharmacies,
+    'view-missing':    renderMissing,
+    'view-duplicates': renderDuplicates,
+    'view-anomalies':  renderAnomalies
+};
+
+function updateSortHeaderUI(wrapper, viewId) {
+    const rules = sortRules[viewId] || [];
+    wrapper.querySelectorAll('th[data-sort]').forEach(th => {
+        const rule = rules.find(r => r.k === th.dataset.sort);
+        th.classList.toggle('sort-active', !!rule);
+        if (rule) {
+            th.dataset.dir = rule.d === 1 ? 'asc' : 'desc';
+            th.setAttribute('aria-sort', rule.d === 1 ? 'ascending' : 'descending');
+        } else {
+            delete th.dataset.dir;
+            th.setAttribute('aria-sort', 'none');
+        }
+    });
+}
+
+function initSortableHeaders() {
+    document.querySelectorAll('.table-wrapper').forEach(wrapper => {
+        const table = wrapper.querySelector('table[data-view]');
+        if (!table) return;
+        const viewId = table.dataset.view;
+        updateSortHeaderUI(wrapper, viewId);
+        wrapper.addEventListener('click', e => {
+            const th = e.target.closest('th[data-sort]');
+            if (!th) return;
+            const key = th.dataset.sort;
+            const rules = sortRules[viewId] || [];
+            const idx = rules.findIndex(r => r.k === key);
+            const existingDir = idx >= 0 ? rules[idx].d : null;
+            const nextDir = existingDir == null ? 1 : existingDir === 1 ? -1 : null;
+
+            let newRules;
+            if (e.shiftKey) {
+                newRules = rules.slice();
+                if (idx === -1) newRules.push({ k: key, d: 1 });
+                else if (nextDir == null) newRules.splice(idx, 1);
+                else newRules[idx] = { k: key, d: nextDir };
+            } else if (rules.length === 1 && idx === 0) {
+                newRules = nextDir == null ? [] : [{ k: key, d: nextDir }];
+            } else {
+                newRules = [{ k: key, d: 1 }];
+            }
+
+            sortRules[viewId] = newRules;
+            updateSortHeaderUI(wrapper, viewId);
+            SORT_RENDER_MAP[viewId]?.();
+        });
+    });
+}
+
 document.getElementById('btn-export').addEventListener('click', () => {
     const exportMap = {
         'view-overview': () => {
@@ -3299,56 +3387,81 @@ document.getElementById('btn-template-regions').addEventListener('click', () => 
     showToast('Routing template downloaded', 'success');
 });
 
+function detectImportFileType(file) {
+    const name = (file.name || '').toLowerCase();
+    const ext = /\.(xlsx|xls)$/.test(name) ? 'workbook' : /\.csv$/.test(name) ? 'csv' : null;
+    if (!ext) return null;
+    const mime = (file.type || '').toLowerCase();
+    const obviouslyWrong = /^(image|video|audio)\//.test(mime) || ['application/pdf', 'text/html', 'application/json', 'application/xml', 'text/xml'].includes(mime);
+    return obviouslyWrong ? null : ext;
+}
+
 function processImportFile(file, kind) {
     if (!file) return;
-    Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: res => {
-            if (!res.data.length) {
-                showToast('The uploaded CSV had no rows', 'error');
-                return;
-            }
-            let applied = 0;
-            res.data.forEach(r => {
-                if (kind === 'prices') {
-                    const i = r['Item Name'] || r['Item'] || r['الصنف'] || r[Object.keys(r)[0]];
-                    const u = r['Unit'] || r['الوحدة'] || r[Object.keys(r)[1]] || '';
-                    const p = parseFloat(r['Unit Price (EGP)'] || r['Price'] || r['السعر'] || r[Object.keys(r)[2]]) || 0;
-                    if (i) { state.prices[makeKey(i.trim(), u.trim())] = p; applied++; }
-                } else {
-                    const p = r['Endpoint Name'] || r['Pharmacy'] || r['الصيدلية'] || r[Object.keys(r)[0]];
-                    const reg = r['Region Route'] || r['Region'] || r['المنطقة'] || r[Object.keys(r)[1]] || '';
-                    if (p) { state.pharmacies[p.trim()] = reg.trim(); applied++; }
-                }
-            });
 
-            localStorage.setItem(kind === 'prices' ? 'uni_prices' : 'uni_pharmacies', JSON.stringify(kind === 'prices' ? state.prices : state.pharmacies));
+    const fileType = detectImportFileType(file);
+    if (!fileType) {
+        showToast(`${file.name || 'That file'} isn't a supported type — use .csv, .xlsx, or .xls`, 'error');
+        return;
+    }
 
-            db.forEach(r => {
-                if (kind === 'prices') {
-                    r.price = state.prices[makeKey(r.i, r.u)] || 0;
-                    r.tot   = r.q * r.price;
-                } else if (r.p in state.pharmacies) {
-                    const mapped = state.pharmacies[r.p] || 'Unmapped';
-                    r.region = REGION_MAP[mapped] || mapped;
-                    r.r_low  = r.region.toLowerCase();
-                    r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.branch} ${r.t}`);
-                    r._words = r._norm.split(' ');
-                }
-            });
-
-            markAllDirty();
-            updatePharmacyDropdown();
-            syncFromOmnibox();
-            showToast(
-                applied
-                    ? `${kind === 'prices' ? 'Prices' : 'Routing map'} updated — ${fmtNum.format(applied)} rows applied`
-                    : 'No matching columns found in CSV',
-                applied ? 'success' : 'error'
-            );
+    const finishImport = rows => {
+        if (!rows.length) {
+            showToast(`The uploaded ${fileType === 'workbook' ? 'workbook' : 'CSV'} had no rows`, 'error');
+            return;
         }
-    });
+        let applied = 0;
+        rows.forEach(r => {
+            if (kind === 'prices') {
+                const i = r['Item Name'] || r['Item'] || r['الصنف'] || r[Object.keys(r)[0]];
+                const u = r['Unit'] || r['الوحدة'] || r[Object.keys(r)[1]] || '';
+                const p = parseFloat(r['Unit Price (EGP)'] || r['Price'] || r['السعر'] || r[Object.keys(r)[2]]) || 0;
+                if (i) { state.prices[makeKey(i.trim(), u.trim())] = p; applied++; }
+            } else {
+                const p = r['Endpoint Name'] || r['Pharmacy'] || r['الصيدلية'] || r[Object.keys(r)[0]];
+                const reg = r['Region Route'] || r['Region'] || r['المنطقة'] || r[Object.keys(r)[1]] || '';
+                if (p) { state.pharmacies[p.trim()] = reg.trim(); applied++; }
+            }
+        });
+
+        localStorage.setItem(kind === 'prices' ? 'uni_prices' : 'uni_pharmacies', JSON.stringify(kind === 'prices' ? state.prices : state.pharmacies));
+        if (kind === 'prices') cachedPriceMedian = null;
+
+        db.forEach(r => {
+            if (kind === 'prices') {
+                r.price = state.prices[makeKey(r.i, r.u)] || 0;
+                r.tot   = r.q * r.price;
+            } else if (r.p in state.pharmacies) {
+                const mapped = state.pharmacies[r.p] || 'Unmapped';
+                r.region = REGION_MAP[mapped] || mapped;
+                r.r_low  = r.region.toLowerCase();
+                r._norm  = normAr(`${r.i} ${r.u} ${r.p} ${r.region} ${r.branch} ${r.t}`);
+                r._words = r._norm.split(' ');
+            }
+        });
+
+        markAllDirty();
+        updatePharmacyDropdown();
+        syncFromOmnibox();
+        showToast(
+            applied
+                ? `${kind === 'prices' ? 'Prices' : 'Routing map'} updated — ${fmtNum.format(applied)} rows applied`
+                : 'No matching columns found in file',
+            applied ? 'success' : 'error'
+        );
+    };
+
+    if (fileType === 'csv') {
+        Papa.parse(file, { header: true, skipEmptyLines: true, complete: res => finishImport(res.data) });
+    } else {
+        file.arrayBuffer().then(buf => {
+            const wb = XLSX.read(buf, { type: 'array' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            finishImport(XLSX.utils.sheet_to_json(ws, { defval: '' }));
+        }).catch(err => {
+            showToast(`Could not read ${file.name} — ${err.message || 'invalid workbook'}`, 'error');
+        });
+    }
 }
 
 document.getElementById('file-prices').addEventListener('change', e => {
@@ -3719,7 +3832,10 @@ function switchView(viewId) {
     document.querySelector(`.nav-btn[data-target="${viewId}"]`)?.classList.add('active');
     currentView = viewId;
     document.getElementById(currentView).classList.add('active');
-    document.getElementById('cmd-wrapper').style.display = currentView === 'view-breakdown' ? 'none' : 'block';
+    const cmdWrapper = document.getElementById('cmd-wrapper');
+    const onBreakdown = currentView === 'view-breakdown';
+    cmdWrapper.classList.toggle('palette-disabled', onBreakdown);
+    cmdWrapper.title = onBreakdown ? 'Breakdown is computed across all data — search and filters here do not apply to it' : '';
     activeRowIndex = -1;
     renderActiveView();
     syncURLState();
@@ -3863,6 +3979,11 @@ newViewInput.addEventListener('keydown', e => {
 });
 
 newViewInput.addEventListener('blur', () => { newViewInput.classList.remove('active'); });
+
+function refreshAfterEdit() {
+    markAllDirty();
+    renderActiveView();
+}
 
 function syncFromOmnibox() {
     Object.keys(renderLimits).forEach(k => renderLimits[k] = 100);
@@ -4327,6 +4448,7 @@ function renderDataPanel() {
 initCustomDropdowns();
 initSignalStrip();
 initTablePrefs();
+initSortableHeaders();
 renderSavedViews();
 initDragDrop();
 initTheme();
@@ -4335,6 +4457,7 @@ updateStaleBanner();
 setInterval(updateLastSyncLabel, 30000);
 setInterval(updateStaleBanner, 30000);
 initAutoSync();
+updateKpiTrends();
 boot();
 </script>
 </body>
