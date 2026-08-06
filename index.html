@@ -1355,6 +1355,9 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
 .import-col-header { font-size: 12px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: right; }
 .import-col-map { width: 100%; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; font-weight: 700; color: var(--text-primary); outline: none; font-family: inherit; cursor: pointer; }
 .import-col-map:focus { border-color: var(--accent-blue); }
+.import-class-label { width: 100%; max-width: 320px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 14px; font-weight: 700; color: var(--text-primary); outline: none; font-family: inherit; }
+.import-class-label:focus { border-color: var(--accent-blue); }
+.import-sheet-include { margin-right: 6px; cursor: pointer; vertical-align: -1px; }
 [data-theme="dark"] .import-col-map:focus { border-color: var(--accent-pink); }
 .import-col-fill { display: flex; gap: 3px; background: var(--surface-hover); border-radius: 9px; padding: 3px; }
 .import-col-fill.hidden { display: none; }
@@ -1425,6 +1428,11 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
         </div>
         <div class="import-sheet-tabs" id="import-sheet-tabs"></div>
         <div class="import-body">
+            <div class="import-section">
+                <div class="import-section-title">Class label for this sheet</div>
+                <div class="import-section-desc">Defaults to the sheet name. Override it if the tab name isn't the label you want in the Class column.</div>
+                <input type="text" class="import-class-label" id="import-class-label">
+            </div>
             <div class="import-section">
                 <div class="import-section-title">1 &middot; Header row</div>
                 <div class="import-section-desc">Click the row with your column titles. Rows above it are skipped.</div>
@@ -1665,7 +1673,7 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
     <div id="view-pricing" class="view">
         <div class="card action-row">
             <div>
-                <div class="metric-title">Unpriced Items</div>
+                <div class="metric-title" title="Price precedence: a price of 0 is a placeholder and can still be filled in by a later sync or import. Once an item has a price above 0 — whether set manually or by a file — re-syncing or re-importing never overwrites it; edit the cell directly or re-upload the pricing template to change it.">Unpriced Items</div>
                 <div class="metric-value metric-value-danger" id="kpi-unpriced">0</div>
             </div>
             <div class="action-group">
@@ -1715,6 +1723,7 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
                     </thead>
                     <tbody id="tb-pharmacies"></tbody>
                 </table>
+                <datalist id="region-suggestions"></datalist>
             </div>
             <div class="cap-notice" id="cap-pharmacies"></div>
         </div>
@@ -2204,6 +2213,76 @@ async function parseRemoteSource(source) {
     return { rawData, anomalies, rowCount: rawData.length };
 }
 
+const LOCAL_SOURCES_DB = 'lx_parser_local_sources';
+const LOCAL_SOURCES_STORE = 'sources';
+let localSourcePersistWarned = false;
+
+function openLocalSourcesDB() {
+    return new Promise((resolve, reject) => {
+        if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
+        const req = indexedDB.open(LOCAL_SOURCES_DB, 1);
+        req.onupgradeneeded = () => { req.result.createObjectStore(LOCAL_SOURCES_STORE, { keyPath: 'id' }); };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+function warnLocalPersistFailed() {
+    if (localSourcePersistWarned) return;
+    localSourcePersistWarned = true;
+    showToast('Local files may not survive a reload in this browser (storage is unavailable)', 'warning');
+}
+
+async function persistLocalSource(id, entry) {
+    try {
+        const buffer = await entry.file.arrayBuffer();
+        const idb = await openLocalSourcesDB();
+        await new Promise((resolve, reject) => {
+            const tx = idb.transaction(LOCAL_SOURCES_STORE, 'readwrite');
+            tx.objectStore(LOCAL_SOURCES_STORE).put({
+                id, label: entry.label, fileName: entry.file.name, fileType: entry.file.type, fileBuffer: buffer,
+                rawData: entry.rawData, anomalies: entry.anomalies,
+                rows: entry.rows, filledCount: entry.filledCount, ts: entry.ts, wizardConfig: entry.wizardConfig
+            });
+            tx.oncomplete = resolve;
+            tx.onerror = () => reject(tx.error);
+        });
+    } catch (e) {
+        warnLocalPersistFailed();
+    }
+}
+
+async function deletePersistedLocalSource(id) {
+    try {
+        const idb = await openLocalSourcesDB();
+        await new Promise((resolve, reject) => {
+            const tx = idb.transaction(LOCAL_SOURCES_STORE, 'readwrite');
+            tx.objectStore(LOCAL_SOURCES_STORE).delete(id);
+            tx.oncomplete = resolve;
+            tx.onerror = () => reject(tx.error);
+        });
+    } catch (e) {}
+}
+
+async function restorePersistedLocalSources() {
+    try {
+        const idb = await openLocalSourcesDB();
+        const entries = await new Promise((resolve, reject) => {
+            const tx = idb.transaction(LOCAL_SOURCES_STORE, 'readonly');
+            const req = tx.objectStore(LOCAL_SOURCES_STORE).getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => reject(req.error);
+        });
+        entries.forEach(entry => {
+            const file = new File([entry.fileBuffer], entry.fileName, { type: entry.fileType || '' });
+            rawSources[entry.id] = {
+                kind: 'local', label: entry.label, file, rawData: entry.rawData, anomalies: entry.anomalies,
+                rows: entry.rows, filledCount: entry.filledCount, status: 'local', ts: entry.ts, wizardConfig: entry.wizardConfig
+            };
+        });
+    } catch (e) {}
+}
+
 function getSourceCache(id) {
     try {
         const raw = localStorage.getItem(`uni_cache_${id}`);
@@ -2213,10 +2292,16 @@ function getSourceCache(id) {
     }
 }
 
+let sourceCacheQuotaWarned = false;
 function setSourceCache(id, data) {
     try {
         localStorage.setItem(`uni_cache_${id}`, JSON.stringify({ ...data, ts: Date.now() }));
-    } catch (e) {}
+    } catch (e) {
+        if (!sourceCacheQuotaWarned && (e.name === 'QuotaExceededError' || e.code === 22)) {
+            sourceCacheQuotaWarned = true;
+            showToast('Local storage is full — remote source caching has stopped working for this session', 'warning');
+        }
+    }
 }
 
 function checkDrift(source, newCount) {
@@ -2384,6 +2469,7 @@ async function boot() {
     const overlay = document.getElementById('sync-overlay');
     overlay.style.opacity = '1';
     showSkeleton();
+    await restorePersistedLocalSources();
     try {
         const { statusMap } = await fetchAndBuildDatabase();
         const values = Object.values(statusMap);
@@ -2536,7 +2622,7 @@ function buildDatabase(rawData, anomalies) {
 
     rawData.forEach(r => {
         const pk = makeKey(r.i, r.u);
-        if (r.price > 0 && !(pk in state.prices)) state.prices[pk] = r.price;
+        if (r.price > 0 && (!(pk in state.prices) || state.prices[pk] === 0)) state.prices[pk] = r.price;
         else if (!(pk in state.prices)) state.prices[pk] = 0;
     });
 
@@ -3073,6 +3159,13 @@ document.getElementById('tb-pricing').addEventListener('change', e => {
     if (e.target.classList.contains('editable')) updatePrice(e.target.dataset.id, e.target.value);
 });
 
+function refreshRegionSuggestions() {
+    const dl = document.getElementById('region-suggestions');
+    if (!dl) return;
+    const regions = new Set([...Object.values(REGION_MAP), ...Object.values(state.pharmacies)].filter(Boolean));
+    dl.innerHTML = [...regions].sort().map(r => `<option value="${escapeHTML(r)}"></option>`).join('');
+}
+
 function updateRegion(p, v) {
     const prevVal = state.pharmacies[p];
     state.pharmacies[p] = v.trim();
@@ -3098,6 +3191,7 @@ function updateRegion(p, v) {
         lastEdit = { type: 'region', key: p, prevVal: prevVal || '' };
         showToast('Region updated', 'success', { label: 'Undo', fn: undoLastEdit });
     }
+    refreshRegionSuggestions();
 }
 
 function renderPharmacies() {
@@ -3116,7 +3210,7 @@ function renderPharmacies() {
         if (idx >= limit) continue;
         const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
         const statLabel = d.stat === 0 ? 'Unrouted — no region assigned' : d.stat === 2 ? 'Inactive — no records this period' : 'Active';
-        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}"></td></tr>`);
+        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" list="region-suggestions" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}"></td></tr>`);
     }
 
     document.getElementById('tb-pharmacies').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No pharmacies match your filters');
@@ -3426,6 +3520,7 @@ function processImportFile(file, kind) {
 
         localStorage.setItem(kind === 'prices' ? 'uni_prices' : 'uni_pharmacies', JSON.stringify(kind === 'prices' ? state.prices : state.pharmacies));
         if (kind === 'prices') cachedPriceMedian = null;
+        else refreshRegionSuggestions();
 
         db.forEach(r => {
             if (kind === 'prices') {
@@ -4063,7 +4158,8 @@ function ensureSheetConfig(sheetName) {
         const headerRowIdx = guessHeaderRowIdx(sheetName);
         const rows = currentSheetRows(sheetName);
         const { map, fill } = guessColumnMapping(rows[headerRowIdx] || []);
-        importState.sheetConfigs[sheetName] = { headerRowIdx, columnMap: map, fillDir: fill };
+        const confidentlyGuessed = ['i', 'p', 'u', 'q'].every(f => Object.values(map).includes(f));
+        importState.sheetConfigs[sheetName] = { headerRowIdx, columnMap: map, fillDir: fill, included: confidentlyGuessed, classLabel: '' };
     }
     return importState.sheetConfigs[sheetName];
 }
@@ -4156,7 +4252,7 @@ function computeSheetResult(sheetName) {
             }
         }
 
-        rawData.push({ t: sheetName, branch: sr.branch, p: sr.p, i: sr.i, u: sr.u, q, price: priceVal });
+        rawData.push({ t: cfg.classLabel || sheetName, branch: sr.branch, p: sr.p, i: sr.i, u: sr.u, q, price: priceVal });
     });
 
     return { rawData, anomalies, filledCount, missing: [] };
@@ -4167,6 +4263,7 @@ function computeAllSheetsResult() {
     let filledCount = 0;
     const sheetsIncluded = [], sheetsSkipped = [];
     importState.workbook.SheetNames.forEach(name => {
+        if (!ensureSheetConfig(name).included) { sheetsSkipped.push(name); return; }
         const result = computeSheetResult(name);
         if (result.missing.length) { sheetsSkipped.push(name); return; }
         sheetsIncluded.push(name);
@@ -4227,16 +4324,19 @@ function closeImportWizard() {
     importState = null;
 }
 
+function sheetTabInnerHTML(name) {
+    const cfg = ensureSheetConfig(name);
+    const ready = configColIdx(cfg, 'i') !== -1 && configColIdx(cfg, 'p') !== -1 && configColIdx(cfg, 'u') !== -1 && configColIdx(cfg, 'q') !== -1;
+    return `<input type="checkbox" class="import-sheet-include" data-sheet-cb="${escapeHTML(name)}" ${cfg.included ? 'checked' : ''} title="Include this sheet in the import" aria-label="Include ${escapeHTML(name)}">${ready ? '&check; ' : ''}${escapeHTML(name)}`;
+}
+
 function renderImportWizard() {
     document.getElementById('import-filename').textContent = importState.file.name;
 
     const tabs = document.getElementById('import-sheet-tabs');
-    tabs.innerHTML = importState.workbook.SheetNames.map(name => {
-        const ready = importState.sheetConfigs[name] && configColIdx(importState.sheetConfigs[name], 'i') !== -1 &&
-            configColIdx(importState.sheetConfigs[name], 'p') !== -1 && configColIdx(importState.sheetConfigs[name], 'u') !== -1 &&
-            configColIdx(importState.sheetConfigs[name], 'q') !== -1;
-        return `<button type="button" class="slicer-btn ${name === importState.sheetName ? 'active' : ''}" data-sheet="${escapeHTML(name)}">${ready ? '&check; ' : ''}${escapeHTML(name)}</button>`;
-    }).join('');
+    tabs.innerHTML = importState.workbook.SheetNames.map(name =>
+        `<button type="button" class="slicer-btn ${name === importState.sheetName ? 'active' : ''}" data-sheet="${escapeHTML(name)}">${sheetTabInnerHTML(name)}</button>`
+    ).join('');
     tabs.querySelectorAll('[data-sheet]').forEach(btn => {
         btn.addEventListener('click', () => {
             importState.sheetName = btn.dataset.sheet;
@@ -4244,6 +4344,18 @@ function renderImportWizard() {
             renderImportWizard();
         });
     });
+    tabs.querySelectorAll('.import-sheet-include').forEach(cb => {
+        cb.addEventListener('click', e => e.stopPropagation());
+        cb.addEventListener('change', e => {
+            e.stopPropagation();
+            ensureSheetConfig(cb.dataset.sheetCb).included = cb.checked;
+        });
+    });
+
+    const labelInput = document.getElementById('import-class-label');
+    labelInput.value = currentConfig().classLabel || '';
+    labelInput.placeholder = importState.sheetName;
+    labelInput.oninput = () => { currentConfig().classLabel = labelInput.value; };
 
     renderHeaderRowPicker();
     renderColumnMappingGrid();
@@ -4269,7 +4381,7 @@ function renderHeaderRowPicker() {
             const rowIdx = parseInt(tr.dataset.rowidx, 10);
             const headerRow = currentSheetRows()[rowIdx] || [];
             const { map, fill } = guessColumnMapping(headerRow);
-            importState.sheetConfigs[importState.sheetName] = { headerRowIdx: rowIdx, columnMap: map, fillDir: fill };
+            importState.sheetConfigs[importState.sheetName] = { ...importState.sheetConfigs[importState.sheetName], headerRowIdx: rowIdx, columnMap: map, fillDir: fill };
             renderImportWizard();
         });
     });
@@ -4321,10 +4433,14 @@ function renderColumnMappingGrid() {
 
 function renderSheetTabsReadyState() {
     document.querySelectorAll('#import-sheet-tabs [data-sheet]').forEach(btn => {
-        const name = btn.dataset.sheet;
-        const cfg = importState.sheetConfigs[name];
-        const ready = cfg && configColIdx(cfg, 'i') !== -1 && configColIdx(cfg, 'p') !== -1 && configColIdx(cfg, 'u') !== -1 && configColIdx(cfg, 'q') !== -1;
-        btn.innerHTML = (ready ? '&check; ' : '') + escapeHTML(name);
+        btn.innerHTML = sheetTabInnerHTML(btn.dataset.sheet);
+    });
+    document.querySelectorAll('#import-sheet-tabs .import-sheet-include').forEach(cb => {
+        cb.addEventListener('click', e => e.stopPropagation());
+        cb.addEventListener('change', e => {
+            e.stopPropagation();
+            ensureSheetConfig(cb.dataset.sheetCb).included = cb.checked;
+        });
     });
 }
 
@@ -4372,6 +4488,7 @@ document.getElementById('btn-import-confirm').addEventListener('click', () => {
         rows: result.rawData.length, filledCount: result.filledCount, status: 'local', ts: Date.now(),
         wizardConfig: { lastSheet: importState.sheetName, sheetConfigs: JSON.parse(JSON.stringify(importState.sheetConfigs)) }
     };
+    persistLocalSource(srcId, rawSources[srcId]);
     const fileName = importState.file.name;
     const skippedNote = result.sheetsSkipped.length ? ` (${result.sheetsSkipped.length} sheet${result.sheetsSkipped.length > 1 ? 's' : ''} skipped — incomplete mapping)` : '';
     rebuildFromSources();
@@ -4384,14 +4501,41 @@ function removeLocalSource(srcId) {
     const entry = rawSources[srcId];
     if (!entry) return;
     delete rawSources[srcId];
+    deletePersistedLocalSource(srcId);
     rebuildFromSources();
     renderDataPanel();
     showToast(`${entry.label} removed`, 'success');
 }
 
+function findOrphanedEntries() {
+    const activeItemKeys = new Set(db.map(r => makeKey(r.i, r.u)));
+    const activePharmNames = new Set(db.map(r => r.p));
+    const priceOrphans = Object.keys(state.prices).filter(k => !activeItemKeys.has(k));
+    const pharmOrphans = Object.keys(state.pharmacies).filter(p => !activePharmNames.has(p));
+    return { priceOrphans, pharmOrphans };
+}
+
+function pruneOrphanedEntries() {
+    const { priceOrphans, pharmOrphans } = findOrphanedEntries();
+    const total = priceOrphans.length + pharmOrphans.length;
+    if (!total) { showToast('No orphaned entries to prune', 'success'); return; }
+    const ok = confirm(`Remove ${fmtNum.format(priceOrphans.length)} orphaned price entr${priceOrphans.length === 1 ? 'y' : 'ies'} and ${fmtNum.format(pharmOrphans.length)} orphaned pharmacy entr${pharmOrphans.length === 1 ? 'y' : 'ies'} that no longer appear in any current source? This can't be undone.`);
+    if (!ok) return;
+    priceOrphans.forEach(k => delete state.prices[k]);
+    pharmOrphans.forEach(p => delete state.pharmacies[p]);
+    localStorage.setItem('uni_prices', JSON.stringify(state.prices));
+    localStorage.setItem('uni_pharmacies', JSON.stringify(state.pharmacies));
+    cachedPriceMedian = null;
+    refreshRegionSuggestions();
+    renderDataPanel();
+    showToast(`Pruned ${fmtNum.format(total)} orphaned entr${total === 1 ? 'y' : 'ies'}`, 'success');
+}
+
 function renderDataPanel() {
     const panel = document.getElementById('data-panel');
     const localEntries = Object.entries(rawSources).filter(([, s]) => s.kind === 'local');
+    const { priceOrphans, pharmOrphans } = findOrphanedEntries();
+    const orphanTotal = priceOrphans.length + pharmOrphans.length;
 
     const fileRows = localEntries.length
         ? localEntries.map(([id, s]) => `
@@ -4419,6 +4563,14 @@ function renderDataPanel() {
             <span class="upload-msg">Click or drop an .xlsx workbook</span>
             <input type="file" id="local-file-input" accept=".xlsx,.xls">
         </label>
+        <div class="sync-health-title">Maintenance</div>
+        <div class="sync-health-row">
+            <div class="sync-health-info">
+                <div class="sync-health-label">Orphaned price &amp; pharmacy entries</div>
+                <div class="sync-health-meta">${fmtNum.format(orphanTotal)} entr${orphanTotal === 1 ? 'y' : 'ies'} no longer seen in any current source</div>
+            </div>
+            <button type="button" class="btn" id="btn-prune-orphans" ${orphanTotal ? '' : 'disabled'}>Prune</button>
+        </div>
     `;
 
     panel.querySelectorAll('[data-remove-id]').forEach(btn => btn.addEventListener('click', e => {
@@ -4430,6 +4582,7 @@ function renderDataPanel() {
         dataPanel.classList.remove('open');
         reopenImportWizardForSource(btn.dataset.editId);
     }));
+    document.getElementById('btn-prune-orphans').addEventListener('click', pruneOrphanedEntries);
 
     document.getElementById('local-file-input').addEventListener('change', e => {
         const f = e.target.files[0];
@@ -4449,6 +4602,7 @@ initCustomDropdowns();
 initSignalStrip();
 initTablePrefs();
 initSortableHeaders();
+refreshRegionSuggestions();
 renderSavedViews();
 initDragDrop();
 initTheme();
