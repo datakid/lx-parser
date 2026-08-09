@@ -170,6 +170,7 @@ nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
     padding: 12px 14px 12px 22px;
     margin: 20px auto;
     width: calc(100% - 40px);
@@ -245,7 +246,12 @@ nav::after {
     overflow-x: auto;
     scrollbar-width: none;
     min-width: 0;
+    mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
 }
+.nav-links.at-start { mask-image: linear-gradient(to right, black calc(100% - 20px), transparent); -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent); }
+.nav-links.at-end { mask-image: linear-gradient(to right, transparent, black 20px); -webkit-mask-image: linear-gradient(to right, transparent, black 20px); }
+.nav-links.at-start.at-end { mask-image: none; -webkit-mask-image: none; }
 
 .nav-links::-webkit-scrollbar { display: none; }
 
@@ -257,7 +263,7 @@ nav::after {
     background: transparent;
     color: var(--text-secondary);
     border: none;
-    padding: 9px 14px;
+    padding: 9px 12px;
     border-radius: 14px;
     font-weight: 600;
     font-size: 12.5px;
@@ -592,7 +598,9 @@ nav::after {
 }
 
 .cmd-wrapper:focus-within::before { opacity: 0.4; }
-.cmd-wrapper.palette-disabled { opacity: 0.45; pointer-events: none; }
+.cmd-wrapper.palette-disabled .cmd-input-area, .cmd-wrapper.palette-disabled .dropdowns-row, .cmd-wrapper.palette-disabled .saved-views-row { display: none; }
+.palette-disabled-note { display: none; align-items: center; gap: 10px; padding: 18px 28px; color: var(--text-tertiary); font-size: 13px; font-weight: 600; }
+.cmd-wrapper.palette-disabled .palette-disabled-note { display: flex; }
 
 .cmd-palette {
     position: relative;
@@ -1236,6 +1244,10 @@ tr.empty-row td { border-bottom: none; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; } }
 
+@media (max-width: 1450px) {
+    .last-sync { display: none; }
+}
+
 @media (max-width: 850px) {
     nav { flex-direction: column; padding: 20px; gap: 20px; margin: 10px auto; width: calc(100% - 20px); }
     .nav-links { overflow-x: auto; width: 100%; justify-content: flex-start; flex-wrap: nowrap; padding-bottom: 8px; -webkit-overflow-scrolling: touch; border: none; background: transparent; box-shadow: none; }
@@ -1250,7 +1262,6 @@ tr.empty-row td { border-bottom: none; }
     .saved-views-row { padding: 0 20px 18px; }
     .dropdown-group { justify-content: space-between; }
     .custom-dropdown-panel { min-width: unset; }
-    .last-sync { display: none; }
     .sync-health-panel { left: auto; right: 0; min-width: unset; width: min(300px, calc(100vw - 32px)); }
     .shortcuts-grid { grid-template-columns: 1fr; }
     .shortcut-row:nth-last-child(-n+2) { border-bottom: 1px solid var(--border-soft); }
@@ -1523,6 +1534,10 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
 <div class="main-content">
     <div class="cmd-wrapper" id="cmd-wrapper">
         <div class="cmd-palette">
+            <div class="palette-disabled-note">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Search and filters are inactive on this view — see the note below
+            </div>
             <div class="cmd-input-area">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <input type="text" id="omnibox" class="omnibox" placeholder="Search globally..." autocomplete="off" aria-label="Global search">
@@ -4849,6 +4864,18 @@ function initAuroraVisibilityPause() {
     apply();
 }
 
+function initNavLinksScrollFade() {
+    const el = document.querySelector('.nav-links');
+    if (!el) return;
+    const update = () => {
+        el.classList.toggle('at-start', el.scrollLeft <= 2);
+        el.classList.toggle('at-end', el.scrollLeft >= el.scrollWidth - el.clientWidth - 2);
+    };
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+}
+
 initCustomDropdowns();
 initSignalStrip();
 initTablePrefs();
@@ -4858,6 +4885,7 @@ renderSavedViews();
 initDragDrop();
 initTheme();
 initAuroraVisibilityPause();
+initNavLinksScrollFade();
 updateLastSyncLabel();
 updateStaleBanner();
 setInterval(updateLastSyncLabel, 30000);
