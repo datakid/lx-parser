@@ -255,6 +255,29 @@ nav::after {
 
 .nav-links::-webkit-scrollbar { display: none; }
 
+.nav-compact-wrap { display: none; position: relative; min-width: 0; }
+
+.nav-compact-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 13.5px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    width: 100%;
+    min-width: 0;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.nav-compact-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-compact-trigger:hover { background: var(--surface-hover); }
+.nav-compact-arrow { flex-shrink: 0; margin-left: auto; opacity: 0.5; transition: transform 0.22s var(--ease-out); }
+.nav-compact-trigger.open .nav-compact-arrow { transform: rotate(180deg); opacity: 0.8; }
+
 [data-theme="dark"] .nav-links {
     box-shadow: inset 0 1px 4px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.02);
 }
@@ -320,6 +343,12 @@ nav::after {
 
 .btn:hover { border-color: var(--text-tertiary); transform: translateY(-1px); box-shadow: var(--shadow-sm), inset 0 1px 0 var(--glass-inset); }
 .btn:active { transform: translateY(0); box-shadow: var(--shadow-xs); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+.btn-prune-active { color: var(--warning); border-color: rgba(184,128,31,0.4); }
+.btn-prune-active:hover { background: var(--warning-bg); border-color: var(--warning); }
+
+.label-hint { cursor: help; }
 
 .btn-primary {
     background: var(--gradient-primary);
@@ -537,7 +566,7 @@ nav::after {
     align-items: center;
     gap: 12px;
     padding: 13px 18px;
-    margin-bottom: 20px;
+    margin-bottom: 32px;
     border-radius: 16px;
     border: 1px solid rgba(184,128,31,0.3);
     background: var(--warning-bg);
@@ -1256,10 +1285,43 @@ tr.empty-row td { border-bottom: none; }
     .last-sync { display: none; }
 }
 
+@media (max-width: 1300px) {
+    .nav-compact-wrap { display: flex; flex: 1; }
+    .nav-links {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        min-width: 100%;
+        width: max-content;
+        max-width: min(320px, calc(100vw - 32px));
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 2px;
+        max-height: min(420px, calc(100vh - 100px));
+        overflow-y: auto;
+        background: var(--palette-bg);
+        backdrop-filter: blur(44px) saturate(200%);
+        -webkit-backdrop-filter: blur(44px) saturate(200%);
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        box-shadow: var(--shadow-lg);
+        padding: 8px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-6px) scale(0.98);
+        transition: opacity 0.18s var(--ease-out), transform 0.2s var(--ease-spring);
+        mask-image: none;
+        -webkit-mask-image: none;
+        z-index: 500;
+    }
+    .nav-links.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+    .nav-links .nav-btn { width: 100%; text-align: left; padding: 12px 14px; font-size: 13.5px; }
+}
+
 @media (max-width: 850px) {
     nav { flex-direction: column; padding: 20px; gap: 20px; margin: 10px auto; width: calc(100% - 20px); }
-    .nav-links { overflow-x: auto; width: 100%; justify-content: flex-start; flex-wrap: nowrap; padding-bottom: 8px; -webkit-overflow-scrolling: touch; border: none; background: transparent; box-shadow: none; }
-    .nav-btn { background: var(--surface); border: 1px solid var(--border); }
+    .nav-compact-wrap { width: 100%; flex: none; }
     .controls { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
     .cmd-input-area { padding: 0 20px; height: 60px; }
     .omnibox { font-size: 18px; padding: 0 16px; }
@@ -1324,6 +1386,7 @@ tr.empty-row td { border-bottom: none; }
 .source-remove { background: transparent; border: none; color: var(--text-tertiary); cursor: pointer; padding: 4px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: auto; transition: all 0.15s ease; }
 .source-remove:hover { color: var(--danger); background: var(--danger-bg); }
 .sync-health-panel .upload-box { padding: 22px 16px; border-radius: 14px; box-shadow: none; max-width: none; margin-top: 4px; }
+.sync-health-panel .upload-box:hover, .sync-health-panel .upload-box.drag-active { box-shadow: none; }
 .sync-health-panel .upload-box svg { width: 30px; height: 30px; margin-bottom: 2px; }
 .sync-health-panel .upload-title { font-size: 13.5px; }
 .sync-health-panel .upload-msg { font-size: 11.5px; }
@@ -1340,10 +1403,15 @@ tfoot td { position: sticky; bottom: 0; background: var(--surface-2); font-weigh
 tr.grand-total-row { cursor: default; }
 tr.grand-total-row:hover td { background: var(--surface-2); }
 
-.upload-box { background: var(--surface); border: 2px dashed var(--accent-blue); border-radius: 24px; padding: 60px; text-align: center; color: var(--text-primary); max-width: 500px; box-shadow: var(--shadow-lg), 0 0 56px rgba(101,81,166,0.12); cursor: pointer; transition: background 0.2s; display:flex; flex-direction:column; align-items:center; gap: 16px; }
+.upload-box { background: var(--surface); border: 2px dashed var(--accent-blue); border-radius: 24px; padding: 60px; text-align: center; color: var(--text-primary); max-width: 500px; box-shadow: var(--shadow-lg), 0 0 56px rgba(101,81,166,0.12); cursor: pointer; transition: background 0.25s var(--ease-out), border-color 0.25s var(--ease-out), transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out); display:flex; flex-direction:column; align-items:center; gap: 16px; }
 [data-theme="dark"] .upload-box { border-color: var(--accent-pink); box-shadow: var(--shadow-lg), 0 0 56px rgba(214,90,150,0.12); }
-.upload-box:hover { background: var(--surface-hover); }
-.upload-box svg { color: var(--accent-blue); width: 64px; height: 64px; margin-bottom: 10px; }
+.upload-box:hover { background: var(--surface-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg), 0 0 68px rgba(101,81,166,0.2); }
+[data-theme="dark"] .upload-box:hover { box-shadow: var(--shadow-lg), 0 0 68px rgba(214,90,150,0.2); }
+.upload-box:hover svg { transform: translateY(-3px) scale(1.08); }
+.upload-box.drag-active { border-style: solid; background: var(--accent-blue-muted); transform: scale(1.015); box-shadow: var(--shadow-lg), 0 0 72px rgba(101,81,166,0.28); }
+[data-theme="dark"] .upload-box.drag-active { background: var(--accent-pink-muted); box-shadow: var(--shadow-lg), 0 0 72px rgba(214,90,150,0.28); }
+.upload-box.drag-active svg { transform: translateY(-4px) scale(1.12); }
+.upload-box svg { color: var(--accent-blue); width: 64px; height: 64px; margin-bottom: 10px; transition: transform 0.3s var(--ease-spring); }
 [data-theme="dark"] .upload-box svg { color: var(--accent-pink); }
 .upload-title { font-weight: 700; font-size: 24px; letter-spacing: -0.5px; }
 .upload-msg { font-size: 15px; color: var(--text-secondary); line-height: 1.5; }
@@ -1490,13 +1558,19 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
         LX Parser
     </div>
-    <div class="nav-links">
-        <button class="nav-btn active" data-target="view-overview">Overview</button>
-        <button class="nav-btn" data-target="view-breakdown">Breakdown</button>
-        <button class="nav-btn" data-target="view-pricing">Pricing Config</button>
-        <button class="nav-btn" data-target="view-pharmacies">Region Map</button>
-        <button class="nav-btn" data-target="view-missing">Missing Pharms</button>
-        <button class="nav-btn" data-target="view-anomalies">Anomalies</button>
+    <div class="nav-compact-wrap">
+        <button class="nav-compact-trigger" id="nav-compact-trigger" aria-haspopup="true" aria-expanded="false" aria-label="Switch section">
+            <span id="nav-compact-label">Overview</span>
+            <svg class="nav-compact-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-links">
+            <button class="nav-btn active" data-target="view-overview">Overview</button>
+            <button class="nav-btn" data-target="view-breakdown">Breakdown</button>
+            <button class="nav-btn" data-target="view-pricing">Pricing Config</button>
+            <button class="nav-btn" data-target="view-pharmacies">Region Map</button>
+            <button class="nav-btn" data-target="view-missing">Missing Pharms</button>
+            <button class="nav-btn" data-target="view-anomalies">Anomalies</button>
+        </div>
     </div>
     <div class="controls">
         <div class="sync-cluster">
@@ -2414,6 +2488,8 @@ const syncHealthPanel = document.getElementById('sync-health-panel');
 syncHealthTrigger.addEventListener('click', e => {
     e.stopPropagation();
     dataPanel.classList.remove('open');
+    navLinksEl.classList.remove('open');
+    navCompactTrigger.classList.remove('open');
     const open = syncHealthPanel.classList.toggle('open');
     if (open) renderSyncHealthPanel();
 });
@@ -2424,8 +2500,30 @@ const dataPanel = document.getElementById('data-panel');
 dataPanelTrigger.addEventListener('click', e => {
     e.stopPropagation();
     syncHealthPanel.classList.remove('open');
+    navLinksEl.classList.remove('open');
+    navCompactTrigger.classList.remove('open');
     const open = dataPanel.classList.toggle('open');
     if (open) renderDataPanel();
+});
+
+const navCompactTrigger = document.getElementById('nav-compact-trigger');
+const navCompactLabel = document.getElementById('nav-compact-label');
+const navLinksEl = document.querySelector('.nav-links');
+
+navCompactTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    syncHealthPanel.classList.remove('open');
+    dataPanel.classList.remove('open');
+    const open = navLinksEl.classList.toggle('open');
+    navCompactTrigger.classList.toggle('open', open);
+    navCompactTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+
+navLinksEl.addEventListener('click', e => {
+    if (!e.target.closest('.nav-btn')) return;
+    navLinksEl.classList.remove('open');
+    navCompactTrigger.classList.remove('open');
+    navCompactTrigger.setAttribute('aria-expanded', 'false');
 });
 
 document.addEventListener('click', e => {
@@ -2434,6 +2532,11 @@ document.addEventListener('click', e => {
     }
     if (!e.target.closest('#data-panel') && !e.target.closest('#data-panel-trigger')) {
         dataPanel.classList.remove('open');
+    }
+    if (!e.target.closest('.nav-compact-wrap')) {
+        navLinksEl.classList.remove('open');
+        navCompactTrigger.classList.remove('open');
+        navCompactTrigger.setAttribute('aria-expanded', 'false');
     }
 });
 
@@ -4236,7 +4339,9 @@ document.addEventListener('keydown', e => {
 
 function switchView(viewId) {
     document.querySelectorAll('.nav-btn, .view').forEach(el => el.classList.remove('active'));
-    document.querySelector(`.nav-btn[data-target="${viewId}"]`)?.classList.add('active');
+    const activeBtn = document.querySelector(`.nav-btn[data-target="${viewId}"]`);
+    activeBtn?.classList.add('active');
+    if (navCompactLabel && activeBtn) navCompactLabel.textContent = activeBtn.textContent;
     currentView = viewId;
     document.getElementById(currentView).classList.add('active');
     const cmdWrapper = document.getElementById('cmd-wrapper');
@@ -4884,10 +4989,10 @@ function renderDataPanel() {
         <div class="sync-health-title">Maintenance</div>
         <div class="sync-health-row">
             <div class="sync-health-info">
-                <div class="sync-health-label">Orphaned price &amp; pharmacy entries</div>
+                <div class="sync-health-label label-hint" title="Prices and region assignments are kept locally by item/pharmacy so they survive a source going temporarily missing. When a file is removed or an item is renamed, its old entry becomes orphaned instead of vanishing. Prune permanently deletes entries that no longer match anything in your current data.">Orphaned price &amp; pharmacy entries</div>
                 <div class="sync-health-meta">${fmtNum.format(orphanTotal)} entr${orphanTotal === 1 ? 'y' : 'ies'} no longer seen in any current source</div>
             </div>
-            <button type="button" class="btn" id="btn-prune-orphans" ${orphanTotal ? '' : 'disabled'}>Prune</button>
+            <button type="button" class="btn${orphanTotal ? ' btn-prune-active' : ''}" id="btn-prune-orphans" ${orphanTotal ? '' : 'disabled'}>Prune</button>
         </div>
     `;
 
