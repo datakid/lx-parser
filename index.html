@@ -29,7 +29,7 @@
     --border-soft: rgba(30,20,40,0.05);
     --text-primary: #16121D;
     --text-secondary: #6B6374;
-    --text-tertiary: #A199A8;
+    --text-tertiary: #756289;
     --accent-blue: #6551A6;
     --accent-pink: #A63D6E;
     --accent-blue-muted: rgba(101,81,166,0.09);
@@ -81,7 +81,7 @@
     --border-soft: rgba(255,255,255,0.035);
     --text-primary: #EFE8F5;
     --text-secondary: #8B7F9B;
-    --text-tertiary: #574F6B;
+    --text-tertiary: #808092;
     --accent-blue: #9483DE;
     --accent-pink: #D65A96;
     --accent-blue-muted: rgba(148,131,222,0.11);
@@ -351,7 +351,7 @@ nav::after {
 
 .dropdown-label { color: var(--text-secondary); font-weight: 600; font-size: 13px; flex-shrink: 0; }
 .dropdown-group-plain { border: none; background: transparent; box-shadow: none; margin-left: auto; cursor: default; }
-.exact-match-label { margin-left: 10px; color: var(--text-secondary); font-weight: 600; font-size: 13px; }
+.exact-match-label { margin-left: 10px; color: var(--text-secondary); font-weight: 600; font-size: 13px; cursor: help; }
 .section-label { display: flex; align-items: center; padding: 0 10px; color: var(--text-tertiary); font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 .metric-value-danger { color: var(--danger); text-shadow: 0 4px 12px rgba(194,63,63,0.2); }
 .metric-value-warning { color: var(--warning); text-shadow: 0 4px 12px rgba(184,128,31,0.2); }
@@ -1039,7 +1039,6 @@ input:checked + .slider:before { transform: translateX(18px); }
     padding: 28px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
     box-shadow: var(--shadow-sm);
     transition: transform 0.38s var(--ease-out), box-shadow 0.38s var(--ease-out), border-color 0.38s var(--ease-out);
     position: relative;
@@ -1079,8 +1078,8 @@ input:checked + .slider:before { transform: translateX(18px); }
 .bento-card:hover::before { opacity: 1; }
 .bento-card:hover::after { opacity: 1; transform: scale(1.6); }
 
-.bento-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.bento-title { font-weight: 700; font-size: 17px; color: var(--text-primary); word-break: break-word; line-height: 1.35; letter-spacing: -0.35px; }
+.bento-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.bento-title { font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 17px; color: var(--text-primary); word-break: break-word; line-height: 1.35; letter-spacing: -0.35px; }
 
 .bento-subtitle {
     font-size: 11.5px;
@@ -1095,7 +1094,7 @@ input:checked + .slider:before { transform: translateX(18px); }
     flex-shrink: 0;
 }
 
-.bento-metric { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--text-primary); letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.bento-metric { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--text-primary); letter-spacing: -1px; font-variant-numeric: tabular-nums; margin-bottom: 16px; }
 
 [data-theme="dark"] .bento-metric { background: linear-gradient(135deg, #FFF 45%, var(--accent-pink)); -webkit-background-clip: text; color: transparent; }
 [data-theme="light"] .bento-metric { background: linear-gradient(135deg, #16121D 45%, var(--accent-blue)); -webkit-background-clip: text; color: transparent; }
@@ -1135,6 +1134,8 @@ th {
 
 th::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: var(--border); }
 th:hover { color: var(--text-primary); background: var(--surface-hover); }
+th[data-sort]:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: -2px; color: var(--text-primary); }
+[data-theme="dark"] th[data-sort]:focus-visible { outline-color: var(--accent-pink); }
 
 .sticky-col { position: sticky; left: 0; background: var(--surface); z-index: 10; box-shadow: 2px 0 0 var(--border); }
 th.sticky-col { z-index: 12; box-shadow: 2px 0 0 var(--border), 0 1px 0 var(--border); backdrop-filter: blur(10px); }
@@ -1157,6 +1158,13 @@ tr { transition: all 0.15s ease; cursor: pointer; }
 tr:hover td { background: var(--surface-hover); }
 tr.selected-row td { background: var(--row-active); }
 
+.drill-chevron { display: inline-block; width: 14px; height: 14px; position: relative; vertical-align: -3px; margin: 0 2px 0 -18px; opacity: 0; transform: translateX(-4px); transition: opacity 0.15s ease, transform 0.15s ease; }
+.drill-chevron::before { content: ''; position: absolute; inset: 0; margin: auto; width: 6px; height: 6px; border-right: 1.5px solid var(--text-tertiary); border-bottom: 1.5px solid var(--text-tertiary); transform: rotate(-45deg); }
+table[data-view="view-overview"] tbody tr[data-idx]:hover .drill-chevron,
+table[data-view="view-overview"] tbody tr[data-idx]:focus-visible .drill-chevron { opacity: 0.7; transform: translateX(0); }
+table[data-view="view-overview"] tbody tr[data-idx]:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: -2px; }
+[data-theme="dark"] table[data-view="view-overview"] tbody tr[data-idx]:focus-visible { outline-color: var(--accent-pink); }
+
 .drill-down-row td { background: var(--surface-2) !important; padding: 0; border-bottom: 1px solid var(--border); box-shadow: none !important; cursor: default; }
 .drill-content { padding: 16px 24px 16px 48px; display: flex; flex-direction: column; gap: 8px; animation: viewEnter 0.2s var(--ease-out); }
 .drill-item { font-size: 13px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border-soft); }
@@ -1167,7 +1175,7 @@ tr.selected-row td { background: var(--row-active); }
 .drill-stats { display: flex; align-items: center; gap: 16px; }
 .drill-qty { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); }
 
-.arabic-text { font-family: 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', 'Arial', sans-serif; direction: rtl; display: inline-block; font-weight: 600; font-size: 14.5px; }
+.arabic-text { font-family: 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', 'Arial', sans-serif; direction: rtl; unicode-bidi: isolate; display: inline-block; font-weight: 600; font-size: 14.5px; }
 
 mark { background: var(--mark-bg); color: var(--mark-text); border-radius: 3px; padding: 0 2px; }
 
@@ -1182,9 +1190,9 @@ mark { background: var(--mark-bg); color: var(--mark-text); border-radius: 3px; 
 @keyframes pulseWarn { 0%, 100% { box-shadow: 0 0 0 0 rgba(184,128,31,0); } 50% { box-shadow: 0 0 0 4px rgba(184,128,31,0.15); } }
 
 .status-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 14px; position: relative; flex-shrink: 0; transition: box-shadow 0.3s; cursor: help; }
-.status-missing { background: var(--danger); box-shadow: 0 0 0 3px rgba(194,63,63,0.16), 0 0 10px rgba(194,63,63,0.25); animation: pulseDanger 2s ease-in-out infinite; }
+.status-missing { background: var(--danger); box-shadow: 0 0 0 3px rgba(194,63,63,0.16), 0 0 10px rgba(194,63,63,0.25); animation: pulseDanger 2s ease-in-out infinite; border-radius: 2px; clip-path: polygon(50% 2%, 100% 100%, 0% 100%); }
 .status-ok { background: var(--success); box-shadow: 0 0 0 3px rgba(47,133,102,0.14), 0 0 8px rgba(47,133,102,0.20); }
-.status-inactive { background: var(--warning); box-shadow: 0 0 0 3px rgba(184,128,31,0.14), 0 0 8px rgba(184,128,31,0.20); }
+.status-inactive { background: var(--warning); box-shadow: 0 0 0 3px rgba(184,128,31,0.14), 0 0 8px rgba(184,128,31,0.20); border-radius: 2px; transform: rotate(45deg); }
 .status-anomaly { background: var(--warning); box-shadow: 0 0 0 3px rgba(184,128,31,0.16), 0 0 10px rgba(184,128,31,0.25); animation: pulseDanger 2s ease-in-out infinite; }
 
 @keyframes pulseDanger { 0%, 100% { box-shadow: 0 0 0 3px rgba(194,63,63,0.16), 0 0 10px rgba(194,63,63,0.25); } 50% { box-shadow: 0 0 0 5px rgba(194,63,63,0.08), 0 0 16px rgba(194,63,63,0.35); } }
@@ -1575,7 +1583,7 @@ tr.grand-total-row:hover td { background: var(--surface-2); }
                         <input type="checkbox" id="toggle-exact">
                         <span class="slider"></span>
                     </label>
-                    <span class="exact-match-label">Exact Match</span>
+                    <span class="exact-match-label" title="Off: matches words that contain your letters in order or are a close misspelling, which can surface loosely-related hits. On: only exact substring matches.">Exact Match</span>
                 </div>
             </div>
             <div class="saved-views-row" id="saved-views-row">
@@ -1968,6 +1976,7 @@ const escapeHTML = str => str == null ? '' : String(str).replace(/[&<>'"]/g, t =
 const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const EMPTY_ICON = `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+const DRILL_CHEVRON = `<span class="drill-chevron" aria-hidden="true"></span>`;
 function emptyRowHTML(label) {
     return `<tr class="empty-row"><td colspan="12"><div class="empty-state">${EMPTY_ICON}<span>${escapeHTML(label)}</span></div></td></tr>`;
 }
@@ -2211,7 +2220,7 @@ async function parseRemoteSource(source) {
         const iName = row[itemIdx] != null ? String(row[itemIdx]).trim() : '';
         if (!iName) {
             if (row.some(c => c != null && String(c).trim() !== '')) {
-                pushAnomaly({ sheet: source.type, sourceId: source.id, row: i + 1, i: '-', p: '-', val: '(blank)', act: 'Blank Item — Row Skipped', sev: 'unparseable' });
+                pushAnomaly({ sheet: source.label, sourceId: source.id, row: i + 1, i: '-', p: '-', val: '(blank)', act: 'Blank Item — Row Skipped', sev: 'unparseable' });
             }
             continue;
         }
@@ -2231,7 +2240,7 @@ async function parseRemoteSource(source) {
             if (isIntentionalEmpty(norm)) continue;
 
             if (ERROR_STRING_RE.test(norm)) {
-                pushAnomaly({ sheet: source.type, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Formula Error', sev: 'error' });
+                pushAnomaly({ sheet: source.label, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Formula Error', sev: 'error' });
                 continue;
             }
 
@@ -2246,12 +2255,12 @@ async function parseRemoteSource(source) {
             const extracted = norm.match(/-?\d+(?:\.\d+)?/);
             const recovered = extracted ? parseFloat(extracted[0]) : NaN;
             if (extracted && !isNaN(recovered) && recovered > 0) {
-                pushAnomaly({ sheet: source.type, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Auto-Corrected', sev: 'corrected' });
+                pushAnomaly({ sheet: source.label, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Auto-Corrected', sev: 'corrected' });
                 rawData.push({ i: iName, u: uName, p: pName, branch: '', q: recovered, price: 0, t: source.type, srcId: source.id });
                 continue;
             }
 
-            pushAnomaly({ sheet: source.type, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Unparseable', sev: 'unparseable' });
+            pushAnomaly({ sheet: source.label, sourceId: source.id, row: i + 1, i: iName, p: pName, val: raw, act: 'Unparseable', sev: 'unparseable' });
         }
     }
 
@@ -2584,19 +2593,19 @@ function showToast(message, type, action) {
 function formatRelativeTime(ts) {
     const diff = Math.max(0, Date.now() - ts);
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'Synced just now';
-    if (mins < 60) return `Synced ${mins}m ago`;
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `Synced ${hrs}h ago`;
+    if (hrs < 24) return `${hrs}h ago`;
     const days = Math.floor(hrs / 24);
-    return `Synced ${days}d ago`;
+    return `${days}d ago`;
 }
 
 function updateLastSyncLabel() {
     const label = document.getElementById('last-sync-label');
     const ts = parseInt(localStorage.getItem('uni_last_sync'), 10);
     if (!ts) { label.textContent = ''; return; }
-    label.textContent = formatRelativeTime(ts);
+    label.textContent = 'Synced ' + formatRelativeTime(ts);
     label.classList.toggle('stale', Date.now() - ts > 3600000);
 }
 
@@ -3002,16 +3011,16 @@ function renderOverview() {
         qty += d.q;
         if (idx >= limit) continue;
 
-        const tdClass = gc.t ? `<td class="${firstVis==='t'?'sticky-col':''}"><span class="badge ${badgeClass(d.t)}">${highlightText(d.t, tokens)}</span></td>` : '';
-        const tdReg = gc.reg ? `<td class="${firstVis==='reg'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td>` : '';
-        const tdBranch = gc.branch ? `<td class="${firstVis==='branch'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.branch, tokens)}</span></td>` : '';
-        const tdPharm = gc.p ? `<td class="${firstVis==='p'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.p, tokens)}</span></td>` : '';
-        const tdItem = `<td class="${firstVis==='i'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.i, tokens)}</span></td>`;
+        const tdClass = gc.t ? `<td class="${firstVis==='t'?'sticky-col':''}">${firstVis==='t'?DRILL_CHEVRON:''}<span class="badge ${badgeClass(d.t)}">${highlightText(d.t, tokens)}</span></td>` : '';
+        const tdReg = gc.reg ? `<td class="${firstVis==='reg'?'sticky-col':''}">${firstVis==='reg'?DRILL_CHEVRON:''}<span class="arabic-text">${highlightText(d.reg, tokens)}</span></td>` : '';
+        const tdBranch = gc.branch ? `<td class="${firstVis==='branch'?'sticky-col':''}">${firstVis==='branch'?DRILL_CHEVRON:''}<span class="arabic-text">${highlightText(d.branch, tokens)}</span></td>` : '';
+        const tdPharm = gc.p ? `<td class="${firstVis==='p'?'sticky-col':''}">${firstVis==='p'?DRILL_CHEVRON:''}<span class="arabic-text">${highlightText(d.p, tokens)}</span></td>` : '';
+        const tdItem = `<td class="${firstVis==='i'?'sticky-col':''}">${firstVis==='i'?DRILL_CHEVRON:''}<span class="arabic-text">${highlightText(d.i, tokens)}</span></td>`;
         const tdUnit = colVisible.u ? `<td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td>` : '';
         const tdQty = colVisible.q ? `<td class="num">${fmtNum.format(d.q)}</td>` : '';
         const tdPrice = colVisible.price ? `<td class="num">${fmtEGP.format(d.price)}</td>` : '';
 
-        parts.push(`<tr data-idx="${idx}" data-view="overview">${tdClass}${tdReg}${tdBranch}${tdPharm}${tdItem}${tdUnit}${tdQty}${tdPrice}<td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
+        parts.push(`<tr data-idx="${idx}" data-view="overview" tabindex="0">${tdClass}${tdReg}${tdBranch}${tdPharm}${tdItem}${tdUnit}${tdQty}${tdPrice}<td class="highlight">${fmtEGP.format(d.tot)}</td></tr>`);
     }
 
     const emptyMsg = db.length === 0
@@ -3047,17 +3056,18 @@ function appendOverviewRows() {
 
     for (let idx = oldCount; idx < end; idx++) {
         const d = finalData[idx];
-        const tdClass = gc.t ? `<td class="${firstVis==='t'?'sticky-col':''}"><span class="badge ${badgeClass(d.t)}">${highlightText(d.t, tokens)}</span></td>` : '';
-        const tdReg = gc.reg ? `<td class="${firstVis==='reg'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.reg, tokens)}</span></td>` : '';
-        const tdBranch = gc.branch ? `<td class="${firstVis==='branch'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.branch, tokens)}</span></td>` : '';
-        const tdPharm = gc.p ? `<td class="${firstVis==='p'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.p, tokens)}</span></td>` : '';
-        const tdItem = `<td class="${firstVis==='i'?'sticky-col':''}"><span class="arabic-text">${highlightText(d.i, tokens)}</span></td>`;
+        const tdClass = gc.t ? `<td class="${firstVis==='t'?'sticky-col':''}">${firstVis==='t'?DRILL_CHEVRON:''}<span class="badge ${badgeClass(d.t)}">${highlightText(d.t, tokens)}</span></td>` : '';
+        const tdReg = gc.reg ? `<td class="${firstVis==='reg'?'sticky-col':''}">${firstVis==='reg'?DRILL_CHEVRON:''}<span class="arabic-text">${highlightText(d.reg, tokens)}</span></td>` : '';
+        const tdBranch = gc.branch ? `<td class="${firstVis==='branch'?'sticky-col':''}">${firstVis==='branch'?DRILL_CHEVRON:''}<span class="arabic-text">${highlightText(d.branch, tokens)}</span></td>` : '';
+        const tdPharm = gc.p ? `<td class="${firstVis==='p'?'sticky-col':''}">${firstVis==='p'?DRILL_CHEVRON:''}<span class="arabic-text">${highlightText(d.p, tokens)}</span></td>` : '';
+        const tdItem = `<td class="${firstVis==='i'?'sticky-col':''}">${firstVis==='i'?DRILL_CHEVRON:''}<span class="arabic-text">${highlightText(d.i, tokens)}</span></td>`;
         const tdUnit = colVisible.u ? `<td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td>` : '';
         const tdQty = colVisible.q ? `<td class="num">${fmtNum.format(d.q)}</td>` : '';
         const tdPrice = colVisible.price ? `<td class="num">${fmtEGP.format(d.price)}</td>` : '';
         const tr = document.createElement('tr');
         tr.dataset.idx = idx;
         tr.dataset.view = 'overview';
+        tr.tabIndex = 0;
         tr.innerHTML = `${tdClass}${tdReg}${tdBranch}${tdPharm}${tdItem}${tdUnit}${tdQty}${tdPrice}<td class="highlight">${fmtEGP.format(d.tot)}</td>`;
         frag.appendChild(tr);
     }
@@ -3106,7 +3116,7 @@ function renderBreakdown() {
             <div class="bento-card">
                 <div class="bento-header">
                     <div class="bento-title">${escapeHTML(d.key || '(Empty)')}</div>
-                    <div class="bento-subtitle">${d.sub === '-' ? '' : escapeHTML(d.sub)}</div>
+                    ${d.sub === '-' ? '' : `<div class="bento-subtitle">${escapeHTML(d.sub)}</div>`}
                 </div>
                 <div class="bento-metric">${fmtEGP.format(d.tot)}</div>
                 <div class="bento-submetric">
@@ -3210,6 +3220,14 @@ function handleRowClick(e) {
 }
 
 document.getElementById('tb-overview').addEventListener('click', handleRowClick);
+document.getElementById('tb-overview').addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (e.target.closest('.editable') || e.target.closest('a, button, input, select')) return;
+    const tr = e.target.closest('tr[data-idx]');
+    if (!tr) return;
+    e.preventDefault();
+    handleRowClick(e);
+});
 
 function undoLastEdit() {
     if (!lastEdit) return;
@@ -3281,7 +3299,7 @@ function renderPricing() {
             anomalyDot = `<div class="status-dot status-anomaly" title="Potential pricing anomaly (Deviation > 3x median)"></div>`;
         }
 
-        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td class="cell-flex">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}"></td></tr>`);
+        parts.push(`<tr><td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td class="cell-flex">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}" aria-label="Price for ${escapeHTML(d.i)}"></td></tr>`);
     }
 
     document.getElementById('tb-pricing').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No items match your filters');
@@ -3309,7 +3327,7 @@ function appendPricingRows() {
             anomalyDot = `<div class="status-dot status-anomaly" title="Potential pricing anomaly (Deviation > 3x median)"></div>`;
         }
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td class="cell-flex">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}"></td>`;
+        tr.innerHTML = `<td><div class="status-dot ${d.stat === 0 ? 'status-missing' : 'status-ok'}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.i, tokens)}</span></td><td><span class="arabic-text">${highlightText(d.u, tokens)}</span></td><td class="cell-flex">${anomalyDot}<input type="number" class="editable ${anomalyClass}" data-id="${escapeHTML(d.id)}" value="${d.p}" aria-label="Price for ${escapeHTML(d.i)}"></td>`;
         frag.appendChild(tr);
     }
     document.getElementById('tb-pricing').appendChild(frag);
@@ -3373,7 +3391,7 @@ function renderPharmacies() {
         if (idx >= limit) continue;
         const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
         const statLabel = d.stat === 0 ? 'Unrouted — no region assigned' : d.stat === 2 ? 'Inactive — no records this period' : 'Active';
-        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" list="region-suggestions" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}"></td></tr>`);
+        parts.push(`<tr><td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" list="region-suggestions" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" aria-label="Region for ${escapeHTML(d.k)}"></td></tr>`);
     }
 
     document.getElementById('tb-pharmacies').innerHTML = parts.length ? parts.join('') : emptyRowHTML('No pharmacies match your filters');
@@ -3397,7 +3415,7 @@ function appendPharmaciesRows() {
         const dotClass = d.stat === 0 ? 'status-missing' : d.stat === 2 ? 'status-inactive' : 'status-ok';
         const statLabel = d.stat === 0 ? 'Unrouted — no region assigned' : d.stat === 2 ? 'Inactive — no records this period' : 'Active';
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" list="region-suggestions" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}"></td>`;
+        tr.innerHTML = `<td><div class="status-dot ${dotClass}" title="${statLabel}"></div></td><td><span class="arabic-text">${highlightText(d.k, tokens)}</span></td><td><input type="text" class="editable" list="region-suggestions" data-id="${escapeHTML(d.k)}" value="${escapeHTML(d.reg)}" aria-label="Region for ${escapeHTML(d.k)}"></td>`;
         frag.appendChild(tr);
     }
     document.getElementById('tb-pharmacies').appendChild(frag);
@@ -3633,36 +3651,51 @@ function updateSortHeaderUI(wrapper, viewId) {
     });
 }
 
+function applySortToggle(wrapper, viewId, th, shiftKey) {
+    const key = th.dataset.sort;
+    const rules = sortRules[viewId] || [];
+    const idx = rules.findIndex(r => r.k === key);
+    const existingDir = idx >= 0 ? rules[idx].d : null;
+    const nextDir = existingDir == null ? 1 : existingDir === 1 ? -1 : null;
+
+    let newRules;
+    if (shiftKey) {
+        newRules = rules.slice();
+        if (idx === -1) newRules.push({ k: key, d: 1 });
+        else if (nextDir == null) newRules.splice(idx, 1);
+        else newRules[idx] = { k: key, d: nextDir };
+    } else if (rules.length === 1 && idx === 0) {
+        newRules = nextDir == null ? [] : [{ k: key, d: nextDir }];
+    } else {
+        newRules = [{ k: key, d: 1 }];
+    }
+
+    sortRules[viewId] = newRules;
+    updateSortHeaderUI(wrapper, viewId);
+    SORT_RENDER_MAP[viewId]?.();
+}
+
 function initSortableHeaders() {
     document.querySelectorAll('.table-wrapper').forEach(wrapper => {
         const table = wrapper.querySelector('table[data-view]');
         if (!table) return;
         const viewId = table.dataset.view;
+        wrapper.querySelectorAll('th[data-sort]').forEach(th => {
+            th.setAttribute('role', 'button');
+            th.setAttribute('tabindex', '0');
+        });
         updateSortHeaderUI(wrapper, viewId);
         wrapper.addEventListener('click', e => {
             const th = e.target.closest('th[data-sort]');
             if (!th) return;
-            const key = th.dataset.sort;
-            const rules = sortRules[viewId] || [];
-            const idx = rules.findIndex(r => r.k === key);
-            const existingDir = idx >= 0 ? rules[idx].d : null;
-            const nextDir = existingDir == null ? 1 : existingDir === 1 ? -1 : null;
-
-            let newRules;
-            if (e.shiftKey) {
-                newRules = rules.slice();
-                if (idx === -1) newRules.push({ k: key, d: 1 });
-                else if (nextDir == null) newRules.splice(idx, 1);
-                else newRules[idx] = { k: key, d: nextDir };
-            } else if (rules.length === 1 && idx === 0) {
-                newRules = nextDir == null ? [] : [{ k: key, d: nextDir }];
-            } else {
-                newRules = [{ k: key, d: 1 }];
-            }
-
-            sortRules[viewId] = newRules;
-            updateSortHeaderUI(wrapper, viewId);
-            SORT_RENDER_MAP[viewId]?.();
+            applySortToggle(wrapper, viewId, th, e.shiftKey);
+        });
+        wrapper.addEventListener('keydown', e => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            const th = e.target.closest('th[data-sort]');
+            if (!th) return;
+            e.preventDefault();
+            applySortToggle(wrapper, viewId, th, e.shiftKey);
         });
     });
 }
@@ -3709,7 +3742,11 @@ document.getElementById('btn-export').addEventListener('click', () => {
     ws['!views'] = [{ RTL: true }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Export");
-    XLSX.writeFile(wb, `Export_${exportName}.xlsx`);
+    const exportLabels = { 'view-overview': 'Overview', 'view-breakdown': 'Breakdown', 'view-pricing': 'Pricing Config', 'view-pharmacies': 'Region Map', 'view-missing': 'Missing Pharms', 'view-anomalies': 'Anomalies', 'view-duplicates': 'Duplicates' };
+    const pad2 = n => String(n).padStart(2, '0');
+    const now = new Date();
+    const stamp = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}_${pad2(now.getHours())}${pad2(now.getMinutes())}`;
+    XLSX.writeFile(wb, `${(exportLabels[exportName] || exportName).replace(/\s+/g, '_')}_${stamp}.xlsx`);
     showToast(`Exported ${fmtNum.format(data.length)} rows`, 'success');
 });
 
@@ -3845,6 +3882,7 @@ function initCustomDropdowns() {
         activePanel.classList.remove('open');
         activeGroup.classList.remove('open');
         activeGroup.setAttribute('aria-expanded', 'false');
+        activeGroup.removeAttribute('aria-activedescendant');
         const arrow = activeGroup.querySelector('.custom-select-arrow');
         if (arrow) arrow.style.transform = '';
         activePanel = null;
@@ -3910,7 +3948,9 @@ function initCustomDropdowns() {
                 }
                 const item = document.createElement('div');
                 item.className = 'custom-dropdown-option' + (o.value === cur ? ' active' : '');
+                item.id = `${id}-opt-${idx}`;
                 item.setAttribute('role', 'option');
+                item.setAttribute('aria-selected', o.value === cur ? 'true' : 'false');
                 item.innerHTML = `<span>${o.textContent}</span>${CHECK_SVG}`;
                 item.addEventListener('mousedown', e => {
                     e.preventDefault();
@@ -3928,6 +3968,7 @@ function initCustomDropdowns() {
             const opts = panel.querySelectorAll('.custom-dropdown-option');
             opts.forEach((o, i) => o.classList.toggle('kbd-focus', i === kbdIndex));
             opts[kbdIndex]?.scrollIntoView({ block: 'nearest' });
+            if (opts[kbdIndex]) group.setAttribute('aria-activedescendant', opts[kbdIndex].id);
         };
 
         const openViaKeyboard = () => {
@@ -4005,7 +4046,22 @@ const cmdModal = document.getElementById('cmd-modal');
 const cmdInput = document.getElementById('cmd-modal-input');
 const cmdResults = document.getElementById('cmd-modal-results');
 const shortcutsModal = document.getElementById('shortcuts-modal');
+const shortcutsCloseBtn = document.getElementById('btn-shortcuts-close');
 let cmdActiveIndex = 0, cmdPreviousFocus = null, shortcutsPreviousFocus = null;
+
+function getFocusable(container) {
+    return Array.from(container.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+        .filter(el => el.offsetParent !== null);
+}
+
+function trapTabKey(e, container) {
+    if (e.key !== 'Tab') return;
+    const focusable = getFocusable(container);
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
 
 function openCmdPalette() {
     cmdPreviousFocus = document.activeElement;
@@ -4024,6 +4080,7 @@ function closeCmdPalette() {
 function openShortcutsModal() {
     shortcutsPreviousFocus = document.activeElement;
     shortcutsModal.classList.add('open');
+    setTimeout(() => shortcutsCloseBtn.focus(), 50);
 }
 
 function closeShortcutsModal() {
@@ -4035,6 +4092,7 @@ function closeShortcutsModal() {
 document.getElementById('btn-shortcuts').addEventListener('click', openShortcutsModal);
 document.getElementById('btn-shortcuts-close').addEventListener('click', closeShortcutsModal);
 shortcutsModal.addEventListener('click', e => { if (e.target === shortcutsModal) closeShortcutsModal(); });
+shortcutsModal.addEventListener('keydown', e => trapTabKey(e, shortcutsModal));
 
 function renderCmdResults(query) {
     const actions = [
@@ -4103,7 +4161,7 @@ cmdInput.addEventListener('keydown', e => {
     else if (e.key === 'ArrowUp') { e.preventDefault(); cmdActiveIndex = Math.max(cmdActiveIndex - 1, 0); updateCmdActive(); }
     else if (e.key === 'Enter') { e.preventDefault(); items[cmdActiveIndex]?.click(); }
     else if (e.key === 'Escape') { e.preventDefault(); closeCmdPalette(); }
-    else if (e.key === 'Tab') { e.preventDefault(); }
+    else trapTabKey(e, cmdModal);
 });
 
 cmdModal.addEventListener('click', e => { if (e.target === cmdModal) closeCmdPalette(); });
@@ -4472,27 +4530,28 @@ function computeSheetResult(sheetName) {
     let anomaliesTruncated = false;
     const pushAnomaly = entry => { if (anomalies.length < ANOMALY_CAP) anomalies.push(entry); else anomaliesTruncated = true; };
     const labelNames = { i: 'Item', branch: 'Branch', p: 'Pharmacy', u: 'Unit' };
+    const sourceLabel = importState && importState.file ? `${importState.file.name} · ${sheetName}` : sheetName;
 
     sheetRows.forEach(sr => {
         if (isTotalsColumn(sr.i)) return;
         if (!sr.i) {
-            pushAnomaly({ sheet: sheetName, row: sr.srcRow, i: '-', p: sr.p || '-', val: '(blank)', act: 'Blank Item — Row Skipped', sev: 'unparseable' });
+            pushAnomaly({ sheet: sourceLabel, row: sr.srcRow, i: '-', p: sr.p || '-', val: '(blank)', act: 'Blank Item — Row Skipped', sev: 'unparseable' });
             return;
         }
         if (sr._filled && sr._filled.length) {
-            pushAnomaly({ sheet: sheetName, row: sr.srcRow, i: sr.i, p: sr.p || '-', val: '(blank)', act: `Filled (${sr._filled.map(f => labelNames[f] || f).join(', ')})`, sev: 'filled' });
+            pushAnomaly({ sheet: sourceLabel, row: sr.srcRow, i: sr.i, p: sr.p || '-', val: '(blank)', act: `Filled (${sr._filled.map(f => labelNames[f] || f).join(', ')})`, sev: 'filled' });
         }
 
         if (!sr.rawQty || isIntentionalEmpty(sr.rawQty)) return;
         const normQ = normalizeDigits(sr.rawQty).replace(/\u066B/g, '.').replace(/\u066C/g, '');
         if (ERROR_STRING_RE.test(normQ)) {
-            pushAnomaly({ sheet: sheetName, row: sr.srcRow, i: sr.i, p: sr.p, val: sr.rawQty, act: 'Formula Error (Qty)', sev: 'error' });
+            pushAnomaly({ sheet: sourceLabel, row: sr.srcRow, i: sr.i, p: sr.p, val: sr.rawQty, act: 'Formula Error (Qty)', sev: 'error' });
             return;
         }
         const extQ = normQ.match(/-?\d+(?:\.\d+)?/);
         const q = extQ ? parseFloat(extQ[0]) : NaN;
         if (isNaN(q)) {
-            pushAnomaly({ sheet: sheetName, row: sr.srcRow, i: sr.i, p: sr.p, val: sr.rawQty, act: 'Unparseable (Qty)', sev: 'unparseable' });
+            pushAnomaly({ sheet: sourceLabel, row: sr.srcRow, i: sr.i, p: sr.p, val: sr.rawQty, act: 'Unparseable (Qty)', sev: 'unparseable' });
             return;
         }
         if (q <= 0) return;
@@ -4501,7 +4560,7 @@ function computeSheetResult(sheetName) {
         if (priceIdx !== -1 && sr.rawPrice && !isIntentionalEmpty(sr.rawPrice)) {
             const normP = normalizeDigits(sr.rawPrice).replace(/\u066B/g, '.').replace(/\u066C/g, '');
             if (ERROR_STRING_RE.test(normP)) {
-                pushAnomaly({ sheet: sheetName, row: sr.srcRow, i: sr.i, p: sr.p, val: sr.rawPrice, act: 'Formula Error (Price)', sev: 'error' });
+                pushAnomaly({ sheet: sourceLabel, row: sr.srcRow, i: sr.i, p: sr.p, val: sr.rawPrice, act: 'Formula Error (Price)', sev: 'error' });
             } else {
                 const extP = normP.match(/-?\d+(?:\.\d+)?/);
                 if (extP) priceVal = parseFloat(extP[0]);
