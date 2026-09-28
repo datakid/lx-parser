@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LX Parser — import wizard harness</title>
+<style>html, body { margin: 0; height: 100%; } iframe { border: 0; width: 100%; height: 100%; display: block; }</style>
+</head>
+<body>
+<iframe id="app" src="../index.html"></iframe>
+<script>
+/* Builds a deliberately messy two-sheet workbook and opens it in the app's import wizard. */
+const frame = document.getElementById('app');
+frame.addEventListener('load', () => {
+    const w = frame.contentWindow;
+    const wait = setInterval(() => {
+        if (!w.LX || !w.LX.importer || !w.XLSX) return;
+        clearInterval(wait);
+        const X = w.XLSX;
+        // Sheet 1: long layout, title rows, merged pharmacy cells, typos, Arabic digits, totals
+        const s1 = X.utils.aoa_to_sheet([
+            ['مديرية الصحة بالبحيرة — كشف احتياجات'],
+            [],
+            ['م', 'اسم الصيدليه', 'الصنـف', 'الوحده', 'الكميه المطلوبه', 'ملاحظات'],
+            [1, 'دمنهور الشامله ١', 'بنادول اكسترا', 'علبه', '١٢', ''],
+            [2, '', 'اوجمنتين 1 جم', 'علب', '5 علب', 'عاجل'],
+            [3, '', 'سرنجه 5 سم', 'pcs', '3+2', ''],
+            [4, 'الشرطه', 'بنادول  اكسترا', 'Box', 'عشرة', ''],
+            [5, '', 'فولتارين امبول', 'امبولات', '#REF!', ''],
+            [6, 'أدكو ق ع', 'قطن طبي', 'رول', '٢٠', ''],
+            ['', 'الاجمالي', '', '', 55, '']
+        ]);
+        s1['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
+        // Sheet 2: wide layout with a 2-row header
+        const s2 = X.utils.aoa_to_sheet([
+            ['الصنف', 'الوحدة', 'الكميات', '', '', 'اجمالي'],
+            ['', '', 'رشيد', 'ادكو', 'البيضا', ''],
+            ['قفازات طبية', 'علبة', 4, 2, '', 6],
+            ['كمامات', 'علبه', '', '٦', 1, 7]
+        ]);
+        s2['!merges'] = [{ s: { r: 0, c: 2 }, e: { r: 0, c: 4 } }];
+        const wb = X.utils.book_new();
+        X.utils.book_append_sheet(wb, s1, 'احتياجات');
+        X.utils.book_append_sheet(wb, s2, 'مستلزمات');
+        const buf = X.write(wb, { type: 'array', bookType: 'xlsx' });
+        const file = new w.File([buf], 'كشف_احتياجات_مارس.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        setTimeout(() => w.LX.importer.openFromFile(file), 1500);
+        const scrollTo = new URLSearchParams(location.search).get('scroll');
+        if (scrollTo) setTimeout(() => { const b = w.document.querySelector('.import-body'); b.scrollTop = scrollTo === 'end' ? b.scrollHeight : +scrollTo; }, 2600);
+        const sheet = new URLSearchParams(location.search).get('sheet');
+        if (sheet) setTimeout(() => { const t = w.document.querySelectorAll('.import-tab')[+sheet]; if (t) t.click(); }, 2200);
+        if (location.hash === '#commit') setTimeout(() => w.document.getElementById('btn-import-confirm').click(), 3500);
+    }, 200);
+});
+</script>
+</body>
+</html>

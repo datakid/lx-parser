@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LX Parser — parser tests</title>
+<style>
+body { font: 14px/1.5 system-ui, sans-serif; margin: 24px; background: #f6f4f8; color: #16121D; }
+h1 { font-size: 18px; }
+.pass { color: #2F8566; } .fail { color: #C23F3F; font-weight: 700; }
+#summary { font-weight: 700; font-size: 16px; margin: 12px 0; }
+li { margin: 2px 0; font-family: ui-monospace, monospace; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<h1>LX Parser — parser test suite</h1>
+<div id="summary">Running…</div>
+<ul id="results"></ul>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.5.4/papaparse.min.js"></script>
+<script src="../js/vendor/xlsx.full.min.js"></script>
+<script src="../js/core/config.js"></script>
+<script src="../js/core/text.js"></script>
+<script src="../js/parser/numbers.js"></script>
+<script src="../js/parser/headers.js"></script>
+<script src="../js/parser/reader.js"></script>
+<script src="../js/parser/resolver.js"></script>
+<script src="../js/parser/engine.js"></script>
+<script src="parser.test.js"></script>
+</body>
+</html>
